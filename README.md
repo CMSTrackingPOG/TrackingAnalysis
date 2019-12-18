@@ -1,4 +1,4 @@
-# IpResoStudies
+# TrackingAnalysis
 
 Measurement of the resolution of the primary vertex and track impact
 parameter (IP) reconstruction.
@@ -7,6 +7,6 @@ Inspired by the IP resolution studies done by B. Mangano et al. (see http://cmsc
 
 Install:
 ```
-git clone git@github.com:kskovpen/IpResoStudies.git
+git clone git@github.com:kskovpen/TrackingAnalysis.git
 scram b -j 8
 ```
