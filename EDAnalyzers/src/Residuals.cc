@@ -130,9 +130,9 @@ class Residuals : public edm::EDAnalyzer
    bool vertexSelection(const reco::Vertex& vertex) const;
   
    // ----------member data ---------------------------
-   edm::EDGetTokenT<reco::VertexCollection> thePVToken_;
-   edm::EDGetTokenT<reco::TrackCollection> theTracksToken_;
-   edm::EDGetTokenT<reco::BeamSpot> theBeamspotToken_;
+   edm::InputTag thePVLabel_;
+   edm::InputTag theTrackLabel_;
+   edm::InputTag theBeamspotLabel_;
 
    // --- track selection variables
    double tkMinPt;
@@ -155,14 +155,9 @@ class Residuals : public edm::EDAnalyzer
 
 Residuals::Residuals(const edm::ParameterSet& pset)
 {
-   edm::InputTag TrackCollectionTag_ = pset.getParameter<edm::InputTag>("TrackLabel");
-   theTracksToken_= consumes<reco::TrackCollection>(TrackCollectionTag_);
-   
-   edm::InputTag VertexCollectionTag_ = pset.getParameter<edm::InputTag>("VertexLabel");
-   thePVToken_ = consumes<reco::VertexCollection>(VertexCollectionTag_);
-   
-   edm::InputTag BeamspotTag_ = edm::InputTag("offlineBeamSpot");
-   theBeamspotToken_ = consumes<reco::BeamSpot>(BeamspotTag_);
+   thePVLabel_  = pset.getParameter<edm::InputTag>("VertexLabel");
+   theTrackLabel_  = pset.getParameter<edm::InputTag>("TrackLabel");
+   theBeamspotLabel_  = pset.getParameter<edm::InputTag>("offlineBeamSpot");
    
    tkMinPt = pset.getParameter<double>("TkMinPt");    
    tkMinXLayers = pset.getParameter<int>("TkMinXLayers");
@@ -268,20 +263,16 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace reco;
    using namespace std;
 
-   std::cout << "point1" << std::endl;
    Handle<TrackCollection> tracks;
-   iEvent.getByToken(theTracksToken_,tracks);
-   std::cout << "point2" << std::endl;
+   iEvent.getByLabel(theTrackLabel_,tracks);
    
 //   ESHandle<TransientTrackBuilder> transTrackBuilder;
 //   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", transTrackBuilder);
    
    //std::cout << "size of track collection: "<< tracks->size() << std::endl;
-   
-   std::cout << "point3" << std::endl;
+
    Handle<VertexCollection> vtxH;
-   iEvent.getByToken(thePVToken_, vtxH);
-   std::cout << "point4 " << thePVToken_ < 
+   iEvent.getByLabel(thePVLabel_, vtxH);
 
    if (!vtxH.isValid()) return;
 
@@ -298,7 +289,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
 
    Handle<BeamSpot> pvbeamspot;
-   iEvent.getByToken(theBeamspotToken_, pvbeamspot);
+   iEvent.getByLabel(theBeamspotLabel_, pvbeamspot);
 
    //if(tracks.id() != pvtracks.id())
    // cout << "WARNING: the tracks originally used for PV are not the same used in this analyzer."
@@ -381,10 +372,10 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	trip.eta = itk->eta();
 	trip.phi = itk->phi();
 	trip.nXLayers   = itk->hitPattern().trackerLayersWithMeasurement();
-	trip.nMissedOut = itk->hitPattern().numberOfLostHits(HitPattern::MISSING_OUTER_HITS);
-	trip.nMissedIn  = itk->hitPattern().numberOfLostHits(HitPattern::MISSING_INNER_HITS);
-	trip.hasPXL     = (itk->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 1) || 
-			   itk->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 1));
+	trip.nMissedOut = itk->trackerExpectedHitsOuter().numberOfLostHits();
+	trip.nMissedIn  = itk->trackerExpectedHitsInner().numberOfLostHits();
+	trip.hasPXL     = (itk->hitPattern().hasValidHitInFirstPixelBarrel() ||
+			   itk->hitPattern().hasValidHitInFirstPixelEndcap());
 	trip.quality = itk->qualityMask();
 	trip.d0 = d0*micron;
 	trip.dz = dz*micron;
@@ -491,8 +482,8 @@ bool Residuals::trackSelection(const reco::Track& track) const
    
    if( track.pt() < tkMinPt ) return false;
    if( track.hitPattern().trackerLayersWithMeasurement() < tkMinXLayers ) return false;
-   if( track.hitPattern().numberOfLostHits(HitPattern::MISSING_OUTER_HITS) > tkMaxMissedOuterLayers ) return false;
-   if( track.hitPattern().numberOfLostHits(HitPattern::MISSING_INNER_HITS) > tkMaxMissedInnerLayers ) return false;   
+   if( track.trackerExpectedHitsOuter().numberOfLostHits() > tkMaxMissedOuterLayers ) return false;
+   if( track.trackerExpectedHitsInner().numberOfLostHits() > tkMaxMissedInnerLayers ) return false;   
    if( ! track.quality(reco::TrackBase::highPurity) ) return false;
 //   if( ! (track.hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelBarrel, 1) ||
 //	  track.hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelEndcap, 1)) ) return false;

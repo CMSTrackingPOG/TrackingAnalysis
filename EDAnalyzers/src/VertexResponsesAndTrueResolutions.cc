@@ -29,7 +29,9 @@
 #include <TrackingTools/TrajectoryState/interface/PerigeeConversions.h>
 #include <TrackingTools/TrajectoryState/interface/TrajectoryStateClosestToPoint.h>
 #include <TrackingTools/PatternTools/interface/TSCPBuilderNoMaterial.h>
-#include "SimDataFormats/Associations/interface/TrackToTrackingParticleAssociator.h"
+//#include "SimDataFormats/Associations/interface/TrackToTrackingParticleAssociator.h"
+#include "SimTracker/TrackAssociation/interface/TrackAssociatorByChi2.h"
+#include "SimTracker/TrackAssociation/interface/TrackAssociatorByHits.h"
 #include "SimTracker/TrackerHitAssociation/interface/TrackerHitAssociator.h"
 #include "SimTracker/Records/interface/TrackAssociatorRecord.h"
 
@@ -96,18 +98,28 @@ class VertexResponsesAndTrueResolutions : public edm::EDAnalyzer
    bool trackSelection(const reco::Track& track) const;
    bool vertexSelection(const reco::Vertex& vertex) const;
   
-   edm::EDGetTokenT<reco::BeamSpot> theBeamspotToken_;
-   edm::EDGetTokenT<reco::TrackCollection> theTracksToken_;
-   edm::EDGetTokenT<edm::View<reco::Track> > theTracksViewToken_;
-   edm::EDGetTokenT<reco::VertexCollection> thePVToken_;
+   edm::InputTag theBeamspotLabel_;
+   edm::InputTag theTracksLabel_;
+   edm::InputTag thePVLabel_;
    
-   edm::EDGetTokenT<edm::SimTrackContainer> theSimTrackToken_;
+//   edm::EDGetTokenT<reco::BeamSpot> theBeamspotToken_;
+//   edm::EDGetTokenT<reco::TrackCollection> theTracksToken_;
+//   edm::EDGetTokenT<edm::View<reco::Track> > theTracksViewToken_;
+//   edm::EDGetTokenT<reco::VertexCollection> thePVToken_;
    
-   edm::EDGetTokenT<reco::TrackToTrackingParticleAssociator> theAssociatorToken_;
-   edm::EDGetTokenT<TrackingParticleCollection> theTPCollectionHToken_;
-   edm::EDGetTokenT<TrackingVertexCollection> theTVCollectionHToken_;
+   edm::InputTag theSimTrackLabel_;
+//   edm::EDGetTokenT<edm::SimTrackContainer> theSimTrackToken_;
    
-   edm::EDGetTokenT<edm::TriggerResults> triggerBitsToken_;
+//   edm::EDGetTokenT<reco::TrackToTrackingParticleAssociator> theAssociatorToken_;
+//   edm::EDGetTokenT<TrackingParticleCollection> theTPCollectionHToken_;
+//   edm::EDGetTokenT<TrackingVertexCollection> theTVCollectionHToken_;
+   
+//   edm::EDGetTokenT<edm::TriggerResults> triggerBitsToken_;
+
+   edm::InputTag theTPCollectionHLabel_;
+   edm::InputTag theTVCollectionHLabel_;
+   
+   edm::InputTag triggerBitsLabel_;
    
    edm::InputTag trackLabel;
    edm::InputTag vertexLabel;
@@ -147,29 +159,14 @@ VertexResponsesAndTrueResolutions::VertexResponsesAndTrueResolutions(const edm::
    vtxErrorZMin     = pset.getParameter<double>("VtxErrorZMin");
    vtxErrorZMax     = pset.getParameter<double>("VtxErrorZMax");   
 
-   edm::InputTag BeamspotTag_ = edm::InputTag("offlineBeamSpot");
-   theBeamspotToken_ = consumes<reco::BeamSpot>(BeamspotTag_);
+   theBeamspotLabel_  = pset.getParameter<edm::InputTag>("offlineBeamSpot");
+   theTracksLabel_  = pset.getParameter<edm::InputTag>("TrackLabel");
+   thePVLabel_  = pset.getParameter<edm::InputTag>("VertexLabel");
    
-   edm::InputTag TrackCollectionTag_ = pset.getParameter<edm::InputTag>("TrackLabel");
-   theTracksToken_= consumes<reco::TrackCollection>(TrackCollectionTag_);
-   theTracksViewToken_= consumes<edm::View<reco::Track> >(TrackCollectionTag_);
-   
-   edm::InputTag VertexCollectionTag_ = pset.getParameter<edm::InputTag>("VertexLabel");
-   thePVToken_ = consumes<reco::VertexCollection>(VertexCollectionTag_);
-   
-   edm::InputTag AssociatorTag_ = edm::InputTag("trackAssociatorByHits");
+////   edm::InputTag AssociatorTag_ = edm::InputTag("trackAssociatorByHits");
 //   edm::InputTag AssociatorTag_ = edm::InputTag("quickTrackAssociatorByHits");
-   theAssociatorToken_ = consumes<reco::TrackToTrackingParticleAssociator>(AssociatorTag_);
+////   theAssociatorToken_ = consumes<reco::TrackToTrackingParticleAssociator>(AssociatorTag_);
 
-   edm::InputTag TPCollectionHTag_ = edm::InputTag("mix", "MergedTrackTruth");
-   theTPCollectionHToken_ = consumes<TrackingParticleCollection>(TPCollectionHTag_);
-
-   edm::InputTag TVCollectionHTag_ = edm::InputTag("mix", "MergedTrackTruth");
-   theTVCollectionHToken_ = consumes<TrackingVertexCollection>(TVCollectionHTag_);
-
-   edm::InputTag TriggerResultsTag_ = edm::InputTag("TriggerResults", "", "HLT");
-   triggerBitsToken_ = consumes<edm::TriggerResults>(TriggerResultsTag_);
-   
 //   edm::InputTag SimTrackTag_ = edm::InputTag("g4SimHits");
 //   theSimTrackToken_ = consumes<edm::SimTrackContainer>(SimTrackTag_);
    
@@ -191,28 +188,43 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
    using namespace reco;
    using namespace std;
    
-   edm::Handle<reco::TrackToTrackingParticleAssociator> theAssociator;
-   iEvent.getByToken(theAssociatorToken_, theAssociator);
+   ESHandle<TrackAssociatorBase> theAssociator;
+   iSetup.get<TrackAssociatorRecord>().get("TrackAssociatorByHitsRecoDenom",theAssociator);
    
    Handle<TrackingParticleCollection>  TPCollectionH;
-   iEvent.getByToken(theTPCollectionHToken_, TPCollectionH);
+   iEvent.getByLabel("mergedtruth","MergedTrackTruth", TPCollectionH);
    
    Handle<TrackingVertexCollection> TVCollectionH;
-   iEvent.getByToken(theTVCollectionHToken_, TVCollectionH);
-
-   ESHandle<ParametersDefinerForTP> parametersDefinerTP; 
-   iSetup.get<TrackAssociatorRecord>().get("LhcParametersDefinerForTP",parametersDefinerTP); 
-
-   ESHandle<MagneticField> theMF;   
+   iEvent.getByLabel("mergedtruth","MergedTrackTruth", TVCollectionH);
+   
+   ESHandle<ParametersDefinerForTP> parametersDefinerTP;
+   iSetup.get<TrackAssociatorRecord>().get("LhcParametersDefinerForTP",parametersDefinerTP);
+   
+   ESHandle<MagneticField> theMF;
    iSetup.get<IdealMagneticFieldRecord>().get(theMF);
-
+   
    Handle<VertexCollection> vtxH;
-   iEvent.getByToken(thePVToken_, vtxH);
+   iEvent.getByLabel(vertexLabel, vtxH);      
 
 //   Handle<edm::SimTrackContainer> theSimTrack;
 //   iEvent.getByToken(theSimTrackToken_, theSimTrack);
    
    VertexReProducer revertex(vtxH, iEvent);
+   Handle<TrackCollection> pvtracks;
+   iEvent.getByLabel(revertex.inputTracks(),   pvtracks);
+   
+   Handle<BeamSpot>        pvbeamspot;
+   iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
+   
+   Handle<TrackCollection> tracks;
+   iEvent.getByLabel(trackLabel, tracks);
+   
+   if( tracks.id() != pvtracks.id() )
+     cout << "WARNING: the tracks originally used for PV are not the same used in this analyzer."
+     << "Is this really what you want?" << endl;
+   
+   Handle<View<Track> >  trackViews;   
+   iEvent.getByLabel(trackLabel, trackViews);
    
 //   Handle<TrackCollection> pvtracks;   
 //   iEvent.getByLabel(revertex.inputTracks(),   pvtracks);
@@ -220,8 +232,8 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
 //   Handle<BeamSpot> pvbeamspot; 
 //   iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
 
-   Handle<BeamSpot> pvbeamspot;
-   iEvent.getByToken(theBeamspotToken_, pvbeamspot);
+//   Handle<BeamSpot> pvbeamspot;
+//   iEvent.getByToken(theBeamspotToken_, pvbeamspot);
    
 //   Handle<TrackCollection> tracks;  
 //   iEvent.getByLabel(trackLabel, tracks);
@@ -230,11 +242,11 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
 //     cout << "WARNING: the tracks originally used for PV are not the same used in this analyzer." 
 //     << "Is this really what you want?" << endl;
   
-   Handle<TrackCollection> tracks;
-   iEvent.getByToken(theTracksToken_, tracks);
+//   Handle<TrackCollection> tracks;
+//   iEvent.getByToken(theTracksToken_, tracks);
    
-   Handle<View<Track> > trackViews;   
-   iEvent.getByToken(theTracksViewToken_, trackViews);
+//   Handle<View<Track> > trackViews;   
+//   iEvent.getByToken(theTracksViewToken_, trackViews);
 
 //   edm::Handle<edm::TriggerResults> triggerBits;
 //   iEvent.getByToken(triggerBitsToken_,triggerBits);
@@ -269,8 +281,8 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
 	TrackingParticleRef tpr = tp.begin()->first;
 
 	// ========== evaluating True MC-derived resolutions ================
-	auto momentumTP_bs = parametersDefinerTP->momentum(iEvent,iSetup,tpr);
-	auto vertexTP_bs = parametersDefinerTP->vertex(iEvent,iSetup,tpr);
+	ParticleBase::Vector momentumTP_bs = parametersDefinerTP->momentum(iEvent,iSetup,*(tpr.get()));
+	ParticleBase::Point vertexTP_bs = parametersDefinerTP->vertex(iEvent,iSetup,*(tpr.get()));
 	
 	//double qoverpSim = tpr->charge()/sqrt(momentumTP.x()*momentumTP.x()+
 	//     momentumTP.y()*momentumTP.y()+momentumTP.z()*momentumTP.z());
@@ -291,10 +303,10 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
 	reso.eta = tpr->eta();
 	reso.phi = tpr->phi();
 	reso.nXLayers = itk->hitPattern().trackerLayersWithMeasurement();
-	reso.nMissedOut = itk->hitPattern().numberOfLostHits(HitPattern::MISSING_OUTER_HITS);
-	reso.nMissedIn = itk->hitPattern().numberOfLostHits(HitPattern::MISSING_INNER_HITS);
-	reso.hasPXL =  (itk->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 1) || 
-			itk->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 1));
+	reso.nMissedOut = itk->trackerExpectedHitsOuter().numberOfLostHits();
+	reso.nMissedIn = itk->trackerExpectedHitsInner().numberOfLostHits();
+	reso.hasPXL =  (itk->hitPattern().hasValidHitInFirstPixelBarrel() ||
+			itk->hitPattern().hasValidHitInFirstPixelEndcap());
 	reso.dxyReso = dxyRes*10000.;
 	reso.dzReso  = dzRes*10000.;
 	// ============================ DONE ==============================
@@ -306,7 +318,7 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
 	  {
 	     //cout << "matched tp is not a prompt particle. it has status,charge: "
 	     //   << tpr->status() << " , " << tpr->charge() << endl;
-	     if( tpr->genParticles().size() )
+	     if( tpr->genParticle().size() )
 	       {
 		  //cout << "It is pythia particle from decay of long living particle" << endl;
 		  entryType = 5;
@@ -393,10 +405,10 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
 	resp.eta = tpr->eta();
 	resp.phi = tpr->phi();
 	resp.nXLayers = itk->hitPattern().trackerLayersWithMeasurement();
-	resp.nMissedOut = itk->hitPattern().numberOfLostHits(HitPattern::MISSING_OUTER_HITS);
-	resp.nMissedIn = itk->hitPattern().numberOfLostHits(HitPattern::MISSING_INNER_HITS);
-	resp.hasPXL = (itk->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 1) || 
-		       itk->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 1));
+	resp.nMissedOut = itk->trackerExpectedHitsOuter().numberOfLostHits();
+	resp.nMissedIn = itk->trackerExpectedHitsInner().numberOfLostHits();
+	resp.hasPXL = (itk->hitPattern().hasValidHitInFirstPixelBarrel() ||
+		       itk->hitPattern().hasValidHitInFirstPixelEndcap());
 	resp.dxyResp = dxyResp*10000.;
 	resp.dzResp = dzResp*10000.;
 	tResp->Fill();     
@@ -418,8 +430,8 @@ bool VertexResponsesAndTrueResolutions::trackSelection(const reco::Track& track)
    
    if( track.pt() < tkMinPt ) return false;
    if( track.hitPattern().trackerLayersWithMeasurement() < tkMinXLayers ) return false;
-   if( track.hitPattern().numberOfLostHits(HitPattern::MISSING_OUTER_HITS) > tkMaxMissedOuterLayers ) return false;
-   if( track.hitPattern().numberOfLostHits(HitPattern::MISSING_INNER_HITS) > tkMaxMissedInnerLayers ) return false;
+   if( track.trackerExpectedHitsOuter().numberOfLostHits() > tkMaxMissedOuterLayers ) return false;
+   if( track.trackerExpectedHitsInner().numberOfLostHits() > tkMaxMissedInnerLayers ) return false;
    if( ! track.quality(reco::TrackBase::highPurity) ) return false;
 //   if( ! (track.hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelBarrel, 1) ||
 //	  track.hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelEndcap, 1)) ) return false;
