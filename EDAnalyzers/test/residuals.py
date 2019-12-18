@@ -68,7 +68,7 @@ process.HLTMinBias = cms.EDFilter("HLTHighLevel",
 # process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.maxD0Significance             = 5.0
 # process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minPixelLayersWithHits        = 2
 
-process.load('IpResoStudies.EDAnalyzers.residuals_cfi')
+process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
 #process.residuals.TrackLabel = cms.InputTag("TrackRefitter")
 #process.residuals.VertexLabel = cms.InputTag("offlinePrimaryVerticesFromRefittedTrks")
 

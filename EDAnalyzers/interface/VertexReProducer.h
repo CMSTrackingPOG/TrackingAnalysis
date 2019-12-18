@@ -1,5 +1,5 @@
-#ifndef IpResoStudies_EDAnalyzers_interface_VertexReProducer_h
-#define IpResoStudies_EDAnalyzers_interface_VertexReProducer_h
+#ifndef TrackingAnalysis_EDAnalyzers_interface_VertexReProducer_h
+#define TrackingAnalysis_EDAnalyzers_interface_VertexReProducer_h
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"

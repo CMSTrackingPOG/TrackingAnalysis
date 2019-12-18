@@ -100,7 +100,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 process.source = source
 
-process.load('IpResoStudies.EDAnalyzers.vertexResponsesAndTrueResolutions_cfi')
+process.load('TrackingAnalysis.EDAnalyzers.vertexResponsesAndTrueResolutions_cfi')
 
 process.TFileService = cms.Service("TFileService", 
       fileName = cms.string("output.root"),

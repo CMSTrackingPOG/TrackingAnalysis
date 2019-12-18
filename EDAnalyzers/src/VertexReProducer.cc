@@ -1,4 +1,4 @@
-#include "IpResoStudies/EDAnalyzers/interface/VertexReProducer.h"
+#include "TrackingAnalysis/EDAnalyzers/interface/VertexReProducer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"

@@ -40,7 +40,7 @@
 
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
-#include "IpResoStudies/EDAnalyzers/interface/VertexReProducer.h"
+#include "TrackingAnalysis/EDAnalyzers/interface/VertexReProducer.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include <CommonTools/UtilAlgos/interface/TFileService.h>
