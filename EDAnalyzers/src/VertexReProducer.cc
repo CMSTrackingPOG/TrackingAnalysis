@@ -38,24 +38,11 @@ VertexReProducer::VertexReProducer(const edm::Handle<reco::VertexCollection> &ha
    if( is_primary_available ) prov = parent_prov;
    else throw cms::Exception("Configuration") << "Vertices to re-produce don't come from a PrimaryVertexProducer \n";
 
-   configure(psetFromProvenance);
-	
-//   std::cout << result.dump() << std::endl;
-   
-/*   edm::pset::Registry *psregistry = edm::pset::Registry::instance();
-   edm::ParameterSet psetFromProvenance;
-   if( !psregistry->getMapped(psid, psetFromProvenance) )
-     throw cms::Exception("CorruptData") << "Vertex handle parameter set ID id = " << psid;
-   
-   if( prov->moduleName() != "PrimaryVertexProducer" )
-     throw cms::Exception("Configuration") << "Vertices to re-produce don't come from a PrimaryVertexProducer, but from a " << prov->moduleName() <<".\n";
-
 //   psetFromProvenance.addParameter<bool>("useBeamConstraint",false);
-   std::cout << psetFromProvenance.dump() << std::endl;
-   std::cout << "check" << std::endl;   
+//   std::cout << psetFromProvenance.dump() << std::endl;
    
-   configure(psetFromProvenance);*/
-/*   
+   configure(psetFromProvenance);
+   
    std::vector<edm::BranchID> parents = prov->parents();
    bool foundTracks = false;
    bool foundBeamSpot = false;
@@ -79,7 +66,7 @@ VertexReProducer::VertexReProducer(const edm::Handle<reco::VertexCollection> &ha
 	edm::LogWarning("VertexReProducer_MissingParentage") << 
 	  "Can't find parentage info for vertex collection inputs: " << 
 	  (foundTracks ? "" : "tracks ") << (foundBeamSpot ? "" : "beamSpot") << "\n";
-     }   */
+     } 
 }
 
 void VertexReProducer::configure(const edm::ParameterSet &iConfig) 
@@ -97,30 +84,19 @@ std::vector<TransientVertex> VertexReProducer::makeVertices(const reco::TrackCol
 							    bool useBeamSpot,
 							    const edm::EventSetup &iSetup) const
 {
-   std::cout << "v1" << std::endl;
    edm::ESHandle<TransientTrackBuilder> theB;
    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", theB);
-   std::cout << "v2" << std::endl;
    
    std::vector<reco::TransientTrack> t_tks;
    t_tks.reserve(tracks.size());
-   std::cout << "tracks=" << tracks.size() << std::endl;
 
-   std::cout << "v3" << std::endl;
    for( reco::TrackCollection::const_iterator it = tracks.begin(), ed = tracks.end(); it != ed; ++it )
      {
 	reco::TransientTrack transientTrack = (*theB).build(*it);
 	t_tks.push_back(transientTrack);
-//	t_tks.push_back((*theB).build(*it));
-//	t_tks.push_back((*theB).build(*it));
 	t_tks.back().setBeamSpot(bs);
      }
-   std::cout << t_tks.size() << " " << bs << std::endl;
-   std::cout << "v4" << std::endl;
 
-   std::cout << (algo_->vertices(t_tks, bs)).size() << std::endl;
-   std::cout << "v5" << std::endl;
-   
    return algo_->vertices(t_tks, bs);
 }
 

@@ -63,11 +63,7 @@ process.HLTMinBias = cms.EDFilter("HLTHighLevel",
 # process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minPixelLayersWithHits        = 2
 
 process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')
-PVSelParameters = cms.PSet( maxDistanceToBeam = process.offlinePrimaryVertices.vertexCollections[0].maxDistanceToBeam
-#                            algorithm = process.offlinePrimaryVertices.vertexCollections[0].algorithm,
-#                            useBeamConstraint = process.offlinePrimaryVertices.vertexCollections[0].useBeamConstraint,
-#                            minNdof = process.offlinePrimaryVertices.vertexCollections[0].minNdof
-)
+PVSelParameters = cms.PSet( maxDistanceToBeam = process.offlinePrimaryVertices.vertexCollections[0].maxDistanceToBeam )
 process.offlinePrimaryVerticesRerun  = process.offlinePrimaryVertices.clone( 
   PVSelParameters = PVSelParameters,
   useBeamConstraint = process.offlinePrimaryVertices.vertexCollections[0].useBeamConstraint,
@@ -75,7 +71,7 @@ process.offlinePrimaryVerticesRerun  = process.offlinePrimaryVertices.clone(
   minNdof = process.offlinePrimaryVertices.vertexCollections[0].minNdof
 )
 process.offlinePrimaryVerticesRerun.TkClusParameters.algorithm = cms.string("DA")
-print process.offlinePrimaryVerticesRerun.dumpPython()
+# print process.offlinePrimaryVerticesRerun.dumpPython()
 
 process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
 #process.residuals.TrackLabel = cms.InputTag("TrackRefitter")
