@@ -49,7 +49,7 @@ class VertexReProducer
    edm::ParameterSet config_;
    edm::InputTag tracksTag_;
    edm::InputTag beamSpotTag_;
-   std::unique_ptr<PrimaryVertexProducerAlgorithm> algo_;
+   std::auto_ptr<PrimaryVertexProducerAlgorithm> algo_;
 };
 
 #endif

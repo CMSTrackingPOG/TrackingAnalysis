@@ -157,9 +157,9 @@ Residuals::Residuals(const edm::ParameterSet& pset)
 {
    thePVLabel_  = pset.getParameter<edm::InputTag>("VertexLabel");
    theTrackLabel_  = pset.getParameter<edm::InputTag>("TrackLabel");
-   theBeamspotLabel_  = pset.getParameter<edm::InputTag>("offlineBeamSpot");
+   theBeamspotLabel_  = pset.getParameter<edm::InputTag>("BeamSpotLabel");
    
-   tkMinPt = pset.getParameter<double>("TkMinPt");    
+   tkMinPt = pset.getParameter<double>("TkMinPt");
    tkMinXLayers = pset.getParameter<int>("TkMinXLayers");
    tkMaxMissedOuterLayers = pset.getParameter<int>("TkMaxMissedOuterLayers");
    tkMaxMissedInnerLayers = pset.getParameter<int>("TkMaxMissedInnerLayers");
@@ -330,7 +330,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    trip.pvxError = vtx.xError()*micron;
    trip.pvyError = vtx.yError()*micron;
    trip.pvzError = vtx.zError()*micron;
-   
+
    for( TrackCollection::const_iterator itk = tracks->begin(); itk != tracks->end(); ++itk )
      {
 	// --- track selection ---
@@ -345,7 +345,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	//cout << "tracks before,after size: " << tracks->size() << " , " << newTkCollection.size() << endl;
   
-	// --- from Giovanni to refit the prim.vertex     
+	// --- from Giovanni to refit the prim.vertex
 	vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, 1, iSetup);
 	//cout << "vertices before,after: " << vtxH->size() << " , " << pvs.size() << endl;
 
@@ -394,7 +394,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    double trackSumPt1 = 0;
    double trackSumPt2 = 0;
-   
+
    for( std::vector<reco::TrackBaseRef>::const_iterator it = vtx.tracks_begin(); it != vtx.tracks_end(); it++ )
      {
 	if( rnd->Rndm() > 0.5 )
@@ -465,7 +465,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	trpv.pv2zError = vtx2.zError()*micron;
 	
 	treePV->Fill();
-     }   
+     }
 }
 
 void Residuals::beginJob()

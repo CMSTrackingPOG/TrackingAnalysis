@@ -13,17 +13,49 @@ VertexReProducer::VertexReProducer(const edm::Handle<reco::VertexCollection> &ha
    const edm::Provenance *prov = handle.provenance();
    if( prov == nullptr ) throw cms::Exception("CorruptData") << "Vertex handle doesn't have provenance.";
    edm::ParameterSetID psid = prov->psetID();
+
+   edm::ParameterSet psetFromProvenance = getParameterSet(psid);
    
-   edm::pset::Registry *psregistry = edm::pset::Registry::instance();
+   bool is_primary_available = false;
+   const edm::Provenance *parent_prov = prov;
+   if( prov->moduleName() != "PrimaryVertexProducer" )
+     {
+	std::vector<edm::BranchID> parents = prov->productProvenance()->parentage().parents();
+	for( std::vector<edm::BranchID>::const_iterator it = parents.begin(), ed = parents.end(); it != ed; ++it )
+	  {
+	     edm::Provenance parprov = iEvent.getProvenance(*it);
+	     if( parprov.friendlyClassName() == "recoVertexs" ) // AOD
+	       {
+		  parent_prov = &parprov;
+		  psetFromProvenance = getParameterSet(parprov.psetID());
+		  is_primary_available = true;
+		  break;
+	       }
+	  }
+     }
+   else is_primary_available = true;
+   
+   if( is_primary_available ) prov = parent_prov;
+   else throw cms::Exception("Configuration") << "Vertices to re-produce don't come from a PrimaryVertexProducer \n";
+
+   configure(psetFromProvenance);
+	
+//   std::cout << result.dump() << std::endl;
+   
+/*   edm::pset::Registry *psregistry = edm::pset::Registry::instance();
    edm::ParameterSet psetFromProvenance;
    if( !psregistry->getMapped(psid, psetFromProvenance) )
      throw cms::Exception("CorruptData") << "Vertex handle parameter set ID id = " << psid;
    
    if( prov->moduleName() != "PrimaryVertexProducer" )
      throw cms::Exception("Configuration") << "Vertices to re-produce don't come from a PrimaryVertexProducer, but from a " << prov->moduleName() <<".\n";
+
+//   psetFromProvenance.addParameter<bool>("useBeamConstraint",false);
+   std::cout << psetFromProvenance.dump() << std::endl;
+   std::cout << "check" << std::endl;   
    
-   configure(psetFromProvenance);
-   
+   configure(psetFromProvenance);*/
+/*   
    std::vector<edm::BranchID> parents = prov->parents();
    bool foundTracks = false;
    bool foundBeamSpot = false;
@@ -40,70 +72,14 @@ VertexReProducer::VertexReProducer(const edm::Handle<reco::VertexCollection> &ha
 	     beamSpotTag_ = edm::InputTag(parprov.moduleLabel(), parprov.productInstanceName(), parprov.processName());
 	     foundBeamSpot = true;
 	  }	
-     }   
+     }
    
    if( !foundTracks || !foundBeamSpot )
      {
 	edm::LogWarning("VertexReProducer_MissingParentage") << 
 	  "Can't find parentage info for vertex collection inputs: " << 
 	  (foundTracks ? "" : "tracks ") << (foundBeamSpot ? "" : "beamSpot") << "\n";
-     }   
-   
-/* kskovpen   bool is_primary_available = false;
-   const edm::Provenance *parent_prov = prov;
-   if( edm::moduleName(*prov) != "PrimaryVertexProducer" )
-     {
-	std::vector<edm::BranchID> parents = prov->productProvenance()->parentage().parents();
-	for( std::vector<edm::BranchID>::const_iterator it = parents.begin(), ed = parents.end(); it != ed; ++it )
-	  {
-	     edm::Provenance parprov = iEvent.getProvenance(*it);
-	     if( parprov.friendlyClassName() == "recoVertexs" )
-	       {  
-		  // for AOD actually this the parent we should look for
-		  parent_prov = &parprov;
-		  psetFromProvenance = edm::parameterSet(parprov);
-		  is_primary_available = true;
-		  break;
-	       }
-	  }
-     } else is_primary_available = true;
-   
-   if( is_primary_available )
-     prov = parent_prov;
-   else
-     throw cms::Exception("Configuration") << "Vertices to re-produce don't come from a PrimaryVertexProducer \n";
-   
-   configure(psetFromProvenance);
-*/
-   // Now we also dig out the ProcessName used for the reco::Tracks and reco::Vertices
-/*kskovpen   std::vector<edm::BranchID> parents = prov->productProvenance()->parentage().parents();
-   bool foundTracks = false;
-   bool foundBeamSpot = false;
-   for( std::vector<edm::BranchID>::const_iterator it = parents.begin(), ed = parents.end(); it != ed; ++it )
-     {
-	edm::Provenance parprov = iEvent.getProvenance(*it);
-	if( parprov.friendlyClassName() == "recoTracks" )
-	  {
-	     tracksTag_ = edm::InputTag(parprov.moduleLabel(), parprov.productInstanceName(), parprov.processName());
-	     foundTracks = true;
-	     if( parprov.moduleLabel() != "generalTracks" )
-	       foundTracks = false;  // this is necessary since we are asking for that in onia2mumu
-	  } 
-	else if( parprov.friendlyClassName() == "recoBeamSpot" )
-	  {
-	     beamSpotTag_ = edm::InputTag(parprov.moduleLabel(), parprov.productInstanceName(), parprov.processName());
-	     foundBeamSpot = true;
-	     if( parprov.moduleLabel() != "offlineBeamSpot" )
-	       foundBeamSpot = false;  // this is necessary since we are asking for that in onia2mumu
-	  }
-     }
-   if( !foundTracks || !foundBeamSpot )
-     {
-	//edm::LogWarning("VertexReProducer_MissingParentage") <<
-	throw cms::Exception("Configuration")
-	  << "Can't find correct parentage info for vertex collection inputs: " << (foundTracks ? "" : "generalTracks ")
-	    << (foundBeamSpot ? "" : "offlineBeamSpot") << "\n";
-     }*/
+     }   */
 }
 
 void VertexReProducer::configure(const edm::ParameterSet &iConfig) 
@@ -121,17 +97,29 @@ std::vector<TransientVertex> VertexReProducer::makeVertices(const reco::TrackCol
 							    bool useBeamSpot,
 							    const edm::EventSetup &iSetup) const
 {
+   std::cout << "v1" << std::endl;
    edm::ESHandle<TransientTrackBuilder> theB;
    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", theB);
+   std::cout << "v2" << std::endl;
    
    std::vector<reco::TransientTrack> t_tks;
    t_tks.reserve(tracks.size());
-   
+   std::cout << "tracks=" << tracks.size() << std::endl;
+
+   std::cout << "v3" << std::endl;
    for( reco::TrackCollection::const_iterator it = tracks.begin(), ed = tracks.end(); it != ed; ++it )
      {
-	t_tks.push_back((*theB).build(*it));
-	if( useBeamSpot ) t_tks.back().setBeamSpot(bs);
+	reco::TransientTrack transientTrack = (*theB).build(*it);
+	t_tks.push_back(transientTrack);
+//	t_tks.push_back((*theB).build(*it));
+//	t_tks.push_back((*theB).build(*it));
+	t_tks.back().setBeamSpot(bs);
      }
+   std::cout << t_tks.size() << " " << bs << std::endl;
+   std::cout << "v4" << std::endl;
+
+   std::cout << (algo_->vertices(t_tks, bs)).size() << std::endl;
+   std::cout << "v5" << std::endl;
    
    return algo_->vertices(t_tks, bs);
 }

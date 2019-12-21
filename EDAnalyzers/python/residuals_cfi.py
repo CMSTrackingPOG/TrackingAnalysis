@@ -2,6 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 residuals = cms.EDAnalyzer("Residuals",
 
+                           # Beam spot
+                           BeamSpotLabel = cms.InputTag("offlineBeamSpot"),
+
                            # Selection of Tracks
                            TrackLabel = cms.InputTag("generalTracks"),
                            TkMinPt = cms.double(0.3),
@@ -11,7 +14,7 @@ residuals = cms.EDAnalyzer("Residuals",
 
                            # Selection of Vertices
                            #VertexLabel = cms.InputTag("offlinePrimaryVerticesWithBS"),
-                           VertexLabel = cms.InputTag("offlinePrimaryVertices"),
+                           VertexLabel = cms.InputTag("offlinePrimaryVerticesRerun"),
                            VtxTracksSizeMin = cms.int32(2),
                            VtxTracksSizeMax = cms.int32(300),
 

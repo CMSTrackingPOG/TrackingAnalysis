@@ -4,7 +4,7 @@ readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring() 
 source = cms.Source ("PoolSource",fileNames = readFiles, secondaryFileNames = secFiles)
 readFiles.extend( [
-'/store/data/Run2016B/ZeroBias/AOD/07Aug17_ver1-v1/50000/D2F70B66-BD8B-E711-8761-E0071B7BC1A1.root'
+'/store/data/Run2011A/MinimumBias/AOD/12Oct2013-v1/20001/6A9F67BD-8746-E311-AC78-0025901D5CDC.root'
 ]);
 
 secFiles.extend([ ]);
@@ -31,7 +31,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.GlobalTag.globaltag = 'FT_R_53_LV5::All'
 
 ##process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) ) # Data 
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) ) # Data
 ##process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) ) # MC noPU
 
 process.source = source
@@ -62,6 +62,21 @@ process.HLTMinBias = cms.EDFilter("HLTHighLevel",
 # process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.maxD0Significance             = 5.0
 # process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minPixelLayersWithHits        = 2
 
+process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')
+PVSelParameters = cms.PSet( maxDistanceToBeam = process.offlinePrimaryVertices.vertexCollections[0].maxDistanceToBeam
+#                            algorithm = process.offlinePrimaryVertices.vertexCollections[0].algorithm,
+#                            useBeamConstraint = process.offlinePrimaryVertices.vertexCollections[0].useBeamConstraint,
+#                            minNdof = process.offlinePrimaryVertices.vertexCollections[0].minNdof
+)
+process.offlinePrimaryVerticesRerun  = process.offlinePrimaryVertices.clone( 
+  PVSelParameters = PVSelParameters,
+  useBeamConstraint = process.offlinePrimaryVertices.vertexCollections[0].useBeamConstraint,
+  algorithm = process.offlinePrimaryVertices.vertexCollections[0].algorithm,
+  minNdof = process.offlinePrimaryVertices.vertexCollections[0].minNdof
+)
+process.offlinePrimaryVerticesRerun.TkClusParameters.algorithm = cms.string("DA")
+print process.offlinePrimaryVerticesRerun.dumpPython()
+
 process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
 #process.residuals.TrackLabel = cms.InputTag("TrackRefitter")
 #process.residuals.VertexLabel = cms.InputTag("offlinePrimaryVerticesFromRefittedTrks")
@@ -77,5 +92,6 @@ process.p = cms.Path(#process.HLTMinBias*
     # process.offlineBeamSpot                        +
     # process.TrackRefitter                          +
     # process.offlinePrimaryVerticesFromRefittedTrks +
+    process.offlinePrimaryVerticesRerun*
     process.residuals
 )
