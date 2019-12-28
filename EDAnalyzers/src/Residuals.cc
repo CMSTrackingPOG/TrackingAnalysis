@@ -34,85 +34,13 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include <CommonTools/UtilAlgos/interface/TFileService.h>
 
+#include "TROOT.h"
 #include "TH1F.h"
 #include "TTree.h"
 #include "TRandom3.h"
+#include "Compression.h"
 
-struct treeVarIP
-{
-   double pt;
-   double p;
-   double eta;
-   double phi;
-   int nXLayers;
-   int nMissedOut;
-   int nMissedIn;
-   int hasPXL;
-   int quality;
-   double d0;
-   double dz;
-   double d0Err;
-   double dzErr;
-   double d0NoRefit;
-   double dzNoRefit;
-   double d0ErrNoRefit;
-   double dzErrNoRefit;
-
-   bool pvIsValid;
-   bool pvIsFake;
-   int pvNTracks;
-   double pvSumTrackPt;
-   double pvchi2;
-   int pvndof;
-   double pvx;
-   double pvy;
-   double pvz;
-   double pvxError;
-   double pvyError;
-   double pvzError;
-};
-
-struct treeVarPV
-{
-   bool pvIsValid;
-   bool pvIsFake;
-   int pvNTracks;
-   double pvSumTrackPt;
-   double pvchi2;
-   int pvndof;
-   double pvx;
-   double pvy;
-   double pvz;
-   double pvxError;
-   double pvyError;
-   double pvzError;
-   
-   bool pv1IsValid;
-   bool pv1IsFake;
-   int pv1NTracks;
-   double pv1SumTrackPt;
-   double pv1chi2;
-   int pv1ndof;
-   double pv1x;
-   double pv1y;
-   double pv1z;
-   double pv1xError;
-   double pv1yError;
-   double pv1zError;
-   
-   bool pv2IsValid;
-   bool pv2IsFake;
-   int pv2NTracks;
-   double pv2SumTrackPt;
-   double pv2chi2;
-   int pv2ndof;
-   double pv2x;
-   double pv2y;
-   double pv2z;
-   double pv2xError;
-   double pv2yError;
-   double pv2zError;
-};
+#include "TrackingAnalysis/EDAnalyzers/interface/Tree.h"
 
 class Residuals : public edm::EDAnalyzer 
 {  
@@ -133,6 +61,7 @@ class Residuals : public edm::EDAnalyzer
    edm::InputTag thePVLabel_;
    edm::InputTag theTrackLabel_;
    edm::InputTag theBeamspotLabel_;
+   edm::InputTag theRhoLabel_;
 
    // --- track selection variables
    double tkMinPt;
@@ -145,12 +74,10 @@ class Residuals : public edm::EDAnalyzer
    double vtxErrorYMin,vtxErrorYMax;
    double vtxErrorZMin,vtxErrorZMax;
 
-   TH1F *h_d0;
-   TTree *treeIP;
-   TTree *treePV;
-   treeVarIP trip;
-   treeVarPV trpv;
    TRandom3 *rnd;
+   
+   const edm::Service<TFileService> fs;
+   ResTree* ftree;
 };
 
 Residuals::Residuals(const edm::ParameterSet& pset)
@@ -158,6 +85,7 @@ Residuals::Residuals(const edm::ParameterSet& pset)
    thePVLabel_  = pset.getParameter<edm::InputTag>("VertexLabel");
    theTrackLabel_  = pset.getParameter<edm::InputTag>("TrackLabel");
    theBeamspotLabel_  = pset.getParameter<edm::InputTag>("BeamSpotLabel");
+   theRhoLabel_  = pset.getParameter<edm::InputTag>("RhoLabel");
    
    tkMinPt = pset.getParameter<double>("TkMinPt");
    tkMinXLayers = pset.getParameter<int>("TkMinXLayers");
@@ -174,82 +102,12 @@ Residuals::Residuals(const edm::ParameterSet& pset)
    vtxErrorZMax     = pset.getParameter<double>("VtxErrorZMax");
 
    rnd = new TRandom3();
-   
-   edm::Service<TFileService> fs;
-   
-   treeIP = fs->make<TTree>("treeIP", "recoTrack IP residuals");
-   
-   treeIP->Branch("pt", &trip.pt, "pt/D");
-   treeIP->Branch("p", &trip.p, "p/D");
-   treeIP->Branch("eta", &trip.eta, "eta/D");
-   treeIP->Branch("phi", &trip.phi, "phi/D");
-   treeIP->Branch("nXLayers", &trip.nXLayers, "nXLayers/I");
-   treeIP->Branch("nMissedOut", &trip.nMissedOut, "nMissedOut/I");
-   treeIP->Branch("nMissedIn", &trip.nMissedIn, "nMissedIn/I");
-   treeIP->Branch("hasPXL", &trip.hasPXL, "hasPXL/I");
-   treeIP->Branch("quality", &trip.quality, "quality/I");
-   treeIP->Branch("d0", &trip.d0, "d0/D");
-   treeIP->Branch("dz", &trip.dz, "dz/D");
-   treeIP->Branch("d0Err", &trip.d0Err, "d0Err/D");
-   treeIP->Branch("dzErr", &trip.dzErr, "dzErr/D");
-   treeIP->Branch("d0NoRefit", &trip.d0NoRefit, "d0NoRefit/D");
-   treeIP->Branch("dzNoRefit", &trip.dzNoRefit, "dzNoRefit/D");
-   treeIP->Branch("d0ErrNoRefit", &trip.d0ErrNoRefit, "d0ErrNoRefit/D");
-   treeIP->Branch("dzErrNoRefit", &trip.dzErrNoRefit, "dzErrNoRefit/D");
 
-   treeIP->Branch("pvIsValid", &trip.pvIsValid, "pvIsValid/O");
-   treeIP->Branch("pvIsFake", &trip.pvIsFake, "pvIsFake/O");
-   treeIP->Branch("pvNTracks", &trip.pvNTracks, "pvNTracks/I");
-   treeIP->Branch("pvSumTrackPt", &trip.pvSumTrackPt, "pvSumTrackPt/D");
-   treeIP->Branch("pvchi2", &trip.pvchi2, "pvchi2/D");
-   treeIP->Branch("pvndof", &trip.pvndof, "pvndof/I");
-   treeIP->Branch("pvx", &trip.pvx, "pvx/D");
-   treeIP->Branch("pvy", &trip.pvy, "pvy/D");
-   treeIP->Branch("pvz", &trip.pvz, "pvz/D");
-   treeIP->Branch("pvxError", &trip.pvxError, "pvxError/D");
-   treeIP->Branch("pvyError", &trip.pvyError, "pvyError/D");
-   treeIP->Branch("pvzError", &trip.pvzError, "pvzError/D");
-   
-   treePV = fs->make<TTree>("treePV", "PV resolution study");
-   
-   treePV->Branch("pvIsValid", &trpv.pvIsValid, "pvIsValid/O");
-   treePV->Branch("pvIsFake", &trpv.pvIsFake, "pvIsFake/O");
-   treePV->Branch("pvNTracks", &trpv.pvNTracks, "pvNTracks/I");
-   treePV->Branch("pvSumTrackPt", &trpv.pvSumTrackPt, "pvSumTrackPt/D");
-   treePV->Branch("pvchi2", &trpv.pvchi2, "pvchi2/D");
-   treePV->Branch("pvndof", &trpv.pvndof, "pvndof/I");
-   treePV->Branch("pvx", &trpv.pvx, "pvx/D");
-   treePV->Branch("pvy", &trpv.pvy, "pvy/D");
-   treePV->Branch("pvz", &trpv.pvz, "pvz/D");
-   treePV->Branch("pvxError", &trpv.pvxError, "pvxError/D");
-   treePV->Branch("pvyError", &trpv.pvyError, "pvyError/D");
-   treePV->Branch("pvzError", &trpv.pvzError, "pvzError/D");
-   
-   treePV->Branch("pv1IsValid", &trpv.pv1IsValid, "pv1IsValid/O");
-   treePV->Branch("pv1IsFake", &trpv.pv1IsFake, "pv1IsFake/O");
-   treePV->Branch("pv1NTracks", &trpv.pv1NTracks, "pv1NTracks/I");
-   treePV->Branch("pv1SumTrackPt", &trpv.pv1SumTrackPt, "pv1SumTrackPt/D");
-   treePV->Branch("pv1chi2", &trpv.pv1chi2, "pv1chi2/D");
-   treePV->Branch("pv1ndof", &trpv.pv1ndof, "pv1ndof/I");
-   treePV->Branch("pv1x", &trpv.pv1x, "pv1x/D");
-   treePV->Branch("pv1y", &trpv.pv1y, "pv1y/D");
-   treePV->Branch("pv1z", &trpv.pv1z, "pv1z/D");
-   treePV->Branch("pv1xError", &trpv.pv1xError, "pv1xError/D");
-   treePV->Branch("pv1yError", &trpv.pv1yError, "pv1yError/D");
-   treePV->Branch("pv1zError", &trpv.pv1zError, "pv1zError/D");
-   
-   treePV->Branch("pv2IsValid", &trpv.pv2IsValid, "pv2IsValid/O");
-   treePV->Branch("pv2IsFake", &trpv.pv2IsFake, "pv2IsFake/O");
-   treePV->Branch("pv2NTracks", &trpv.pv2NTracks, "pv2NTracks/I");
-   treePV->Branch("pv2SumTrackPt", &trpv.pv2SumTrackPt, "pv2SumTrackPt/D");
-   treePV->Branch("pv2chi2", &trpv.pv2chi2, "pv2chi2/D");
-   treePV->Branch("pv2ndof", &trpv.pv2ndof, "pv2ndof/I");
-   treePV->Branch("pv2x", &trpv.pv2x, "pv2x/D");
-   treePV->Branch("pv2y", &trpv.pv2y, "pv2y/D");
-   treePV->Branch("pv2z", &trpv.pv2z, "pv2z/D");
-   treePV->Branch("pv2xError", &trpv.pv2xError, "pv2xError/D");
-   treePV->Branch("pv2yError", &trpv.pv2yError, "pv2yError/D");
-   treePV->Branch("pv2zError", &trpv.pv2zError, "pv2zError/D");
+   TFile& f = fs->file();
+   f.SetCompressionAlgorithm(ROOT::kZLIB);
+   f.SetCompressionLevel(9);
+   ftree = new ResTree(fs->make<TTree>("tree","tree"));   
+   ftree->CreateBranches(32000);
 }
 
 Residuals::~Residuals()
@@ -262,6 +120,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace edm;
    using namespace reco;
    using namespace std;
+   
+   ftree->Init();
 
    Handle<TrackCollection> tracks;
    iEvent.getByLabel(theTrackLabel_,tracks);
@@ -269,14 +129,14 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 //   ESHandle<TransientTrackBuilder> transTrackBuilder;
 //   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", transTrackBuilder);
    
-   //std::cout << "size of track collection: "<< tracks->size() << std::endl;
+//   std::cout << "size of track collection: "<< tracks->size() << std::endl;
 
    Handle<VertexCollection> vtxH;
    iEvent.getByLabel(thePVLabel_, vtxH);
 
    if (!vtxH.isValid()) return;
 
-   //std::cout << "size of vtx collection: "<< vtxH->size() << std::endl;
+//   std::cout << "size of vtx collection: "<< vtxH->size() << std::endl;
 
    ESHandle<MagneticField> theMF;
    iSetup.get<IdealMagneticFieldRecord>().get(theMF);
@@ -290,7 +150,15 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    Handle<BeamSpot> pvbeamspot;
    iEvent.getByLabel(theBeamspotLabel_, pvbeamspot);
+   
+   Handle<double> rhoPtr;
+   iEvent.getByLabel(theRhoLabel_, rhoPtr);
 
+   ftree->ev_run = iEvent.id().run();
+   ftree->ev_id = iEvent.id().event();
+   ftree->ev_lumi = iEvent.id().luminosityBlock();
+   ftree->ev_rho = *rhoPtr;
+   
    //if(tracks.id() != pvtracks.id())
    // cout << "WARNING: the tracks originally used for PV are not the same used in this analyzer."
    //	  << "Is this really what you want?" << endl;
@@ -305,90 +173,53 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if( ! vertexSelection(vtxH->front()) ) return;
    // -------------------------------------------------
 
-   /*
-   cout << "original vtx x,y,z: " 
+/*   cout << "original vtx x,y,z: " 
 	<< vtxH->front().position().x() << " , "
 	<< vtxH->front().position().y() << " , "
-	<< vtxH->front().position().z() << endl;
-   */
-
+        << vtxH->front().position().z() << endl;
+*/
    const reco::Vertex vtx = vtxH->front();
 
+   ftree->bs_type = pvbeamspot->type();
+   ftree->bs_x0 = pvbeamspot->x0();
+   ftree->bs_y0 = pvbeamspot->y0();
+   ftree->bs_z0 = pvbeamspot->z0();
+   ftree->bs_x_zpv = pvbeamspot->x(vtx.z());
+   ftree->bs_y_zpv = pvbeamspot->y(vtx.z());
+   ftree->bs_sigmaZ = pvbeamspot->sigmaZ();
+   ftree->bs_dxdz = pvbeamspot->dxdz();
+   ftree->bs_dydz = pvbeamspot->dydz();
+   ftree->bs_BeamWidthX = pvbeamspot->BeamWidthX();
+   ftree->bs_BeamWidthY = pvbeamspot->BeamWidthY();
+   ftree->bs_x0Error = pvbeamspot->x0Error();
+   ftree->bs_y0Error = pvbeamspot->y0Error();
+   ftree->bs_z0Error = pvbeamspot->z0Error();
+   ftree->bs_sigmaZ0Error = pvbeamspot->sigmaZ0Error();
+   ftree->bs_dxdzError = pvbeamspot->dxdzError();
+   ftree->bs_dydzError = pvbeamspot->dydzError();
+   ftree->bs_BeamWidthXError = pvbeamspot->BeamWidthXError();
+   ftree->bs_BeamWidthYError = pvbeamspot->BeamWidthYError();
+   ftree->bs_emittanceX = pvbeamspot->emittanceX();
+   ftree->bs_emittanceY = pvbeamspot->emittanceY();
+   ftree->bs_betaStar = pvbeamspot->betaStar();
+   
    double trackSumPt = 0;   
    for( std::vector<reco::TrackBaseRef>::const_iterator it = vtx.tracks_begin(); it != vtx.tracks_end(); it++ )
-     trackSumPt += (*it)->pt();
+     trackSumPt += (*it)->pt();   
    
-   trip.pvIsValid = vtx.isValid();
-   trip.pvIsFake = vtx.isFake();	
-   trip.pvNTracks = vtx.tracksSize();	
-   trip.pvSumTrackPt = trackSumPt;	
-   trip.pvchi2 = vtx.chi2();	
-   trip.pvndof = vtx.ndof();   
-   trip.pvx = vtx.x()*micron;
-   trip.pvy = vtx.y()*micron;
-   trip.pvz = vtx.z()*micron;
-   trip.pvxError = vtx.xError()*micron;
-   trip.pvyError = vtx.yError()*micron;
-   trip.pvzError = vtx.zError()*micron;
-
-   for( TrackCollection::const_iterator itk = tracks->begin(); itk != tracks->end(); ++itk )
-     {
-	// --- track selection ---
-	if( ! trackSelection(*itk) ) continue;
-	// ---
-     
-	TrackCollection newTkCollection;
-	newTkCollection.assign(tracks->begin(), itk);
-	newTkCollection.insert(newTkCollection.end(),itk+1,tracks->end());
-
-	//newTkCollection.insert(newTkCollection.end(),itk,tracks->end()); // only for debugging purpose
-
-	//cout << "tracks before,after size: " << tracks->size() << " , " << newTkCollection.size() << endl;
-  
-	// --- from Giovanni to refit the prim.vertex
-	vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, 1, iSetup);
-	//cout << "vertices before,after: " << vtxH->size() << " , " << pvs.size() << endl;
-
-	if( pvs.empty() ) continue;
-
-	reco::Vertex newPV = reco::Vertex(pvs.front());
-	Track::Point vtxPosition = Track::Point(newPV.position().x(),
-						newPV.position().y(),
-						newPV.position().z());
-	// ---
-	if( ! vertexSelection(newPV) ) continue;
-
-	double d0 = itk->dxy(vtxPosition);
-	double dz = itk->dz(vtxPosition);
-
-	double d0NoRefit = itk->dxy(vtxH->front().position());
-	double dzNoRefit = itk->dz(vtxH->front().position());
-	
-	//cout << "d0:" << d0 << " dz:" << dz << std::endl;
-
-	//Filling the tree
-	trip.pt  = itk->pt();
-	trip.p   = itk->p();
-	trip.eta = itk->eta();
-	trip.phi = itk->phi();
-	trip.nXLayers   = itk->hitPattern().trackerLayersWithMeasurement();
-	trip.nMissedOut = itk->trackerExpectedHitsOuter().numberOfLostHits();
-	trip.nMissedIn  = itk->trackerExpectedHitsInner().numberOfLostHits();
-	trip.hasPXL     = (itk->hitPattern().hasValidHitInFirstPixelBarrel() ||
-			   itk->hitPattern().hasValidHitInFirstPixelEndcap());
-	trip.quality = itk->qualityMask();
-	trip.d0 = d0*micron;
-	trip.dz = dz*micron;
-	trip.d0Err = itk->d0Error()*micron;
-	trip.dzErr = itk->dzError()*micron;
-	trip.d0NoRefit = d0NoRefit*micron;
-	trip.dzNoRefit = dzNoRefit*micron;
-	trip.d0ErrNoRefit = itk->d0Error()*micron;
-	trip.dzErrNoRefit = itk->dzError()*micron;
-	
-	treeIP->Fill();
-     }
-
+   ftree->pv_IsValid = vtx.isValid();
+   ftree->pv_IsFake = vtx.isFake();	
+   ftree->pv_NTracks = vtx.tracksSize();
+   ftree->pv_SumTrackPt = trackSumPt;	
+   ftree->pv_chi2 = vtx.chi2();	
+   ftree->pv_ndof = vtx.ndof();   
+   ftree->pv_x = vtx.x()*micron;
+   ftree->pv_y = vtx.y()*micron;
+   ftree->pv_z = vtx.z()*micron;
+   ftree->pv_xError = vtx.xError()*micron;
+   ftree->pv_yError = vtx.yError()*micron;
+   ftree->pv_zError = vtx.zError()*micron;
+   
    std::vector<reco::TrackBaseRef> vtxTkCollection1;
    std::vector<reco::TrackBaseRef> vtxTkCollection2;
 
@@ -409,63 +240,123 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  }	
      }
 
-   vector<TransientVertex> pvs1 = revertex.makeVertices(vtxTkCollection1, *pvbeamspot, 1, iSetup);
-   vector<TransientVertex> pvs2 = revertex.makeVertices(vtxTkCollection2, *pvbeamspot, 1, iSetup);
-//   vector<TransientVertex> pvs1 = revertex.makeVertices(vtxTkCollection1, *pvbeamspot, 0, iSetup);
-//   vector<TransientVertex> pvs2 = revertex.makeVertices(vtxTkCollection2, *pvbeamspot, 0, iSetup);
+   vector<TransientVertex> pvs1 = revertex.makeVertices(vtxTkCollection1, *pvbeamspot, iSetup);
+   vector<TransientVertex> pvs2 = revertex.makeVertices(vtxTkCollection2, *pvbeamspot, iSetup);
 
    if( !pvs1.empty() && !pvs2.empty() )
      {	
 	reco::Vertex vtx1 = reco::Vertex(pvs1.front());
 	reco::Vertex vtx2 = reco::Vertex(pvs2.front());
+
+	ftree->pv_IsValid_p1 = vtx1.isValid();
+	ftree->pv_IsValid_p2 = vtx2.isValid();
 	
-	trpv.pvIsValid = vtx.isValid();
-	trpv.pv1IsValid = vtx1.isValid();
-	trpv.pv2IsValid = vtx2.isValid();
+	ftree->pv_IsFake_p1 = vtx1.isFake();
+	ftree->pv_IsFake_p2 = vtx2.isFake();
 	
-	trpv.pvIsFake = vtx.isFake();
-	trpv.pv1IsFake = vtx1.isFake();
-	trpv.pv2IsFake = vtx2.isFake();
+	ftree->pv_NTracks_p1 = vtxTkCollection1.size();
+	ftree->pv_NTracks_p2 = vtxTkCollection2.size();
 	
-	trpv.pvNTracks = vtx.tracksSize();
-	trpv.pv1NTracks = vtxTkCollection1.size();
-	trpv.pv2NTracks = vtxTkCollection2.size();
+	ftree->pv_SumTrackPt_p1 = trackSumPt1;
+	ftree->pv_SumTrackPt_p2 = trackSumPt2;
 	
-	trpv.pvSumTrackPt = trackSumPt;
-	trpv.pv1SumTrackPt = trackSumPt1;
-	trpv.pv2SumTrackPt = trackSumPt2;
+	ftree->pv_chi2_p1 = vtx1.chi2();
+	ftree->pv_chi2_p2 = vtx2.chi2();
 	
-	trpv.pvchi2 = vtx.chi2();
-	trpv.pv1chi2 = vtx1.chi2();
-	trpv.pv2chi2 = vtx2.chi2();
+	ftree->pv_ndof_p1 = vtx1.ndof();
+        ftree->pv_ndof_p2 = vtx2.ndof();
 	
-	trpv.pvndof = vtx.ndof();
-	trpv.pv1ndof = vtx1.ndof();
-	trpv.pv2ndof = vtx2.ndof();
+	ftree->pv_x_p1 = vtx1.x()*micron;
+	ftree->pv_y_p1 = vtx1.y()*micron;
+        ftree->pv_z_p1 = vtx1.z()*micron;
+	ftree->pv_xError_p1 = vtx1.xError()*micron;
+	ftree->pv_yError_p1 = vtx1.yError()*micron;
+	ftree->pv_zError_p1 = vtx1.zError()*micron;
 	
-	trpv.pvx = vtx.x()*micron;
-	trpv.pvy = vtx.y()*micron;
-	trpv.pvz = vtx.z()*micron;
-	trpv.pvxError = vtx.xError()*micron;
-	trpv.pvyError = vtx.yError()*micron;
-	trpv.pvzError = vtx.zError()*micron;
-	
-	trpv.pv1x = vtx1.x()*micron;
-	trpv.pv1y = vtx1.y()*micron;
-	trpv.pv1z = vtx1.z()*micron;
-	trpv.pv1xError = vtx1.xError()*micron;
-	trpv.pv1yError = vtx1.yError()*micron;
-	trpv.pv1zError = vtx1.zError()*micron;
-	
-	trpv.pv2x = vtx2.x()*micron;
-	trpv.pv2y = vtx2.y()*micron;
-	trpv.pv2z = vtx2.z()*micron;
-	trpv.pv2xError = vtx2.xError()*micron;
-	trpv.pv2yError = vtx2.yError()*micron;
-	trpv.pv2zError = vtx2.zError()*micron;
-	
-	treePV->Fill();
+	ftree->pv_x_p2 = vtx2.x()*micron;
+	ftree->pv_y_p2 = vtx2.y()*micron;
+	ftree->pv_z_p2 = vtx2.z()*micron;
+	ftree->pv_xError_p2 = vtx2.xError()*micron;
+	ftree->pv_yError_p2 = vtx2.yError()*micron;
+	ftree->pv_zError_p2 = vtx2.zError()*micron;
      }
+   
+   for( TrackCollection::const_iterator itk = tracks->begin(); itk != tracks->end(); ++itk )
+     {
+	// --- track selection ---
+	if( ! trackSelection(*itk) ) continue;
+	// ---
+     
+	TrackCollection newTkCollection;
+	newTkCollection.assign(tracks->begin(), itk);
+	newTkCollection.insert(newTkCollection.end(),itk+1,tracks->end());
+
+	//newTkCollection.insert(newTkCollection.end(),itk,tracks->end()); // only for debugging purpose
+
+	//cout << "tracks before,after size: " << tracks->size() << " , " << newTkCollection.size() << endl;
+  
+	// Refit the primary vertex
+	vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, iSetup);
+	//cout << "vertices before,after: " << vtxH->size() << " , " << pvs.size() << endl;
+
+	if( pvs.empty() ) continue;
+
+	reco::Vertex newPV = reco::Vertex(pvs.front());
+	Track::Point vtxPosition = Track::Point(newPV.position().x(),
+						newPV.position().y(),
+						newPV.position().z());
+	// ---
+	if( ! vertexSelection(newPV) ) continue;
+
+	double pt = itk->pt();
+	double p = itk->p();
+	double eta = itk->eta();
+	double phi = itk->phi();
+	
+	int nXLayers = itk->hitPattern().trackerLayersWithMeasurement();
+	int nMissedOut = itk->trackerExpectedHitsOuter().numberOfLostHits();
+	int nMissedIn = itk->trackerExpectedHitsInner().numberOfLostHits();
+	int hasPXL = (itk->hitPattern().hasValidHitInFirstPixelBarrel() || itk->hitPattern().hasValidHitInFirstPixelEndcap());
+	double quality = itk->qualityMask();
+
+	double d0_pv = itk->dxy(vtxPosition);
+	double dz_pv = itk->dz(vtxPosition);
+	double d0NoRefit_pv = itk->dxy(vtxH->front().position());
+	double dzNoRefit_pv = itk->dz(vtxH->front().position());
+
+	double d0_bs = itk->dxy(pvbeamspot->position());
+	double d0_bs_zpca = itk->dxy(*pvbeamspot);
+	double dz_bs = itk->dz(pvbeamspot->position());
+	
+	double d0_bs_zpv = itk->dxy(pvbeamspot->position(vtx.z()));
+	
+	double d0Error = itk->d0Error();
+	double dzError = itk->dzError();
+	
+	//cout << "d0:" << d0 << " dz:" << dz << std::endl;
+
+	ftree->trk_pt.push_back( pt );
+	ftree->trk_p.push_back( p );
+	ftree->trk_eta.push_back( eta );
+	ftree->trk_phi.push_back( phi );
+	ftree->trk_nXLayers.push_back( nXLayers );
+	ftree->trk_nMissedOut.push_back( nMissedOut );
+	ftree->trk_nMissedIn.push_back( nMissedIn );
+	ftree->trk_hasPXL.push_back( hasPXL );
+	ftree->trk_quality.push_back( quality );
+	ftree->trk_d0_pv.push_back( d0_pv*micron );
+	ftree->trk_dz_pv.push_back( dz_pv*micron );
+	ftree->trk_d0_bs.push_back( d0_bs*micron );
+	ftree->trk_d0_bs_zpca.push_back( d0_bs_zpca*micron );
+	ftree->trk_d0_bs_zpv.push_back( d0_bs_zpv*micron );
+	ftree->trk_dz_bs.push_back( dz_bs*micron );
+	ftree->trk_d0Err.push_back( d0Error*micron );
+	ftree->trk_dzErr.push_back( dzError*micron );
+	ftree->trk_d0_pv_NoRefit.push_back( d0NoRefit_pv*micron );
+	ftree->trk_dz_pv_NoRefit.push_back( dzNoRefit_pv*micron );
+     }
+   
+   ftree->tree->Fill();
 }
 
 void Residuals::beginJob()

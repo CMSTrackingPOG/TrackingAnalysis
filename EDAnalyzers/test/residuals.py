@@ -1,4 +1,9 @@
 import FWCore.ParameterSet.Config as cms
+from FWCore.ParameterSet.VarParsing import VarParsing
+
+options = VarParsing('analysis')
+options.register('withBS',False,VarParsing.multiplicity.singleton,VarParsing.varType.bool,'Primary vertex reconstruction with BS constraint')
+options.parseArguments()
 
 readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring() 
@@ -12,7 +17,13 @@ secFiles.extend([ ]);
 process = cms.Process("IpResiduals")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 5000
+process.MessageLogger.cerr.FwkReport = cms.untracked.PSet( reportEvery = cms.untracked.int32(1000) )
+                
+#process.MessageLogger.cout.placeholder = cms.untracked.bool(False)
+#process.MessageLogger.cout.threshold = cms.untracked.string('INFO')
+#process.MessageLogger.cout.default = cms.untracked.PSet( limit = cms.untracked.int32(10000000) )
+#process.MessageLogger.cout.FwkReport = cms.untracked.PSet( reportEvery = cms.untracked.int32(1000) )
+#process.MessageLogger.debugModules = cms.untracked.vstring('*')
 
 # import of standard configurations
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -31,8 +42,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.GlobalTag.globaltag = 'FT_R_53_LV5::All'
 
 ##process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) ) # Data
-##process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) ) # MC noPU
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(20) )
 
 process.source = source
 
@@ -63,15 +73,28 @@ process.HLTMinBias = cms.EDFilter("HLTHighLevel",
 # process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minPixelLayersWithHits        = 2
 
 process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')
-PVSelParameters = cms.PSet( maxDistanceToBeam = process.offlinePrimaryVertices.vertexCollections[0].maxDistanceToBeam )
-process.offlinePrimaryVerticesRerun  = process.offlinePrimaryVertices.clone( 
-  PVSelParameters = PVSelParameters,
-  useBeamConstraint = process.offlinePrimaryVertices.vertexCollections[0].useBeamConstraint,
-  algorithm = process.offlinePrimaryVertices.vertexCollections[0].algorithm,
-  minNdof = process.offlinePrimaryVertices.vertexCollections[0].minNdof
+#process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVerticesWithBS_cfi')
+
+primVtx = process.offlinePrimaryVertices
+PVSelParameters = cms.PSet( maxDistanceToBeam = primVtx.vertexCollections[0].maxDistanceToBeam )
+process.offlinePrimaryVerticesRerun = primVtx.clone( PVSelParameters = PVSelParameters,
+                                                     useBeamConstraint = primVtx.vertexCollections[0].useBeamConstraint,
+                                                     verbose = False,
+                                                     algorithm = primVtx.vertexCollections[0].algorithm,
+                                                     minNdof = primVtx.vertexCollections[0].minNdof
 )
+
+if options.withBS:
+    PVSelParameters = cms.PSet( maxDistanceToBeam = primVtx.vertexCollections[1].maxDistanceToBeam )
+    process.offlinePrimaryVerticesRerun = primVtx.clone( PVSelParameters = PVSelParameters,
+                                                         useBeamConstraint = primVtx.vertexCollections[1].useBeamConstraint,
+                                                         verbose = False,
+                                                         algorithm = primVtx.vertexCollections[1].algorithm,
+                                                         minNdof = primVtx.vertexCollections[1].minNdof
+    )
+
 process.offlinePrimaryVerticesRerun.TkClusParameters.algorithm = cms.string("DA")
-# print process.offlinePrimaryVerticesRerun.dumpPython()
+#print process.offlinePrimaryVerticesRerun.dumpPython()
 
 process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
 #process.residuals.TrackLabel = cms.InputTag("TrackRefitter")

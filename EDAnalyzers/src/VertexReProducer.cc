@@ -81,7 +81,6 @@ void VertexReProducer::configure(const edm::ParameterSet &iConfig)
 
 std::vector<TransientVertex> VertexReProducer::makeVertices(const reco::TrackCollection &tracks,
 							    const reco::BeamSpot &bs,
-							    bool useBeamSpot,
 							    const edm::EventSetup &iSetup) const
 {
    edm::ESHandle<TransientTrackBuilder> theB;
@@ -102,7 +101,6 @@ std::vector<TransientVertex> VertexReProducer::makeVertices(const reco::TrackCol
 
 std::vector<TransientVertex> VertexReProducer::makeVertices(const std::vector<reco::TrackBaseRef> &tracks,
 							    const reco::BeamSpot &bs,
-							    bool useBeamSpot,
 							    const edm::EventSetup &iSetup) const
 {
    edm::ESHandle<TransientTrackBuilder> theB;
@@ -115,7 +113,7 @@ std::vector<TransientVertex> VertexReProducer::makeVertices(const std::vector<re
      {
 	reco::TrackBaseRef tk = *it;
 	t_tks.push_back((*theB).build(*tk));
-	if( useBeamSpot ) t_tks.back().setBeamSpot(bs);
+	t_tks.back().setBeamSpot(bs);
      }
    
    return algo_->vertices(t_tks, bs);
