@@ -1,0 +1,4 @@
+/MinimumBias/Run2012A-22Jan2013-v1/AOD
+/MinimumBias/Run2012B-22Jan2013-v1/AOD
+/MinimumBias/Run2012C-22Jan2013-v1/AOD
+/MinimumBias/Run2012D-22Jan2013-v1/AOD

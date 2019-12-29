@@ -1,0 +1,1 @@
+/MinBias_Tune4C_8TeV-pythia8/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM
