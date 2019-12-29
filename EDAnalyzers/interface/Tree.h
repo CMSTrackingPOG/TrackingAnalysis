@@ -25,6 +25,14 @@ class ResTree
    int ev_lumi;
    float ev_rho;
 
+   bool trig_ZeroBiasPixel_DoubleTrack_pass;
+   int trig_ZeroBiasPixel_DoubleTrack_L1ps;
+   int trig_ZeroBiasPixel_DoubleTrack_HLTps;
+
+   bool trig_ZeroBias_pass;
+   int trig_ZeroBias_L1ps;
+   int trig_ZeroBias_HLTps;
+   
    int bs_type;
    float bs_x0;
    float bs_y0;

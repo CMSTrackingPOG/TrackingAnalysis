@@ -13,6 +13,10 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "FWCore/Common/interface/TriggerNames.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 
@@ -50,9 +54,9 @@ class Residuals : public edm::EDAnalyzer
    ~Residuals();
     
  private:
-   virtual void beginJob() ;
+   virtual void beginRun(const edm::Run&, const edm::EventSetup&);
    virtual void analyze(const edm::Event&, const edm::EventSetup&);
-   virtual void endJob() ;
+   virtual void endRun() ;
 
    bool trackSelection(const reco::Track& track) const;
    bool vertexSelection(const reco::Vertex& vertex) const;
@@ -62,6 +66,7 @@ class Residuals : public edm::EDAnalyzer
    edm::InputTag theTrackLabel_;
    edm::InputTag theBeamspotLabel_;
    edm::InputTag theRhoLabel_;
+   edm::InputTag theTriggerBitsLabel_;
 
    // --- track selection variables
    double tkMinPt;
@@ -76,6 +81,8 @@ class Residuals : public edm::EDAnalyzer
 
    TRandom3 *rnd;
    
+   HLTConfigProvider hltConfig_;
+   
    const edm::Service<TFileService> fs;
    ResTree* ftree;
 };
@@ -86,6 +93,7 @@ Residuals::Residuals(const edm::ParameterSet& pset)
    theTrackLabel_  = pset.getParameter<edm::InputTag>("TrackLabel");
    theBeamspotLabel_  = pset.getParameter<edm::InputTag>("BeamSpotLabel");
    theRhoLabel_  = pset.getParameter<edm::InputTag>("RhoLabel");
+   theTriggerBitsLabel_  = pset.getParameter<edm::InputTag>("TriggerResultsLabel");
    
    tkMinPt = pset.getParameter<double>("TkMinPt");
    tkMinXLayers = pset.getParameter<int>("TkMinXLayers");
@@ -120,7 +128,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace edm;
    using namespace reco;
    using namespace std;
-   
+
    ftree->Init();
 
    Handle<TrackCollection> tracks;
@@ -152,12 +160,52 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByLabel(theBeamspotLabel_, pvbeamspot);
    
    Handle<double> rhoPtr;
-   iEvent.getByLabel(theRhoLabel_, rhoPtr);
-
+   iEvent.getByLabel(theRhoLabel_, rhoPtr);   
+   
    ftree->ev_run = iEvent.id().run();
    ftree->ev_id = iEvent.id().event();
    ftree->ev_lumi = iEvent.id().luminosityBlock();
    ftree->ev_rho = *rhoPtr;
+   
+   Handle<TriggerResults> triggerBits;
+   iEvent.getByLabel(theTriggerBitsLabel_, triggerBits);
+   const TriggerNames &names = iEvent.triggerNames(*triggerBits);
+   for( unsigned int i=0;i<names.size();i++ )
+     {
+	std::string trigName = names.triggerName(i);
+//	std::cout << i << " " << trigName << std::endl;
+	
+	if( TString(trigName).Contains("HLT_Physics_v") ||
+	    TString(trigName).Contains("HLT_PixelTracks_Multiplicity70_v") ||
+	    TString(trigName).Contains("HLT_PixelTracks_Multiplicity80_v") ||
+	    TString(trigName).Contains("HLT_PixelTracks_Multiplicity90_v") ||
+	    TString(trigName).Contains("HLT_Random_v") ||
+	    TString(trigName).Contains("HLT_ZeroBiasPixel_DoubleTrack_v") ||
+	    TString(trigName).Contains("HLT_ZeroBias_v") )
+	  {	    
+	     std::pair<int,int> prescales =
+	       hltConfig_.prescaleValues(iEvent, iSetup, trigName);
+	
+	     int L1ps = prescales.first;
+	     int HLTps = prescales.second;
+	     bool pass = (triggerBits->accept(i) ? true : false); 
+	     	     
+	     if( TString(trigName).Contains("HLT_ZeroBiasPixel_DoubleTrack_v") )
+	       {
+		  ftree->trig_ZeroBiasPixel_DoubleTrack_pass = pass;
+		  ftree->trig_ZeroBiasPixel_DoubleTrack_L1ps = L1ps;
+		  ftree->trig_ZeroBiasPixel_DoubleTrack_HLTps = HLTps;
+	       }	     
+	     else if( TString(trigName).Contains("HLT_ZeroBias_v") )
+	       {
+		  ftree->trig_ZeroBias_pass = pass;
+		  ftree->trig_ZeroBias_L1ps = L1ps;
+		  ftree->trig_ZeroBias_HLTps = HLTps;
+	       }	     
+	     
+//	     std::cout << i << " " << trigName << " L1=" << L1prescale << " HLT=" << HLTprescale << std::endl;
+	  }	
+     }
    
    //if(tracks.id() != pvtracks.id())
    // cout << "WARNING: the tracks originally used for PV are not the same used in this analyzer."
@@ -359,11 +407,15 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ftree->tree->Fill();
 }
 
-void Residuals::beginJob()
+void Residuals::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
 {
+   bool changed = true;
+   if( !hltConfig_.init(iRun, iSetup, "HLT", changed) )
+     std::cout << "Warning, didn't find HLTConfigProvider with label "
+     << "HLT" << " in run " << iRun.run() << std::endl;
 }
 
-void Residuals::endJob() 
+void Residuals::endRun() 
 {
 }
 
@@ -372,9 +424,9 @@ bool Residuals::trackSelection(const reco::Track& track) const
    using namespace reco;
    
    if( track.pt() < tkMinPt ) return false;
-   if( track.hitPattern().trackerLayersWithMeasurement() < tkMinXLayers ) return false;
-   if( track.trackerExpectedHitsOuter().numberOfLostHits() > tkMaxMissedOuterLayers ) return false;
-   if( track.trackerExpectedHitsInner().numberOfLostHits() > tkMaxMissedInnerLayers ) return false;   
+//   if( track.hitPattern().trackerLayersWithMeasurement() < tkMinXLayers ) return false;
+//   if( track.trackerExpectedHitsOuter().numberOfLostHits() > tkMaxMissedOuterLayers ) return false;
+//   if( track.trackerExpectedHitsInner().numberOfLostHits() > tkMaxMissedInnerLayers ) return false;   
    if( ! track.quality(reco::TrackBase::highPurity) ) return false;
 //   if( ! (track.hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelBarrel, 1) ||
 //	  track.hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelEndcap, 1)) ) return false;
@@ -385,9 +437,9 @@ bool Residuals::trackSelection(const reco::Track& track) const
 bool Residuals::vertexSelection(const reco::Vertex& vertex) const
 {
    if( vertex.tracksSize()>vtxTracksSizeMax || vertex.tracksSize()<vtxTracksSizeMin ) return false;
-   if( vertex.xError() < vtxErrorXMin || vertex.xError() > vtxErrorXMax ) return false;
-   if( vertex.yError() < vtxErrorYMin || vertex.yError() > vtxErrorYMax ) return false;
-   if( vertex.zError() < vtxErrorZMin || vertex.zError() > vtxErrorZMax ) return false;
+//   if( vertex.xError() < vtxErrorXMin || vertex.xError() > vtxErrorXMax ) return false;
+//   if( vertex.yError() < vtxErrorYMin || vertex.yError() > vtxErrorYMax ) return false;
+//   if( vertex.zError() < vtxErrorZMin || vertex.zError() > vtxErrorZMax ) return false;
    
    return true;
 }

@@ -11,7 +11,15 @@ void ResTree::Init()
    ev_id = null;
    ev_lumi = null;
    ev_rho = null;
+   
+   trig_ZeroBiasPixel_DoubleTrack_pass = 0;
+   trig_ZeroBiasPixel_DoubleTrack_L1ps = null;
+   trig_ZeroBiasPixel_DoubleTrack_HLTps = null;
 
+   trig_ZeroBias_pass = 0;
+   trig_ZeroBias_L1ps = null;
+   trig_ZeroBias_HLTps = null;
+   
    bs_type = null;
    bs_x0 = null;
    bs_y0 = null;
@@ -101,7 +109,15 @@ void ResTree::CreateBranches(int buff = 32000)
    tree->Branch("ev_id", &ev_id, "ev_id/I", buff);
    tree->Branch("ev_lumi", &ev_lumi, "ev_lumi/I", buff);
    tree->Branch("ev_rho", &ev_rho, "ev_rho/F", buff);
+   
+   tree->Branch("trig_ZeroBiasPixel_DoubleTrack_pass", &trig_ZeroBiasPixel_DoubleTrack_pass, "trig_ZeroBiasPixel_DoubleTrack_pass/O", buff);
+   tree->Branch("trig_ZeroBiasPixel_DoubleTrack_L1ps", &trig_ZeroBiasPixel_DoubleTrack_L1ps, "trig_ZeroBiasPixel_DoubleTrack_L1ps/I", buff);
+   tree->Branch("trig_ZeroBiasPixel_DoubleTrack_HLTps", &trig_ZeroBiasPixel_DoubleTrack_HLTps, "trig_ZeroBiasPixel_DoubleTrack_HLTps/I", buff);
 
+   tree->Branch("trig_ZeroBias_pass", &trig_ZeroBias_pass, "trig_ZeroBias_pass/O", buff);
+   tree->Branch("trig_ZeroBias_L1ps", &trig_ZeroBias_L1ps, "trig_ZeroBias_L1ps/I", buff);
+   tree->Branch("trig_ZeroBias_HLTps", &trig_ZeroBias_HLTps, "trig_ZeroBias_HLTps/I", buff);
+   
    tree->Branch("bs_type", &bs_type, "bs_type/I", buff);
    tree->Branch("bs_x0", &bs_x0, "bs_x0/F", buff);
    tree->Branch("bs_y0", &bs_y0, "bs_y0/F", buff);

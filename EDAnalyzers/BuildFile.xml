@@ -1,6 +1,7 @@
 <use   name="FWCore/Framework"/>
 <use   name="FWCore/PluginManager"/>
 <use   name="FWCore/ParameterSet"/>
+<use   name="HLTrigger/HLTcore"/>
 <use   name="SimDataFormats/TrackingAnalysis"/>
 <use   name="DataFormats/VertexReco"/>
 <use   name="TrackingTools/TrajectoryState"/>

@@ -7,6 +7,9 @@ residuals = cms.EDAnalyzer("Residuals",
 
                            # Rho
                            RhoLabel = cms.InputTag("fixedGridRhoFastjetAll"),
+
+                           # Trigger results
+                           TriggerResultsLabel = cms.InputTag("TriggerResults","","HLT"),
                            
                            # Selection of Tracks
                            TrackLabel = cms.InputTag("generalTracks"),
