@@ -13,7 +13,7 @@ config.JobType.maxMemoryMB = 4000
 config.section_('Data')
 config.Data.splitting='LumiBased'
 config.Data.totalUnits = -1
-config.Data.unitsPerJob = 20
+config.Data.unitsPerJob = 50
 
 #config.Data.allowNonValidInputDataset = True
 config.Data.lumiMask = 'JSON/Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt'
