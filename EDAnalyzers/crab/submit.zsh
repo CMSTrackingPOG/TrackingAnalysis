@@ -48,4 +48,4 @@ do
   
 done
 
-#rm -f crabConfig.py*
+rm -f crabConfig.py*
