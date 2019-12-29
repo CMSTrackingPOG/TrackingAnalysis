@@ -2,10 +2,11 @@
 
 # source /cvmfs/cms.cern.ch/crab3/crab.sh
 
-slist="list.txt"
+slist="data.txt"
 pver="1" # production tentative
 pset="crabConfigTemplate.py"
-ver="Track-v20191207"
+psetData="crabConfigTemplateData.py"
+ver="Track-v20191229"
 prodv="/store/user/kskovpen/Track/Ntuple/${ver}/"
 
 rm -f crabConfig.py*
@@ -31,6 +32,7 @@ do
   
   if [[ ${isdata} == "" ]]; then
     pubdn=$(echo $pubdn | sed 's%kskovpen.*%MC%g')
+    pset=psetData
   else
     pubdn=$(echo $pubdn | sed "s%kskovpen.*%${run}%g")
   fi
