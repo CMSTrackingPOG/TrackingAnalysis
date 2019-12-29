@@ -2,7 +2,7 @@
 
 # source /cvmfs/cms.cern.ch/crab3/crab.sh
 
-slist="data.txt"
+slist="list.txt"
 pver="1" # production tentative
 pset="crabConfigTemplate.py"
 psetData="crabConfigTemplateData.py"
@@ -32,11 +32,11 @@ do
   
   if [[ ${isdata} == "" ]]; then
     pubdn=$(echo $pubdn | sed 's%kskovpen.*%MC%g')
-    pset=psetData
   else
+    pset=${psetData}
     pubdn=$(echo $pubdn | sed "s%kskovpen.*%${run}%g")
   fi
-  
+
   cat ${pset} | sed "s%INPUTDATASET%${i}%g" \
   | sed "s%OUTLFN%${prodv}%g" \
   | sed "s%REQUESTNAME%${nam}_${pubdn}_${pver}%g" \
