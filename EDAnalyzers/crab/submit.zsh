@@ -44,8 +44,8 @@ do
   > crabConfig.py
 
   echo "${nam} ${pubdn}"
-  crab submit
+  crab submit -c crabConfig.py
   
 done
 
-rm -f crabConfig.py*
+#rm -f crabConfig.py*
