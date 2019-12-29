@@ -1,2 +1,0 @@
-#/ZeroBias/CMSSW_10_6_0-106X_dataRun2_relval_v9_RelVal_2016B-v1/RECO
-/RelValMinBias_13/CMSSW_10_6_0-106X_mcRun2_asymptotic_v3-v1/GEN-SIM-RECO
