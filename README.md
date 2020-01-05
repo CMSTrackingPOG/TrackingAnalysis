@@ -23,7 +23,7 @@ scram b -j 8
 
 Submit jobs with CRAB:
 ```
-source /cvmfs/cms.cern.ch/crab3/crab.sh
+source /cvmfs/cms.cern.ch/crab3/crab_slc6.sh
 source /cvmfs/cms.cern.ch/slc6_amd64_gcc493/external/python/2.7.11/etc/profile.d/init.sh
 cd crab/
 ./submit.zsh
