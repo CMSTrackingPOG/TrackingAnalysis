@@ -3,6 +3,7 @@ config = Configuration()
 
 config.section_('General')
 config.General.requestName = 'REQUESTNAME'
+config.General.transferLogs = True
 config.section_('JobType')
 config.JobType.psetName = '../test/residuals.py'
 config.JobType.pluginName = 'Analysis'
