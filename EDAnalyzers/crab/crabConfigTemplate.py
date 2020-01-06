@@ -13,8 +13,10 @@ config.JobType.maxMemoryMB = 4000
 
 config.section_('Data')
 config.Data.splitting='FileBased'
+#config.Data.splitting='EventAwareLumiBased'
 config.Data.totalUnits = -1
 config.Data.unitsPerJob = 1
+#config.Data.unitsPerJob = 5000
 
 #config.Data.allowNonValidInputDataset = True
 config.Data.publication = False
