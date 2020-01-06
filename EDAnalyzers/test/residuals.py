@@ -10,7 +10,8 @@ secFiles = cms.untracked.vstring()
 source = cms.Source ("PoolSource",fileNames = readFiles, secondaryFileNames = secFiles)
 readFiles.extend( [
 #'/store/data/Run2011A/MinimumBias/AOD/12Oct2013-v1/20001/6A9F67BD-8746-E311-AC78-0025901D5CDC.root'
-'/store/data/Run2012A/MinimumBias/AOD/22Jan2013-v1/20003/F286D9D5-8667-E211-949A-003048679188.root'
+'root://maite.iihe.ac.be/pnfs/iihe/cms/ph/sc4/store/data/Run2012A/MinimumBias/AOD/22Jan2013-v1/20000/1097F002-8D67-E211-8536-003048FFCC18.root'
+#'/store/data/Run2012A/MinimumBias/AOD/22Jan2013-v1/20003/F286D9D5-8667-E211-949A-003048679188.root'
 #'/store/mc/Fall11/MinBias_Tune4C_7TeV-pythia8/AODSIM/PU_S6_START44_V9B-v1/0001/FEAD5287-9736-E111-AF86-0030487D8121.root'
 #'/store/mc/Summer12_DR53X/MinBias_Tune4C_8TeV-pythia8/AODSIM/PU_S10_START53_V7A-v1/0000/1EB5119C-52DA-E111-9679-0018F3D09642.root'
 ]);
@@ -20,7 +21,8 @@ secFiles.extend([ ]);
 process = cms.Process("IpResiduals")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport = cms.untracked.PSet( reportEvery = cms.untracked.int32(1000) )
+process.MessageLogger.cerr.FwkReport = cms.untracked.PSet( reportEvery = cms.untracked.int32(10) )
+#process.MessageLogger.cerr.FwkReport = cms.untracked.PSet( reportEvery = cms.untracked.int32(1) )
                 
 #process.MessageLogger.cout.placeholder = cms.untracked.bool(False)
 #process.MessageLogger.cout.threshold = cms.untracked.string('INFO')
@@ -47,10 +49,10 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #FT_R_53_V21::All # 2012D
 #process.GlobalTag.globaltag = 'START44_V9B::All'
 #process.GlobalTag.globaltag = 'START53_V7A::All'
-process.GlobalTag.globaltag = 'FT_R_53_V18::All'
+process.GlobalTag.globaltag = 'FT_R_53_V21::All'
 
-##process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(20) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
 process.source = source
 

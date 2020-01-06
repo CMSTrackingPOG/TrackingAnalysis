@@ -79,12 +79,16 @@ class Residuals : public edm::EDAnalyzer
    double vtxErrorYMin,vtxErrorYMax;
    double vtxErrorZMin,vtxErrorZMax;
 
+   int eventScale;
+   
    TRandom3 *rnd;
    
    HLTConfigProvider hltConfig_;
    
    const edm::Service<TFileService> fs;
    ResTree* ftree;
+   
+   int ncount;
 };
 
 Residuals::Residuals(const edm::ParameterSet& pset)
@@ -109,6 +113,8 @@ Residuals::Residuals(const edm::ParameterSet& pset)
    vtxErrorZMin     = pset.getParameter<double>("VtxErrorZMin");
    vtxErrorZMax     = pset.getParameter<double>("VtxErrorZMax");
 
+   eventScale = pset.getParameter<int>("EventScale");
+   
    rnd = new TRandom3();
 
    TFile& f = fs->file();
@@ -116,6 +122,8 @@ Residuals::Residuals(const edm::ParameterSet& pset)
    f.SetCompressionLevel(9);
    ftree = new ResTree(fs->make<TTree>("tree","tree"));   
    ftree->CreateBranches(32000);
+   
+   ncount = 0;
 }
 
 Residuals::~Residuals()
@@ -125,6 +133,9 @@ Residuals::~Residuals()
 
 void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+   ncount++;
+   if( (ncount-1) % eventScale != 0 && eventScale > 0 ) return;
+   
    using namespace edm;
    using namespace reco;
    using namespace std;
@@ -267,7 +278,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ftree->pv_xError = vtx.xError()*micron;
    ftree->pv_yError = vtx.yError()*micron;
    ftree->pv_zError = vtx.zError()*micron;
-   
+
    std::vector<reco::TrackBaseRef> vtxTkCollection1;
    std::vector<reco::TrackBaseRef> vtxTkCollection2;
 
@@ -328,7 +339,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_yError_p2 = vtx2.yError()*micron;
 	ftree->pv_zError_p2 = vtx2.zError()*micron;
      }
-   
+
    for( TrackCollection::const_iterator itk = tracks->begin(); itk != tracks->end(); ++itk )
      {
 	// --- track selection ---
@@ -403,7 +414,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_d0_pv_NoRefit.push_back( d0NoRefit_pv*micron );
 	ftree->trk_dz_pv_NoRefit.push_back( dzNoRefit_pv*micron );
      }
-   
+
    ftree->tree->Fill();
 }
 

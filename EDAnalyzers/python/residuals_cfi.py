@@ -31,6 +31,9 @@ residuals = cms.EDAnalyzer("Residuals",
                            VtxErrorZMin = cms.double(0.0020),
                            VtxErrorZMax = cms.double(0.0036),
 
+                           # Event filter
+                           EventScale = cms.int32(100),
+                           
                            # Vertex selection for MinBias trigger
                            ##VtxErrorXMin = cms.double(0.0020),
                            ##VtxErrorXMax = cms.double(0.0055),
