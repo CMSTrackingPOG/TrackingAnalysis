@@ -4,7 +4,7 @@ import os
 import sys
 import json
 
-ntupleProd = 'v20191207'
+ntupleProd = 'v20200106'
 
 sys.tracebacklimit = 0
 
@@ -58,4 +58,4 @@ if __name__ == '__main__':
 #                            fout.write(']\n\n')
 
     with open("list.json", "w") as write_file:
-        json.dump(files, write_file)
+        json.dump(files, write_file, indent=2)
