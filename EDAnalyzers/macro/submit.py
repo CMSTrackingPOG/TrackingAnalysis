@@ -1,45 +1,98 @@
 #!/usr/bin/env python
 
-import os
+import os, sys, subprocess, glob
 import json
 
-with open('list.json', "r") as read_file:
-    flist = json.load(read_file)
+from optparse import OptionParser
 
-if os.path.isdir('jobs'):
-    os.system("rm -rf jobs")
-os.system("mkdir jobs")
+def main(argv = None):
+    
+    if argv == None:
+        argv = sys.argv[1:]
+        
+    usage = "usage: %prog [options]\n Submit jobs"
+    
+    parser = OptionParser(usage)
+    parser.add_option("-j","--json",default="list.json",help="input file list [default: %default]")
+    parser.add_option("-o","--output",default="jobs",help="output directory [default: %default]")
+    parser.add_option("-s","--split",type=int,default=100,help="number of files per job [default: %default]")
+    
+    (options, args) = parser.parse_args(sys.argv[1:])
+    
+    return options                                        
 
-for k, v in flist.iteritems():
-    print k
-    ijob = 0
-    for f in v:
-        
-        jname = k+'_'+str(ijob)
+def job(cwd,proxy,arch,js):
+    
+    j = "#!/bin/bash\n\n"
 
-        fjob = {}
-        fjob[k] = f
-        
-        with open('jobs/'+jname+'.json', "w") as write_file:
-            json.dump(fjob, write_file)
-        
-        jsub = "executable            = jobs/"+jname+".sh\n"
-        jsub += "arguments             = --input=jobs/"+jname+".json --output=jobs/"+jname+".root\n"
-        jsub += "output                = jobs/"+jname+".out\n"
-        jsub += "error                 = jobs/"+jname+".err\n"
-        jsub += "log                   = log/"+jname+".log\n"
-        jsub += "+JobFlavour           = \"espresso\"\n" # espresso (20min), microcentury (1h), longlunch (2h), workday (8h)
-        jsub += "queue"
-        
-        with open('jobs/'+jname+'.sub', "w") as sub_file:
-            sub_file.write(jsub)
-            
-        jsh = "echo 'hello'"
-        
-        with open('jobs/'+jname+'.sh', "w") as sh_file:
-            sh_file.write(jsh)
+    j += "export X509_USER_PROXY="+proxy+"\n"
 
-        print 'jobs/'+jname+'.sub'
-        os.system('condor_submit jobs/'+jname+'.sub')
+    j += "source /cvmfs/cms.cern.ch/cmsset_default.sh\n"
+    j += "cd "+cwd+"/../../\n"
+    j += "export SCRAM_ARCH="+arch+"\n"
+    j += "eval `scramv1 runtime -sh`;cd -\n"
+
+    out = js.replace('.json','.root')
+    
+    j += "time python "+cwd+"/./plot.py --input=" + cwd+"/"+js + " --output=" + cwd+"/"+out + "\n"
+
+    sh = js.replace('.json','.sh')
+    with open(sh, 'w') as f:
+        f.write(j)
+    
+    return sh
+
+if __name__ == '__main__':
+    
+    options = main()
+
+    proxy = '/user/kskovpen/proxy/x509up_u20657'
+    arch = 'slc6_amd64_gcc700'
+    
+    cwd = os.getcwd()
+    
+    os.system('cp /tmp/x509up_u20657 '+proxy)
+    
+    outdir = options.output
+    if os.path.isdir(outdir):
+        os.system("rm -rf "+outdir)
+    os.system("mkdir "+outdir)
+
+    lsz = options.split
+
+    with open(options.json, "r") as read_file:
+        flist = json.load(read_file)
+    
+    for k,v in flist.items():
+        njob = 0
+        datasplit = []
+        for i in range(len(v)):
+            datasplit.append(v[i])
+            if len(datasplit) >= lsz or i == len(v)-1:
+                with open('jobs/list_' + k + '_' + str(njob) + '.json', 'w') as outfile:
+                    data = {}; data[k] = datasplit
+                    json.dump(data, outfile, indent=2)
+                datasplit = []
+                njob += 1
+
+    jobs = glob.glob('jobs/*.json')
+
+    for j in jobs:
         
-        ijob += 1
+        jname = j.replace('.json','').replace(outdir+'/list_','')
+        print jname
+        
+        sh = cwd+'/'+job(cwd,proxy,arch,j)
+        log = cwd+'/'+j.replace('.json','.log')
+
+        NoErrors = False
+        while NoErrors is False:
+            try:
+                res = subprocess.Popen(('qsub','-N','Plot_'+jname,'-q','localgrid','-o',log,'-j','oe',sh,'-l','walltime=06:00:00'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out, err = res.communicate()
+                NoErrors = ('Invalid credential' not in err)
+                if not NoErrors: print '.. Resubmitted'
+            except KeyboardInterrupt:
+                sys.exit(0)
+            except:
+                pass
