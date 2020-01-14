@@ -33,31 +33,20 @@ if __name__ == '__main__':
 
     ROOT.gROOT.SetBatch()
 
-    trIP_data = ROOT.TChain('residuals/treeIP')
-    trIP_mc = ROOT.TChain('residuals/treeIP')
-
-    trPV_data = ROOT.TChain('residuals/treePV')
-    trPV_mc = ROOT.TChain('residuals/treePV')
+    tr = ROOT.TChain('residuals/tree')
 
     with open(options.input, "r") as read_file:
         flist = json.load(read_file)
-    
-    for f in flist['ZeroBias']:
-        trIP_data.Add(f)
-        trPV_data.Add(f)
 
-    for f in flist['RelValMinBias13']:
-        trIP_mc.Add(f)
-        trPV_mc.Add(f)
-        
-    nDataIP = trIP_data.GetEntries()
-    nDataPV = trPV_data.GetEntries()
-    print 'Processed events in data: IP(' + str(nDataIP) + ') PV(' + str(nDataPV) + ')'
-
-    nMCIP = trIP_mc.GetEntries()
-    nMCPV = trPV_mc.GetEntries()    
-    print 'Processed events in MC: IP(' + str(nMCIP) + ') PV(' + str(nMCPV) + ')'
+    isData = False
+    for k,v in flist.items():
+        if 'MinimumBias' in k: isData = True
+        for f in flist[k]: tr.Add(f)
     
+    nEvents = tr.GetEntries()
+    print 'Run on ' + ('Data' if isData else 'MC')
+    print 'Processed events = ' + str(nEvents)
+
     h = {}
     hd = {}
     h2d = {}
@@ -84,8 +73,6 @@ if __name__ == '__main__':
             
             hd['ipd0NoRefit'+k+kk] = {'xtit':'d_{xy} [#mum]','nb':nBins,'xmin':xMin,'xmax':xMax,'ytit':'Events'}
             hd['ipdzNoRefit'+k+kk] = {'xtit':'d_{z} [#mum]','nb':nBins,'xmin':xMin,'xmax':xMax,'ytit':'Events'}
-            hd['ipd0ErrNoRefit'+k+kk] = {'xtit':'#sigma(d_{xy}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
-            hd['ipdzErrNoRefit'+k+kk] = {'xtit':'#sigma(d_{z}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
 
     for k, v in c.PVnTracks.iteritems():
             
@@ -98,26 +85,26 @@ if __name__ == '__main__':
             
             hd['ipd0NoRefit'+k+kk] = {'xtit':'d_{xy} [#mum]','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
             hd['ipdzNoRefit'+k+kk] = {'xtit':'d_{z} [#mum]','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
-            hd['ipd0ErrNoRefit'+k+kk] = {'xtit':'#sigma(d_{xy}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
-            hd['ipdzErrNoRefit'+k+kk] = {'xtit':'#sigma(d_{z}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
         
     for k, v in c.PVnTracks.iteritems():
-        
-        hd['pvx'+k+'__data'] = {'xtit':'x [mm]','nb':30,'xmin':0.4,'xmax':0.9,'ytit':'Events'}
-        hd['pvy'+k+'__data'] = {'xtit':'y [mm]','nb':30,'xmin':0.8,'xmax':1.2,'ytit':'Events'}
-        hd['pvz'+k+'__data'] = {'xtit':'z [cm]','nb':30,'xmin':-20.,'xmax':20.,'ytit':'Events'}
-        
-        h2d['pvx_y'+k+'__data'] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':30,'xmin':0.4,'xmax':0.9,'nby':30,'ymin':0.8,'ymax':1.2}
-        h2d['pvx_z'+k+'__data'] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':30,'xmin':-20.,'xmax':20.,'nby':30,'ymin':0.4,'ymax':0.9}
-        h2d['pvy_z'+k+'__data'] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':30,'xmin':-20.,'xmax':20.,'nby':30,'ymin':0.8,'ymax':1.2}
 
-        hd['pvx'+k+'__mc'] = {'xtit':'x [mm]','nb':30,'xmin':0.8,'xmax':1.3,'ytit':'Events'}
-        hd['pvy'+k+'__mc'] = {'xtit':'y [mm]','nb':30,'xmin':1.4,'xmax':2.,'ytit':'Events'}
-        hd['pvz'+k+'__mc'] = {'xtit':'z [cm]','nb':30,'xmin':-20.,'xmax':20.,'ytit':'Events'}
+        if isData:
+            hd['pvx'+k] = {'xtit':'x [mm]','nb':30,'xmin':0.4,'xmax':0.9,'ytit':'Events'}
+            hd['pvy'+k] = {'xtit':'y [mm]','nb':30,'xmin':0.8,'xmax':1.2,'ytit':'Events'}
+            hd['pvz'+k] = {'xtit':'z [cm]','nb':30,'xmin':-20.,'xmax':20.,'ytit':'Events'}
+            
+            h2d['pvx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':30,'xmin':0.4,'xmax':0.9,'nby':30,'ymin':0.8,'ymax':1.2}
+            h2d['pvx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':30,'xmin':-20.,'xmax':20.,'nby':30,'ymin':0.4,'ymax':0.9}
+            h2d['pvy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':30,'xmin':-20.,'xmax':20.,'nby':30,'ymin':0.8,'ymax':1.2}
 
-        h2d['pvx_y'+k+'__mc'] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':30,'xmin':0.8,'xmax':1.3,'nby':30,'ymin':1.4,'ymax':2.}
-        h2d['pvx_z'+k+'__mc'] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':30,'xmin':-20.,'xmax':20.,'nby':30,'ymin':0.8,'ymax':1.3}
-        h2d['pvy_z'+k+'__mc'] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':30,'xmin':-20.,'xmax':20.,'nby':30,'ymin':1.4,'ymax':2.}
+        else:
+            hd['pvx'+k] = {'xtit':'x [mm]','nb':30,'xmin':0.8,'xmax':1.3,'ytit':'Events'}
+            hd['pvy'+k] = {'xtit':'y [mm]','nb':30,'xmin':1.4,'xmax':2.,'ytit':'Events'}
+            hd['pvz'+k] = {'xtit':'z [cm]','nb':30,'xmin':-20.,'xmax':20.,'ytit':'Events'}
+            
+            h2d['pvx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':30,'xmin':0.8,'xmax':1.3,'nby':30,'ymin':1.4,'ymax':2.}
+            h2d['pvx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':30,'xmin':-20.,'xmax':20.,'nby':30,'ymin':0.8,'ymax':1.3}
+            h2d['pvy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':30,'xmin':-20.,'xmax':20.,'nby':30,'ymin':1.4,'ymax':2.}
         
         hd['pvdx12'+k] = {'xtit':'Primary vertex resolution in x [#mum]','nb':30,'xmin':-200.,'xmax':200.,'ytit':'Events'}
         hd['pvdy12'+k] = {'xtit':'Primary vertex resolution in y [#mum]','nb':30,'xmin':-200.,'xmax':200.,'ytit':'Events'}
@@ -130,81 +117,66 @@ if __name__ == '__main__':
     outFile = ROOT.TFile.Open(options.output,"RECREATE")
         
     h = {}
-    for t in ['data','mc']:
-        for k, v in hd.iteritems():
-            if any(map(lambda w: w in k, ('data','mc'))):
-                hname = 'h_'+k
-            else:
-                hname = 'h_'+k+'__'+t
-            if not ROOT.gDirectory.FindObject(hname):
-                h[hname] = ROOT.TH1F(hname,hname,v['nb'],v['xmin'],v['xmax'])
-                h[hname].GetXaxis().SetTitle(v['xtit'])
-                h[hname].GetYaxis().SetTitle(v['ytit'])
-                h[hname].Sumw2()
+    for k, v in hd.iteritems():
+        hname = 'h_'+k
+        if not ROOT.gDirectory.FindObject(hname):
+            h[hname] = ROOT.TH1F(hname,hname,v['nb'],v['xmin'],v['xmax'])
+            h[hname].GetXaxis().SetTitle(v['xtit'])
+            h[hname].GetYaxis().SetTitle(v['ytit'])
+            h[hname].Sumw2()
 
     h2 = {}
-    for t in ['data','mc']:
-        for k, v in h2d.iteritems():
-            if any(map(lambda w: w in k, ('data','mc'))):
-                hname = 'h2_'+k
-            else:
-                hname = 'h2_'+k+'__'+t
-            if not ROOT.gDirectory.FindObject(hname):
-                h2[hname] = ROOT.TH2F(hname,hname,v['nbx'],v['xmin'],v['xmax'],v['nby'],v['ymin'],v['ymax'])
-                h2[hname].GetXaxis().SetTitle(v['xtit'])
-                h2[hname].GetYaxis().SetTitle(v['ytit'])
-                h2[hname].Sumw2()
+    for k, v in h2d.iteritems():
+        hname = 'h2_'+k
+        if not ROOT.gDirectory.FindObject(hname):
+            h2[hname] = ROOT.TH2F(hname,hname,v['nbx'],v['xmin'],v['xmax'],v['nby'],v['ymin'],v['ymax'])
+            h2[hname].GetXaxis().SetTitle(v['xtit'])
+            h2[hname].GetYaxis().SetTitle(v['ytit'])
+            h2[hname].Sumw2()
 
-    for t in ['data','mc']:
+    # IP study
+    for i in range(nEvents):
 
-        # IP study
-        nStat = nDataIP
-        if t == 'mc': nStat = nMCIP
-        for i in range(nStat):
+        tr.GetEntry(i)
 
-            trName = 'trIP_'+t
-            eval(trName+'.GetEntry('+str(i)+')')
-
-            isValid = eval(trName+'.pvIsValid')
-            isFake = eval(trName+'.pvIsFake')
+        isValid = tr.pv_IsValid
+        isFake = tr.pv_IsFake
             
-            if not isValid or isFake: continue
+        if not isValid or isFake: continue
 
-            nTracks = eval(trName+'.pvNTracks')
+        nPVTracks = tr.pv_NTracks
+        
+        nTracks = tr.trk_pt.size()
             
-            hasPXL = eval(trName+'.hasPXL')
-            quality = eval(trName+'.quality')
+        for t in range(nTracks):
+        
+            hasPXL = tr.trk_hasPXL[t]
+            quality = tr.trk_quality[t]
             
-            pt = eval(trName+'.pt')
-            eta = eval(trName+'.eta')
-            phi = eval(trName+'.phi')
+            pt = tr.trk_pt[t]
+            eta = tr.trk_eta[t]
+            phi = tr.trk_phi[t]
 
-            d0 = eval(trName+'.d0')
-            dz = eval(trName+'.dz')
-            d0Err = eval(trName+'.d0Err')
-            dzErr = eval(trName+'.dzErr')
-            
-            d0NoRefit = eval(trName+'.d0NoRefit')
-            dzNoRefit = eval(trName+'.dzNoRefit')
-            d0ErrNoRefit = eval(trName+'.d0ErrNoRefit')
-            dzErrNoRefit = eval(trName+'.dzErrNoRefit')
+            d0 = tr.trk_d0_pv[t]
+            dz = tr.trk_dz_pv[t]
+            d0Err = tr.trk_d0Err[t]
+            dzErr = tr.trk_dzErr[t]
 
-            pt = eval(trName+'.pt')
-            eta = eval(trName+'.eta')
-            phi = eval(trName+'.phi')
+            d0NoRefit = tr.trk_d0_pv_NoRefit[t]
+            dzNoRefit = tr.trk_dz_pv_NoRefit[t]
             
             if math.fabs(d0) > 2000 or math.fabs(dz) > 2000: continue
 
-            h['h_ipPt__'+t].Fill(pt)
-            h['h_ipEta__'+t].Fill(eta)
-            h['h_ipPhi__'+t].Fill(phi)
+            h['h_ipPt'].Fill(pt)
+            h['h_ipEta'].Fill(eta)
+            h['h_ipPhi'].Fill(phi)
 
             for ktrk, vtrk in c.PVnTracks.iteritems():
                 
                 nTrkMin = vtrk[1]
                 nTrkMax = vtrk[2]
                 
-                if not (nTracks >= nTrkMin and nTracks < nTrkMax): continue
+                if not (nPVTracks >= nTrkMin and nPVTracks < nTrkMax): continue
             
                 for keta, veta in c.IPeta.iteritems():
                         
@@ -213,15 +185,13 @@ if __name__ == '__main__':
                 
                     if not (eta >= etaMin and eta < etaMax): continue
 
-                    h['h_ipd0'+ktrk+keta+'__'+t].Fill(d0)
-                    h['h_ipdz'+ktrk+keta+'__'+t].Fill(dz)
-                    h['h_ipd0Err'+ktrk+keta+'__'+t].Fill(d0Err)
-                    h['h_ipdzErr'+ktrk+keta+'__'+t].Fill(dzErr)
+                    h['h_ipd0'+ktrk+keta].Fill(d0)
+                    h['h_ipdz'+ktrk+keta].Fill(dz)
+                    h['h_ipd0Err'+ktrk+keta].Fill(d0Err)
+                    h['h_ipdzErr'+ktrk+keta].Fill(dzErr)
                     
-                    h['h_ipd0NoRefit'+ktrk+keta+'__'+t].Fill(d0NoRefit)
-                    h['h_ipdzNoRefit'+ktrk+keta+'__'+t].Fill(dzNoRefit)
-                    h['h_ipd0ErrNoRefit'+ktrk+keta+'__'+t].Fill(d0ErrNoRefit)
-                    h['h_ipdzErrNoRefit'+ktrk+keta+'__'+t].Fill(dzErrNoRefit)
+                    h['h_ipd0NoRefit'+ktrk+keta].Fill(d0NoRefit)
+                    h['h_ipdzNoRefit'+ktrk+keta].Fill(dzNoRefit)
                 
                 for kpt, vpt in c.IPpt.iteritems():
                     
@@ -230,86 +200,81 @@ if __name__ == '__main__':
                 
                     if not (pt >= ptMin and pt < ptMax): continue
                     
-                    h['h_ipd0'+ktrk+kpt+'__'+t].Fill(d0)
-                    h['h_ipdz'+ktrk+kpt+'__'+t].Fill(dz)
-                    h['h_ipd0Err'+ktrk+kpt+'__'+t].Fill(d0Err)
-                    h['h_ipdzErr'+ktrk+kpt+'__'+t].Fill(dzErr)
+                    h['h_ipd0'+ktrk+kpt].Fill(d0)
+                    h['h_ipdz'+ktrk+kpt].Fill(dz)
+                    h['h_ipd0Err'+ktrk+kpt].Fill(d0Err)
+                    h['h_ipdzErr'+ktrk+kpt].Fill(dzErr)
                 
-                    h['h_ipd0NoRefit'+ktrk+kpt+'__'+t].Fill(d0NoRefit)
-                    h['h_ipdzNoRefit'+ktrk+kpt+'__'+t].Fill(dzNoRefit)
-                    h['h_ipd0ErrNoRefit'+ktrk+kpt+'__'+t].Fill(d0ErrNoRefit)
-                    h['h_ipdzErrNoRefit'+ktrk+kpt+'__'+t].Fill(dzErrNoRefit)
+                    h['h_ipd0NoRefit'+ktrk+kpt].Fill(d0NoRefit)
+                    h['h_ipdzNoRefit'+ktrk+kpt].Fill(dzNoRefit)
 
-        # PV study
-        nStat = nDataPV
-        if t == 'mc': nStat = nMCPV
-        for i in range(nStat):
+    # PV study
+    for i in range(nEvents):
+        
+        tr.GetEntry(i)
+        
+        isValid = tr.pv_IsValid
+        isFake = tr.pv_IsFake
+            
+        if not isValid or isFake: continue
 
-            trName = 'trPV_'+t
-            eval(trName+'.GetEntry('+str(i)+')')
-            
-            isValid = eval(trName+'.pvIsValid')
-            isFake = eval(trName+'.pvIsFake')
-            
-            if not isValid or isFake: continue
+        x = tr.pv_x
+        y = tr.pv_y
+        z = tr.pv_z
+        xError = tr.pv_xError
+        yError = tr.pv_yError
+        zError = tr.pv_zError
+        nTracks = tr.pv_NTracks
 
-            x = eval(trName+'.pvx')
-            y = eval(trName+'.pvy')
-            z = eval(trName+'.pvz')
-            xError = eval(trName+'.pvxError')
-            yError = eval(trName+'.pvyError')
-            zError = eval(trName+'.pvzError')
-            nTracks = eval(trName+'.pvNTracks')
+        x1 = tr.pv_x_p1
+        y1 = tr.pv_y_p1
+        z1 = tr.pv_z_p1
+        xError1 = tr.pv_xError_p1
+        yError1 = tr.pv_yError_p1
+        zError1 = tr.pv_zError_p1
             
-            x1 = eval(trName+'.pv1x')
-            y1 = eval(trName+'.pv1y')
-            z1 = eval(trName+'.pv1z')
-            xError1 = eval(trName+'.pv1xError')
-            yError1 = eval(trName+'.pv1yError')
-            zError1 = eval(trName+'.pv1zError')
+        x2 = tr.pv_x_p2
+        y2 = tr.pv_y_p2
+        z2 = tr.pv_z_p2
+        xError2 = tr.pv_xError_p2
+        yError2 = tr.pv_yError_p2
+        zError2 = tr.pv_zError_p2
             
-            x2 = eval(trName+'.pv2x')
-            y2 = eval(trName+'.pv2y')
-            z2 = eval(trName+'.pv2z')
-            xError2 = eval(trName+'.pv2xError')
-            yError2 = eval(trName+'.pv2yError')
-            zError2 = eval(trName+'.pv2zError')
-            
-            dx12 = (x1-x2)/math.sqrt(2)
-            dy12 = (y1-y2)/math.sqrt(2)
-            dz12 = (z1-z2)/math.sqrt(2)
-            
-            dxPull12 = (x1-x2)/math.sqrt(xError1*xError1+xError2*xError2)
-            dyPull12 = (y1-y2)/math.sqrt(yError1*yError1+yError2*yError2)
-            dzPull12 = (z1-z2)/math.sqrt(zError1*zError1+zError2*zError2)
+        dx12 = (x1-x2)/math.sqrt(2)
+        dy12 = (y1-y2)/math.sqrt(2)
+        dz12 = (z1-z2)/math.sqrt(2)
+        
+        dxPull12 = (x1-x2)/math.sqrt(xError1*xError1+xError2*xError2)
+        dyPull12 = (y1-y2)/math.sqrt(yError1*yError1+yError2*yError2)
+        dzPull12 = (z1-z2)/math.sqrt(zError1*zError1+zError2*zError2)
 
-            cm = 1/10000.
-            mm = 1/1000.
+        cm = 1/10000.
+        mm = 1/1000.
 
-            h['h_pvNTrks__'+t].Fill(nTracks)
+        h['h_pvNTrks'].Fill(nTracks)
             
-            for k, v in c.PVnTracks.iteritems():
+        for k, v in c.PVnTracks.iteritems():
                 
-                nTrkMin = v[1]
-                nTrkMax = v[2]
+            nTrkMin = v[1]
+            nTrkMax = v[2]
                 
-                if nTracks >= nTrkMin and nTracks < nTrkMax:
+            if nTracks >= nTrkMin and nTracks < nTrkMax:
                     
-                    h['h_pvx'+k+'__'+t].Fill(x*mm)
-                    h['h_pvy'+k+'__'+t].Fill(y*mm)
-                    h['h_pvz'+k+'__'+t].Fill(z*cm)
+                h['h_pvx'+k].Fill(x*mm)
+                h['h_pvy'+k].Fill(y*mm)
+                h['h_pvz'+k].Fill(z*cm)
                     
-                    h2['h2_pvx_y'+k+'__'+t].Fill(x*mm,y*mm)
-                    h2['h2_pvx_z'+k+'__'+t].Fill(z*cm,x*mm)
-                    h2['h2_pvy_z'+k+'__'+t].Fill(z*cm,y*mm)
+                h2['h2_pvx_y'+k].Fill(x*mm,y*mm)
+                h2['h2_pvx_z'+k].Fill(z*cm,x*mm)
+                h2['h2_pvy_z'+k].Fill(z*cm,y*mm)
                     
-                    h['h_pvdx12'+k+'__'+t].Fill(dx12)
-                    h['h_pvdy12'+k+'__'+t].Fill(dy12)
-                    h['h_pvdz12'+k+'__'+t].Fill(dz12)
+                h['h_pvdx12'+k].Fill(dx12)
+                h['h_pvdy12'+k].Fill(dy12)
+                h['h_pvdz12'+k].Fill(dz12)
                 
-                    h['h_pvdxPull12'+k+'__'+t].Fill(dxPull12)
-                    h['h_pvdyPull12'+k+'__'+t].Fill(dyPull12)
-                    h['h_pvdzPull12'+k+'__'+t].Fill(dzPull12)
+                h['h_pvdxPull12'+k].Fill(dxPull12)
+                h['h_pvdyPull12'+k].Fill(dyPull12)
+                h['h_pvdzPull12'+k].Fill(dzPull12)
                 
     print '\033[1;32mdone\033[1;m'
 
