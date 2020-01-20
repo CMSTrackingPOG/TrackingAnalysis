@@ -1,1 +1,0 @@
-/afs/cern.ch/user/k/kskovpen/Track/CMSSW_11_0_0_pre10/src/IpResoStudies/EDAnalyzers/test/mc-residuals.root
