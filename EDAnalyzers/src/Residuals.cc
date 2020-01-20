@@ -378,6 +378,9 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	int hasPXL = (itk->hitPattern().hasValidHitInFirstPixelBarrel() || itk->hitPattern().hasValidHitInFirstPixelEndcap());
 	double quality = itk->qualityMask();
 
+	double d0 = itk->dxy();
+	double dz = itk->dz();
+	
 	double d0_pv = itk->dxy(vtxPosition);
 	double dz_pv = itk->dz(vtxPosition);
 	double d0NoRefit_pv = itk->dxy(vtxH->front().position());
@@ -403,6 +406,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_nMissedIn.push_back( nMissedIn );
 	ftree->trk_hasPXL.push_back( hasPXL );
 	ftree->trk_quality.push_back( quality );
+	ftree->trk_d0.push_back( d0*micron );
+	ftree->trk_dz.push_back( dz*micron );
 	ftree->trk_d0_pv.push_back( d0_pv*micron );
 	ftree->trk_dz_pv.push_back( dz_pv*micron );
 	ftree->trk_d0_bs.push_back( d0_bs*micron );

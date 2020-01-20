@@ -91,6 +91,8 @@ void ResTree::Init()
    trk_nMissedIn.clear();
    trk_hasPXL.clear();
    trk_quality.clear();
+   trk_d0.clear();
+   trk_dz.clear();
    trk_d0_pv.clear();
    trk_dz_pv.clear();
    trk_d0_bs.clear();
@@ -189,6 +191,8 @@ void ResTree::CreateBranches(int buff = 32000)
    tree->Branch("trk_nMissedIn", "std::vector<int>", &trk_nMissedIn, buff);
    tree->Branch("trk_hasPXL", "std::vector<int>", &trk_hasPXL, buff);
    tree->Branch("trk_quality", "std::vector<int>", &trk_quality, buff);
+   tree->Branch("trk_d0", "std::vector<float>", &trk_d0, buff);
+   tree->Branch("trk_dz", "std::vector<float>", &trk_dz, buff);
    tree->Branch("trk_d0_pv", "std::vector<float>", &trk_d0_pv, buff);
    tree->Branch("trk_dz_pv", "std::vector<float>", &trk_dz_pv, buff);
    tree->Branch("trk_d0_bs", "std::vector<float>", &trk_d0_bs, buff);
