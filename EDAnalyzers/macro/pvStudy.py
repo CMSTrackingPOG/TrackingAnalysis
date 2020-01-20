@@ -19,10 +19,11 @@ def main(argv = None):
     if argv == None:
         argv = sys.argv[1:]
 
-    usage = "usage: %prog [options]\n Analysis script to study PV resolution"
+    usage = "usage: %prog [options]\n Analysis script to study PV and BS resolution"
     
     parser = OptionParser(usage)
-    parser.add_option("-i","--input",default="output.root",help="input file name [default: %default]")
+    parser.add_option("-d","--data",default="data.root",help="input data file name [default: %default]")
+    parser.add_option("-m","--mc",default="mc.root",help="input mc file name [default: %default]")
     parser.add_option("-o","--output",default="pics",help="output directory [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
@@ -39,14 +40,15 @@ if __name__ == '__main__':
 
     if not os.path.isdir(options.output):
         os.system("mkdir "+options.output)
-
-    fHist = ROOT.TFile.Open(options.input,'read')
+        
+    fHistData = ROOT.TFile.Open(options.data,'read')
+    fHistMC = ROOT.TFile.Open(options.mc,'read')
 
     hIncl = ['pvNTrks']
     for h in hIncl:
         
-        hData = fHist.Get('h_'+h+'__data')
-        hMC = fHist.Get('h_'+h+'__mc')
+        hData = fHistData.Get('h_'+h)
+        hMC = fHistMC.Get('h_'+h)
         
         c1 = ROOT.TCanvas()
         
@@ -84,31 +86,58 @@ if __name__ == '__main__':
         c1.Clear()
     
     #### Basic distributions
+
+    #### PV
     
-    hXData = {}; hYData = {}; hZData = {}
-    hXMC = {}; hYMC = {}; hZMC = {}
-    hXYData = {}; hXZData = {}; hYZData = {}
-    hXYMC = {}; hXZMC = {}; hYZMC = {}
+    pv_hXData = {}; pv_hYData = {}; pv_hZData = {}
+    pv_hXMC = {}; pv_hYMC = {}; pv_hZMC = {}
+    pv_hXYData = {}; pv_hXZData = {}; pv_hYZData = {}
+    pv_hXYMC = {}; pv_hXZMC = {}; pv_hYZMC = {}
     
     for k, v in c.PVnTracks.iteritems():
         
-        hXData[k] = fHist.Get('h_pvx'+k+'__data')
-        hYData[k] = fHist.Get('h_pvy'+k+'__data')
-        hZData[k] = fHist.Get('h_pvz'+k+'__data')
+        pv_hXData[k] = fHistData.Get('h_pvx'+k)
+        pv_hYData[k] = fHistData.Get('h_pvy'+k)
+        pv_hZData[k] = fHistData.Get('h_pvz'+k)
 
-        hXMC[k] = fHist.Get('h_pvx'+k+'__mc')
-        hYMC[k] = fHist.Get('h_pvy'+k+'__mc')
-        hZMC[k] = fHist.Get('h_pvz'+k+'__mc')
+        pv_hXMC[k] = fHistMC.Get('h_pvx'+k)
+        pv_hYMC[k] = fHistMC.Get('h_pvy'+k)
+        pv_hZMC[k] = fHistMC.Get('h_pvz'+k)
         
-        hXYData[k] = fHist.Get('h2_pvx_y'+k+'__data')
-        hXZData[k] = fHist.Get('h2_pvx_z'+k+'__data')
-        hYZData[k] = fHist.Get('h2_pvy_z'+k+'__data')
+        pv_hXYData[k] = fHistData.Get('h2_pvx_y'+k)
+        pv_hXZData[k] = fHistData.Get('h2_pvx_z'+k)
+        pv_hYZData[k] = fHistData.Get('h2_pvy_z'+k)
         
-        hXYMC[k] = fHist.Get('h2_pvx_y'+k+'__mc')
-        hXZMC[k] = fHist.Get('h2_pvx_z'+k+'__mc')
-        hYZMC[k] = fHist.Get('h2_pvy_z'+k+'__mc')
+        pv_hXYMC[k] = fHistMC.Get('h2_pvx_y'+k)
+        pv_hXZMC[k] = fHistMC.Get('h2_pvx_z'+k)
+        pv_hYZMC[k] = fHistMC.Get('h2_pvy_z'+k)
 
-    for h in [hXData,hYData,hZData,hXMC,hYMC,hZMC]:
+    #### BS
+        
+    bs_hXData = {}; bs_hYData = {}; bs_hZData = {}
+    bs_hXMC = {}; bs_hYMC = {}; bs_hZMC = {}
+    bs_hXYData = {}; bs_hXZData = {}; bs_hYZData = {}
+    bs_hXYMC = {}; bs_hXZMC = {}; bs_hYZMC = {}
+    
+    for k, v in c.PVnTracks.iteritems():
+        
+        bs_hXData[k] = fHistData.Get('h_bsx0'+k)
+        bs_hYData[k] = fHistData.Get('h_bsy0'+k)
+        bs_hZData[k] = fHistData.Get('h_bsz0'+k)
+
+        bs_hXMC[k] = fHistMC.Get('h_bsx0'+k)
+        bs_hYMC[k] = fHistMC.Get('h_bsy0'+k)
+        bs_hZMC[k] = fHistMC.Get('h_bsz0'+k)
+        
+        bs_hXYData[k] = fHistData.Get('h2_bsx0_y0'+k)
+        bs_hXZData[k] = fHistData.Get('h2_bsx0_z0'+k)
+        bs_hYZData[k] = fHistData.Get('h2_bsy0_z0'+k)
+        
+        bs_hXYMC[k] = fHistMC.Get('h2_bsx0_y0'+k)
+        bs_hXZMC[k] = fHistMC.Get('h2_bsx0_z0'+k)
+        bs_hYZMC[k] = fHistMC.Get('h2_bsy0_z0'+k)
+        
+    for idx, h in enumerate([pv_hXData,pv_hYData,pv_hZData,pv_hXMC,pv_hYMC,pv_hZMC]):
         for k, hh in h.iteritems():
         
             c1 = ROOT.TCanvas()
@@ -119,12 +148,12 @@ if __name__ == '__main__':
             if 'y' in hh.GetName(): proj = 'Y'
             if 'z' in hh.GetName(): proj = 'Z'
             samp = 'data'
-            if 'mc' in hh.GetName(): samp = 'mc'
+            if idx > 2: samp = 'mc'
             
             c1.Print(options.output+'/pv'+proj+k+'_'+samp+'.eps')
             c1.Clear()
 
-    for h2 in [hXYData,hXZData,hYZData,hXYMC,hXZMC,hYZMC]:
+    for idx, h2 in enumerate([pv_hXYData,pv_hXZData,pv_hYZData,pv_hXYMC,pv_hXZMC,pv_hYZMC]):
         for k, hh in h2.iteritems():
         
             c1 = ROOT.TCanvas()
@@ -134,11 +163,24 @@ if __name__ == '__main__':
             if 'x_z' in hh.GetName(): proj = 'XZ'
             if 'y_z' in hh.GetName(): proj = 'YZ'
             samp = 'data'
-            if 'mc' in hh.GetName(): samp = 'mc'
-            
+            if idx > 2: samp = 'mc'
+
+            if 'x_y' in hh.GetName(): 
+                bs_hXYData[k].SetContour(3)
+                bs_hXYData[k].Draw('CONT3 SAME')
+                bs_hXYData[k].SetLineColor(ROOT.kRed)
+            if 'x_z' in hh.GetName(): 
+                bs_hXZData[k].SetContour(3)
+                bs_hXZData[k].Draw('CONT3 SAME')
+                bs_hXZData[k].SetLineColor(ROOT.kRed)
+            if 'y_z' in hh.GetName():
+                bs_hYZData[k].SetContour(3)
+                bs_hYZData[k].Draw('CONT3 SAME')
+                bs_hYZData[k].SetLineColor(ROOT.kRed)
+
             c1.Print(options.output+'/pv'+proj+k+'_'+samp+'.eps')
             c1.Clear()
-        
+            
     #### Fits
     
     pstyle.SetOptFit(1111)
@@ -160,17 +202,17 @@ if __name__ == '__main__':
     
         for x in c.PVmeas:
             
-            hNameResoData = 'h_pvd'+x+'12'+k+'__data'
-            hNamePullData = 'h_pvd'+x+'Pull12'+k+'__data'
-            hResoData = fHist.Get(hNameResoData)
-            hPullData = fHist.Get(hNamePullData)
+            hNameResoData = 'h_pvd'+x+'12'+k
+            hNamePullData = 'h_pvd'+x+'Pull12'+k
+            hResoData = fHistData.Get(hNameResoData)
+            hPullData = fHistData.Get(hNamePullData)
             func.addbin(hResoData)
             func.addbin(hPullData)
         
-            hNameResoMC = 'h_pvd'+x+'12'+k+'__mc'
-            hNamePullMC = 'h_pvd'+x+'Pull12'+k+'__mc'
-            hResoMC = fHist.Get(hNameResoMC)
-            hPullMC = fHist.Get(hNamePullMC)
+            hNameResoMC = 'h_pvd'+x+'12'+k
+            hNamePullMC = 'h_pvd'+x+'Pull12'+k
+            hResoMC = fHistMC.Get(hNameResoMC)
+            hPullMC = fHistMC.Get(hNamePullMC)
             func.addbin(hResoMC)
             func.addbin(hPullMC)
             

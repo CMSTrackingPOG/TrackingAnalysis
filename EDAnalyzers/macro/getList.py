@@ -4,7 +4,8 @@ import os
 import sys
 import json
 
-ntupleProd = 'v20200106'
+#ntupleProd = 'v20200106'
+ntupleProd = 'v20200118'
 
 sys.tracebacklimit = 0
 
@@ -23,17 +24,25 @@ if __name__ == '__main__':
         ds = i
     
         ds = ds.replace('/','')
-        print ds
+#        print ds
         ds = ds.replace('-','')
         ds = ds.replace('_','')
 
-        files[ds] = []
+#        files[ds] = []
         
 #        fout.write(ds+' = [\n')
 
         flist = os.popen('gfal-ls '+loc+i).read().splitlines()
     
         for j in range(len(flist)):
+            
+            dss = flist[j]
+            dss = dss.replace('/','')
+            dss = dss.replace('-','')
+            dss = dss.replace('_','')
+            print ds+'_'+dss
+            
+            files[ds+'_'+dss] = []
             
             flistt = os.popen('gfal-ls '+loc+i+'/'+flist[j]).read().splitlines()
 
@@ -46,11 +55,13 @@ if __name__ == '__main__':
                     flistttt = os.popen('gfal-ls '+loc+i+'/'+flist[j]+'/'+flistt[jj]+'/'+flisttt[jjj]).read().splitlines()
                     
                     for jjjj in range(len(flistttt)):
+                        
+                        if 'log' not in flistttt[jjjj]:
                 
-#                        fout.write("'"+loc+i+'/'+flist[j]+'/'+flistt[jj]+'/'+flisttt[jjj]+'/'+flistttt[jjjj]+"'")
-                        floc = loc+i+'/'+flist[j]+'/'+flistt[jj]+'/'+flisttt[jjj]+'/'+flistttt[jjjj]
-                        floc = floc.replace('srm','root')
-                        files[ds].append(floc)
+#                            fout.write("'"+loc+i+'/'+flist[j]+'/'+flistt[jj]+'/'+flisttt[jjj]+'/'+flistttt[jjjj]+"'")
+                            floc = loc+i+'/'+flist[j]+'/'+flistt[jj]+'/'+flisttt[jjj]+'/'+flistttt[jjjj]
+                            floc = floc.replace('srm','root')
+                            files[ds+'_'+dss].append(floc)
 
 #                        if jjjj != len(flistttt)-1:
 #                            fout.write(',\n')

@@ -22,7 +22,8 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Analysis script to study IP resolution"
     
     parser = OptionParser(usage)
-    parser.add_option("-i","--input",default="output.root",help="input file name [default: %default]")
+    parser.add_option("-d","--data",default="data.root",help="input data file name [default: %default]")
+    parser.add_option("-m","--mc",default="mc.root",help="input mc file name [default: %default]")
     parser.add_option("-o","--output",default="pics",help="output directory [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
@@ -40,13 +41,14 @@ if __name__ == '__main__':
     if not os.path.isdir(options.output):
         os.system("mkdir "+options.output)
 
-    fHist = ROOT.TFile.Open(options.input,'read')
+    fHistData = ROOT.TFile.Open(options.data,'read')
+    fHistMC = ROOT.TFile.Open(options.mc,'read')
 
     hIncl = ['ipPt','ipEta','ipPhi']
     for h in hIncl:
         
-        hData = fHist.Get('h_'+h+'__data')
-        hMC = fHist.Get('h_'+h+'__mc')
+        hData = fHistData.Get('h_'+h)
+        hMC = fHistMC.Get('h_'+h)
         
         c1 = ROOT.TCanvas()
         
@@ -104,12 +106,12 @@ if __name__ == '__main__':
     
             for x in c.IPmeas:
 
-                hNameResoData = 'h_ip'+x+ktrk+k+'__data'
-                hResoData = fHist.Get(hNameResoData)
+                hNameResoData = 'h_ip'+x+ktrk+k
+                hResoData = fHistData.Get(hNameResoData)
                 func.addbin(hResoData)
         
-                hNameResoMC = 'h_ip'+x+ktrk+k+'__mc'
-                hResoMC = fHist.Get(hNameResoMC)
+                hNameResoMC = 'h_ip'+x+ktrk+k
+                hResoMC = fHistMC.Get(hNameResoMC)
                 func.addbin(hResoMC)
             
                 if hResoData.GetEntries() < 1:

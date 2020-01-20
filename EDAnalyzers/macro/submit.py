@@ -15,7 +15,8 @@ def main(argv = None):
     parser = OptionParser(usage)
     parser.add_option("-j","--json",default="list.json",help="input file list [default: %default]")
     parser.add_option("-o","--output",default="jobs",help="output directory [default: %default]")
-    parser.add_option("-s","--split",type=int,default=100,help="number of files per job [default: %default]")
+    parser.add_option("-s","--split",type=int,default=20,help="number of files per job [default: %default]")
+    parser.add_option("-p","--param",default="PVnTracks",help="parameterisation for PV resolution measurement [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -33,8 +34,8 @@ def job(cwd,proxy,arch,js):
     j += "eval `scramv1 runtime -sh`;cd -\n"
 
     out = js.replace('.json','.root')
-    
-    j += "time python "+cwd+"/./plot.py --input=" + cwd+"/"+js + " --output=" + cwd+"/"+out + "\n"
+
+    j += "time python "+cwd+"/./plot.py --input=" + cwd+"/"+js + " --output=" + cwd+"/"+out + " --param=" + options.param + "\n"
 
     sh = js.replace('.json','.sh')
     with open(sh, 'w') as f:
