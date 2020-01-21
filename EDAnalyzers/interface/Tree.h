@@ -104,6 +104,8 @@ class ResTree
    std::vector<int> trk_nMissedIn;
    std::vector<int> trk_hasPXL;
    std::vector<int> trk_quality;
+   std::vector<float> trk_d0;
+   std::vector<float> trk_dz;
    std::vector<float> trk_d0_pv;
    std::vector<float> trk_dz_pv;
    std::vector<float> trk_d0_bs;
