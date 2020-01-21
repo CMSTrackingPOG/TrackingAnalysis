@@ -52,7 +52,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.GlobalTag.globaltag = 'FT_R_53_V21::All'
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 process.source = source
 
@@ -83,7 +83,11 @@ process.HLT = cms.EDFilter("HLTHighLevel",
 # process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minPixelLayersWithHits        = 2
 
 process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')
-#process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVerticesWithBS_cfi')
+process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVerticesWithBS_cfi')
+
+#process.offlinePrimaryVerticesPrimary = process.offlinePrimaryVertices
+#if options.withBS:
+#    process.offlinePrimaryVerticesPrimary = process.offlinePrimaryVerticesWithBS
 
 primVtx = process.offlinePrimaryVertices
 PVSelParameters = cms.PSet( maxDistanceToBeam = primVtx.vertexCollections[0].maxDistanceToBeam )
@@ -107,6 +111,11 @@ process.offlinePrimaryVerticesRerun.TkClusParameters.algorithm = cms.string("DA"
 #print process.offlinePrimaryVerticesRerun.dumpPython()
 
 process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
+
+process.residuals.VertexPrimaryLabel = cms.InputTag('offlinePrimaryVertices')
+if options.withBS:
+    process.residuals.VertexPrimaryLabel = cms.InputTag('offlinePrimaryVerticesWithBS')
+
 #process.residuals.TrackLabel = cms.InputTag("TrackRefitter")
 #process.residuals.VertexLabel = cms.InputTag("offlinePrimaryVerticesFromRefittedTrks")
 
@@ -121,6 +130,7 @@ process.p = cms.Path(process.HLT*
     # process.offlineBeamSpot                        +
     # process.TrackRefitter                          +
     # process.offlinePrimaryVerticesFromRefittedTrks +
+#    process.offlinePrimaryVerticesPrimary*
     process.offlinePrimaryVerticesRerun*
     process.residuals
 )

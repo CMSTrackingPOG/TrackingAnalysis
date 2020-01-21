@@ -19,7 +19,8 @@ residuals = cms.EDAnalyzer("Residuals",
                            TkMaxMissedInnerLayers = cms.int32(0),
 
                            # Selection of Vertices
-                           VertexLabel = cms.InputTag("offlinePrimaryVerticesRerun"),
+                           VertexPrimaryLabel = cms.InputTag("offlinePrimaryVertices"),
+                           VertexRerunLabel = cms.InputTag("offlinePrimaryVerticesRerun"),
                            VtxTracksSizeMin = cms.int32(2),
                            VtxTracksSizeMax = cms.int32(300),
 
@@ -32,7 +33,7 @@ residuals = cms.EDAnalyzer("Residuals",
                            VtxErrorZMax = cms.double(0.0036),
 
                            # Event filter
-                           EventScale = cms.int32(100),
+                           EventScale = cms.int32(10),
                            
                            # Vertex selection for MinBias trigger
                            ##VtxErrorXMin = cms.double(0.0020),

@@ -62,7 +62,8 @@ class Residuals : public edm::EDAnalyzer
    bool vertexSelection(const reco::Vertex& vertex) const;
   
    // ----------member data ---------------------------
-   edm::InputTag thePVLabel_;
+   edm::InputTag thePVPrimaryLabel_;
+   edm::InputTag thePVRerunLabel_;
    edm::InputTag theTrackLabel_;
    edm::InputTag theBeamspotLabel_;
    edm::InputTag theRhoLabel_;
@@ -93,7 +94,8 @@ class Residuals : public edm::EDAnalyzer
 
 Residuals::Residuals(const edm::ParameterSet& pset)
 {
-   thePVLabel_  = pset.getParameter<edm::InputTag>("VertexLabel");
+   thePVPrimaryLabel_  = pset.getParameter<edm::InputTag>("VertexPrimaryLabel");
+   thePVRerunLabel_  = pset.getParameter<edm::InputTag>("VertexRerunLabel");
    theTrackLabel_  = pset.getParameter<edm::InputTag>("TrackLabel");
    theBeamspotLabel_  = pset.getParameter<edm::InputTag>("BeamSpotLabel");
    theRhoLabel_  = pset.getParameter<edm::InputTag>("RhoLabel");
@@ -151,8 +153,11 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 //   std::cout << "size of track collection: "<< tracks->size() << std::endl;
 
    Handle<VertexCollection> vtxH;
-   iEvent.getByLabel(thePVLabel_, vtxH);
+   iEvent.getByLabel(thePVPrimaryLabel_, vtxH);
 
+   Handle<VertexCollection> vtxH_rerun;
+   iEvent.getByLabel(thePVRerunLabel_, vtxH_rerun);
+   
    if (!vtxH.isValid()) return;
 
 //   std::cout << "size of vtx collection: "<< vtxH->size() << std::endl;
@@ -160,7 +165,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ESHandle<MagneticField> theMF;
    iSetup.get<IdealMagneticFieldRecord>().get(theMF);
 
-   VertexReProducer revertex(vtxH, iEvent);
+   VertexReProducer revertex(vtxH_rerun, iEvent);
 
    //Handle<TrackCollection> pvtracks;
    //iEvent.getByLabel(revertex.inputTracks(),   pvtracks);

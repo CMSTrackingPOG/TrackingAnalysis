@@ -7,16 +7,17 @@ config.General.transferLogs = True
 config.section_('JobType')
 config.JobType.psetName = '../test/residuals.py'
 config.JobType.pluginName = 'Analysis'
-config.JobType.pyCfgParams = ['withBS=1']
+#config.JobType.pyCfgParams = ['withBS=1']
 #config.JobType.allowUndistributedCMSSW = True
 config.JobType.maxMemoryMB = 4000
+config.JobType.maxJobRuntimeMin = 2749 # min
 
 config.section_('Data')
-config.Data.splitting='FileBased'
-#config.Data.splitting='EventAwareLumiBased'
+#config.Data.splitting='FileBased'
+config.Data.splitting='EventAwareLumiBased'
 config.Data.totalUnits = -1
-config.Data.unitsPerJob = 1
-#config.Data.unitsPerJob = 5000
+#config.Data.unitsPerJob = 1
+config.Data.unitsPerJob = 8000
 
 #config.Data.allowNonValidInputDataset = True
 config.Data.publication = False
