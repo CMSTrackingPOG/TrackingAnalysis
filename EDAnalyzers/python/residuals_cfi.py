@@ -19,8 +19,8 @@ residuals = cms.EDAnalyzer("Residuals",
                            TkMaxMissedInnerLayers = cms.int32(0),
 
                            # Selection of Vertices
+                           VertexLabel = cms.InputTag("offlinePrimaryVerticesRerun"),
                            VertexPrimaryLabel = cms.InputTag("offlinePrimaryVertices"),
-                           VertexRerunLabel = cms.InputTag("offlinePrimaryVerticesRerun"),
                            VtxTracksSizeMin = cms.int32(2),
                            VtxTracksSizeMax = cms.int32(300),
 

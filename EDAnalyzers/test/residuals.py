@@ -83,11 +83,7 @@ process.HLT = cms.EDFilter("HLTHighLevel",
 # process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minPixelLayersWithHits        = 2
 
 process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')
-process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVerticesWithBS_cfi')
-
-#process.offlinePrimaryVerticesPrimary = process.offlinePrimaryVertices
-#if options.withBS:
-#    process.offlinePrimaryVerticesPrimary = process.offlinePrimaryVerticesWithBS
+#process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVerticesWithBS_cfi')
 
 primVtx = process.offlinePrimaryVertices
 PVSelParameters = cms.PSet( maxDistanceToBeam = primVtx.vertexCollections[0].maxDistanceToBeam )
@@ -112,7 +108,6 @@ process.offlinePrimaryVerticesRerun.TkClusParameters.algorithm = cms.string("DA"
 
 process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
 
-process.residuals.VertexPrimaryLabel = cms.InputTag('offlinePrimaryVertices')
 if options.withBS:
     process.residuals.VertexPrimaryLabel = cms.InputTag('offlinePrimaryVerticesWithBS')
 
@@ -130,7 +125,6 @@ process.p = cms.Path(process.HLT*
     # process.offlineBeamSpot                        +
     # process.TrackRefitter                          +
     # process.offlinePrimaryVerticesFromRefittedTrks +
-#    process.offlinePrimaryVerticesPrimary*
     process.offlinePrimaryVerticesRerun*
     process.residuals
 )
