@@ -17,7 +17,7 @@ config.section_('Data')
 config.Data.splitting='EventAwareLumiBased'
 config.Data.totalUnits = -1
 #config.Data.unitsPerJob = 1
-config.Data.unitsPerJob = 8000
+config.Data.unitsPerJob = 5000
 
 #config.Data.allowNonValidInputDataset = True
 config.Data.publication = False

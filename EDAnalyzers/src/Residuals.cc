@@ -163,6 +163,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    if( !vtxH.isValid() || !vtxP.isValid() ) return;
 
+   if( vtxP->size() == 0 || vtxH->size() == 0 ) return;
+   
    VertexReProducer revertex(vtxH, iEvent);
    
    TrackCollection tracksAll;
@@ -171,14 +173,15 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    // refit primary vertices
    vector<TransientVertex> pvs0 = revertex.makeVertices(tracksAll, *pvbeamspot, iSetup);
    
+   if( pvs0.empty() ) return;
+   
    reco::Vertex vtx0 = reco::Vertex(pvs0.front());
    reco::Vertex vtx = vtxP->front();
    
    // refitted vertices are the same as the original ones
    if( fabs(vtx.x()-vtx0.x()) > 10E-10 || fabs(vtx.y()-vtx0.y()) > 10E-10 || fabs(vtx.z()-vtx0.z()) > 10E-10 ) return;
    
-   if( vtxP->size() == 0 ) return;
-   if( ! vertexSelection(vtx) ) return;
+   if( !vertexSelection(vtx) ) return;
 
    ESHandle<MagneticField> theMF;
    iSetup.get<IdealMagneticFieldRecord>().get(theMF);
