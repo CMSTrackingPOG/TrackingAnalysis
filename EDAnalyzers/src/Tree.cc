@@ -47,6 +47,7 @@ void ResTree::Init()
    pv_IsFake = 0;
    pv_NTracks = null;
    pv_SumTrackPt = null;
+   pv_SumTrackPt2 = null;
    pv_chi2 = null;
    pv_ndof = null;
    pv_x = null;
@@ -60,6 +61,7 @@ void ResTree::Init()
    pv_IsFake_p1 = 0;
    pv_NTracks_p1 = null;
    pv_SumTrackPt_p1 = null;
+   pv_SumTrackPt2_p1 = null;
    pv_chi2_p1 = null;
    pv_ndof_p1 = null;
    pv_x_p1 = null;
@@ -73,6 +75,7 @@ void ResTree::Init()
    pv_IsFake_p2 = 0;
    pv_NTracks_p2 = null;
    pv_SumTrackPt_p2 = null;
+   pv_SumTrackPt2_p2 = null;
    pv_chi2_p2 = null;
    pv_ndof_p2 = null;
    pv_x_p2 = null;
@@ -147,6 +150,7 @@ void ResTree::CreateBranches(int buff = 32000)
    tree->Branch("pv_IsFake", &pv_IsFake, "pv_IsFake/O", buff);
    tree->Branch("pv_NTracks", &pv_NTracks, "pv_NTracks/I", buff);
    tree->Branch("pv_SumTrackPt", &pv_SumTrackPt, "pv_SumTrackPt/F", buff);
+   tree->Branch("pv_SumTrackPt2", &pv_SumTrackPt2, "pv_SumTrackPt2/F", buff);
    tree->Branch("pv_chi2", &pv_chi2, "pv_chi2/F", buff);
    tree->Branch("pv_ndof", &pv_ndof, "pv_ndof/I", buff);
    tree->Branch("pv_x", &pv_x, "pv_x/F", buff);
@@ -160,6 +164,7 @@ void ResTree::CreateBranches(int buff = 32000)
    tree->Branch("pv_IsFake_p1", &pv_IsFake_p1, "pv_IsFake_p1/O", buff);
    tree->Branch("pv_NTracks_p1", &pv_NTracks_p1, "pv_NTracks_p1/I", buff);
    tree->Branch("pv_SumTrackPt_p1", &pv_SumTrackPt_p1, "pv_SumTrackPt_p1/F", buff);
+   tree->Branch("pv_SumTrackPt2_p1", &pv_SumTrackPt2_p1, "pv_SumTrackPt2_p1/F", buff);
    tree->Branch("pv_chi2_p1", &pv_chi2_p1, "pv_chi2_p1/F", buff);
    tree->Branch("pv_ndof_p1", &pv_ndof_p1, "pv_ndof_p1/I", buff);
    tree->Branch("pv_x_p1", &pv_x_p1, "pv_x_p1/F", buff);
@@ -173,6 +178,7 @@ void ResTree::CreateBranches(int buff = 32000)
    tree->Branch("pv_IsFake_p2", &pv_IsFake_p2, "pv_IsFake_p2/O", buff);
    tree->Branch("pv_NTracks_p2", &pv_NTracks_p2, "pv_NTracks_p2/I", buff);
    tree->Branch("pv_SumTrackPt_p2", &pv_SumTrackPt_p2, "pv_SumTrackPt_p2/F", buff);
+   tree->Branch("pv_SumTrackPt2_p2", &pv_SumTrackPt2_p2, "pv_SumTrackPt2_p2/F", buff);
    tree->Branch("pv_chi2_p2", &pv_chi2_p2, "pv_chi2_p2/F", buff);
    tree->Branch("pv_ndof_p2", &pv_ndof_p2, "pv_ndof_p2/I", buff);
    tree->Branch("pv_x_p2", &pv_x_p2, "pv_x_p2/F", buff);

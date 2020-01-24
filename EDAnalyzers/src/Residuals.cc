@@ -272,13 +272,18 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ftree->bs_betaStar = pvbeamspot->betaStar();
 
    double trackSumPt = 0;
+   double trackSumPt2 = 0;
    for( std::vector<reco::TrackBaseRef>::const_iterator it = vtx.tracks_begin(); it != vtx.tracks_end(); it++ )
-     trackSumPt += (*it)->pt();
+     {	
+	trackSumPt += (*it)->pt();
+	trackSumPt2 += pow((*it)->pt(),2);
+     }   
    
    ftree->pv_IsValid = vtx.isValid();
    ftree->pv_IsFake = vtx.isFake();	
    ftree->pv_NTracks = vtx.tracksSize();
-   ftree->pv_SumTrackPt = trackSumPt;	
+   ftree->pv_SumTrackPt = trackSumPt;
+   ftree->pv_SumTrackPt2 = trackSumPt2;
    ftree->pv_chi2 = vtx.chi2();	
    ftree->pv_ndof = vtx.ndof();   
    ftree->pv_x = vtx.x()*micron;
@@ -291,20 +296,25 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    std::vector<reco::TrackBaseRef> vtxTkCollection1;
    std::vector<reco::TrackBaseRef> vtxTkCollection2;
 
-   double trackSumPt1 = 0;
-   double trackSumPt2 = 0;
+   double trackSumPt_p1 = 0;
+   double trackSumPt2_p1 = 0;
 
+   double trackSumPt_p2 = 0;
+   double trackSumPt2_p2 = 0;
+   
    for( std::vector<reco::TrackBaseRef>::const_iterator it = vtx.tracks_begin(); it != vtx.tracks_end(); it++ )
      {
 	if( rnd->Rndm() > 0.5 )
 	  {
 	     vtxTkCollection1.push_back(*it);
-	     trackSumPt1 += (*it)->pt();
+	     trackSumPt_p1 += (*it)->pt();
+	     trackSumPt2_p1 += pow((*it)->pt(),2);
 	  }	
 	else
 	  {	     
 	     vtxTkCollection2.push_back(*it);
-	     trackSumPt2 += (*it)->pt();
+	     trackSumPt_p2 += (*it)->pt();
+	     trackSumPt2_p2 += pow((*it)->pt(),2);
 	  }	
      }
 
@@ -325,8 +335,11 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_NTracks_p1 = vtxTkCollection1.size();
 	ftree->pv_NTracks_p2 = vtxTkCollection2.size();
 	
-	ftree->pv_SumTrackPt_p1 = trackSumPt1;
-	ftree->pv_SumTrackPt_p2 = trackSumPt2;
+	ftree->pv_SumTrackPt_p1 = trackSumPt_p1;
+	ftree->pv_SumTrackPt_p2 = trackSumPt_p2;
+
+	ftree->pv_SumTrackPt2_p1 = trackSumPt2_p1;
+	ftree->pv_SumTrackPt2_p2 = trackSumPt2_p2;
 	
 	ftree->pv_chi2_p1 = vtx1.chi2();
 	ftree->pv_chi2_p2 = vtx2.chi2();
