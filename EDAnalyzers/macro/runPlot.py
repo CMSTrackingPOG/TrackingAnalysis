@@ -4,8 +4,8 @@ import os
 
 inputjson=['data.json','mc.json']
 
-#param='PVnTracks'
-param='PVsumTrackPt'
+param='PVnTracks'
+#param='PVsumTrackPt'
 
 for j in inputjson:
     outfile = 'jobs/'+j.replace('.json','.root')

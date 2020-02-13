@@ -15,7 +15,7 @@ def main(argv = None):
     parser = OptionParser(usage)
     parser.add_option("-j","--json",default="list.json",help="input file list [default: %default]")
     parser.add_option("-o","--output",default="jobs",help="output directory [default: %default]")
-    parser.add_option("-s","--split",type=int,default=20,help="number of files per job [default: %default]")
+    parser.add_option("-s","--split",type=int,default=40,help="number of files per job [default: %default]")
     parser.add_option("-p","--param",default="PVnTracks",help="parameterisation for PV resolution measurement [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
@@ -49,6 +49,7 @@ if __name__ == '__main__':
 
     proxy = '/user/kskovpen/proxy/x509up_u20657'
     arch = 'slc6_amd64_gcc700'
+    wt = '01:00:00'
     
     cwd = os.getcwd()
     
@@ -89,7 +90,7 @@ if __name__ == '__main__':
         NoErrors = False
         while NoErrors is False:
             try:
-                res = subprocess.Popen(('qsub','-N','Plot_'+jname,'-q','localgrid','-o',log,'-j','oe',sh,'-l','walltime=06:00:00'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                res = subprocess.Popen(('qsub','-N','Plot_'+jname,'-q','localgrid','-o',log,'-j','oe',sh,'-l','walltime='+wt), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out, err = res.communicate()
                 NoErrors = ('Invalid credential' not in err)
                 if not NoErrors: print '.. Resubmitted'

@@ -6,6 +6,7 @@ import common as c
 from subprocess import call
 import style
 import functions as func
+import pickle
 import json
 import ROOT
 
@@ -22,7 +23,7 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Analysis script to plot the PV resolution results"
     
     parser = OptionParser(usage)
-    parser.add_option("-i","--input",default="pv.json",help="input file name [default: %default]")
+    parser.add_option("-i","--input",default="results/pv.json",help="input file name [default: %default]")
     parser.add_option("-o","--output",default="pics",help="output directory [default: %default]")
     parser.add_option("-m","--mode",default="pv",help="measurement mode [default: %default]")
     
@@ -46,7 +47,8 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
     hMC.SetLineColor(ROOT.kBlue-10)
     
     if mode == 'pv':
-        if m == 'reso': hMC.GetYaxis().SetRangeUser(0.,100.)
+        if m == 'reso' and x != 'z': hMC.GetYaxis().SetRangeUser(0.,100.)
+        elif m == 'reso' and x == 'z': hMC.GetYaxis().SetRangeUser(0.,100.)
         else: hMC.GetYaxis().SetRangeUser(0.,1.4)
     else:
         hMC.GetYaxis().SetRangeUser(0.,350.)
@@ -62,9 +64,9 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
     t1.Draw()
 
     if isDeconv == False:
-        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'.eps')
+        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'.pdf')
     else:
-        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'_deconv.eps')
+        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'_deconv.pdf')
     c1.Clear()    
 
 if __name__ == '__main__':
@@ -85,7 +87,7 @@ if __name__ == '__main__':
     with open(options.input, "r") as read_file:
         data = json.load(read_file)        
 
-    with open('pv.json', "r") as read_file:
+    with open('results/pv.json', "r") as read_file:
         datapv = json.load(read_file)
         
     c1 = ROOT.TCanvas()
@@ -116,14 +118,15 @@ if __name__ == '__main__':
                     h[hname].Sumw2()
                 else:                        
                     for hn in [hname,hname+'_deconv']:
-                        if mode == 'ippt':
+                        if 'pt' in mode:
                             h[hn] = ROOT.TH1F(hn,hn,len(c.IPptBins)-1,c.IPptBins)
                             h[hn].GetXaxis().SetTitle('Track p_{T} [GeV]')
-                        elif mode == 'ipeta': 
+                        elif 'eta' in mode:
                             h[hn].GetXaxis().SetTitle('Track #eta')
                             h[hn] = ROOT.TH1F(hn,hn,len(c.IPetaBins)-1,c.IPetaBins)
-
-                        ytit = 'Track IP resolution ('+x+') [#mum]'
+                            
+                        lab = x.replace('0','_{xy}').replace('z','_{z}')
+                        ytit = 'Track IP resolution ('+lab+') [#mum]'
                         h[hn].GetYaxis().SetTitle(ytit)
                         h[hn].Sumw2()
 
@@ -131,8 +134,8 @@ if __name__ == '__main__':
             hnameMC = 'h_'+m+'_mc_'+x
             
             param = c.PVnTracks
-            if mode == 'ippt': param = c.IPpt
-            elif mode == 'ipeta': param = c.IPeta
+            if 'pt' in mode: param = c.IPpt
+            elif 'eta' in mode: param = c.IPeta
             
             for kparam, vparam in param.iteritems():
 
@@ -149,8 +152,8 @@ if __name__ == '__main__':
                         vMC = resMC['value']
                         eMC = resMC['error']
                     
-                        bidx = param[kparam][0]
-                    
+                        bidx = param[kparam]['bins'][0]
+
                         h[hnameData].SetBinContent(bidx, vData)
                         h[hnameData].SetBinError(bidx, eData)
 
@@ -166,15 +169,23 @@ if __name__ == '__main__':
                     wDataSum = 0; wMCSum = 0;
                     
                     for ktrk, vtrk in c.PVnTracks.iteritems():
-                            
+                   
+                        if 'ipbs' in mode and (ktrk != '' or kparam == ''): break
+
                         resData = data[m]['data'][x][kparam][ktrk]
                         resMC = data[m]['mc'][x][kparam][ktrk]
-                        pvx = 'x'
-                        if x == 'dz': pvx = 'z'
-                        resPVData = datapv[m]['data'][pvx][ktrk]
-                        resPVMC = datapv[m]['mc'][pvx][ktrk]
-                            
-                        if bool(resData) and bool(resMC) and ktrk != '':
+                        if 'ippv' in mode:
+                            pvx = 'x'
+                            if x == 'dz': pvx = 'z'                        
+                            resPVData = datapv[m]['data'][pvx][ktrk]
+                            resPVMC = datapv[m]['mc'][pvx][ktrk]
+                        elif 'ipbs' in mode:
+                            pvx = 'x'
+                            if x == 'dz': pvx = 'z'
+                            resPVData = datapv['widthx']['data'][pvx][ktrk]
+                            resPVMC = datapv['widthx']['mc'][pvx][ktrk]                            
+
+                        if (bool(resData) and bool(resMC) and ktrk != '') or 'ipbs' in mode:
 
 #                            print kparam, ktrk, resData, resMC
                             vDataTrk = resData['value']
@@ -203,20 +214,22 @@ if __name__ == '__main__':
                             eMC += math.pow(eMCTrk*wMCTrk,2)
 
                             # deconv
-#                            print ktrk, kparam, vDataTrk, vPVDataTrk, vMCTrk, vPVMCTrk
-#                            vSigmaData = math.sqrt(vDataTrk*vDataTrk-vPVDataTrk*vPVDataTrk)
-#                            vDataDeconv += vSigmaData*wDataTrk
-#                            vSigmaMC = math.sqrt(vMCTrk*vMCTrk-vPVMCTrk*vPVMCTrk)
-#                            vMCDeconv += vSigmaMC*wMCTrk
-
-#                            eSigmaData = math.sqrt(math.pow(vDataTrk*eDataTrk,2)+math.pow(vPVDataTrk*ePVDataTrk,2))/vSigmaData
-#                            eDataDeconv += math.pow(eSigmaData*wDataTrk,2)
-#                            eSigmaMC = math.sqrt(math.pow(vMCTrk*eMCTrk,2)+math.pow(vPVMCTrk*ePVMCTrk,2))/vSigmaMC
-#                            eMCDeconv += math.pow(eSigmaMC*wMCTrk,2)
+                            if vDataTrk < vPVDataTrk or vMCTrk < vPVMCTrk:
+                                print ktrk, kparam, vDataTrk, vPVDataTrk, vMCTrk, vPVMCTrk
+                                continue
+                            vSigmaData = math.sqrt(vDataTrk*vDataTrk-vPVDataTrk*vPVDataTrk)
+                            vDataDeconv += vSigmaData*wDataTrk
+                            vSigmaMC = math.sqrt(vMCTrk*vMCTrk-vPVMCTrk*vPVMCTrk)
+                            vMCDeconv += vSigmaMC*wMCTrk
+                            
+                            eSigmaData = math.sqrt(math.pow(vDataTrk*eDataTrk,2)+math.pow(vPVDataTrk*ePVDataTrk,2))/vSigmaData
+                            eDataDeconv += math.pow(eSigmaData*wDataTrk,2)
+                            eSigmaMC = math.sqrt(math.pow(vMCTrk*eMCTrk,2)+math.pow(vPVMCTrk*ePVMCTrk,2))/vSigmaMC
+                            eMCDeconv += math.pow(eSigmaMC*wMCTrk,2)
                             
                         else:
                             continue
-                            
+
                     if wDataSum == 0 or wMCSum == 0: continue
 
                     vData /= wDataSum
@@ -227,11 +240,11 @@ if __name__ == '__main__':
 
                     vDataDeconv /= wDataSum
                     vMCDeconv /= wMCSum
-
+                        
                     eDataDeconv = math.sqrt(eDataDeconv)/wDataSum
                     eMCDeconv = math.sqrt(eMCDeconv)/wMCSum
                     
-                    bidx = param[kparam][0]
+                    bidx = param[kparam]['bins'][0]
 
                     h[hnameData].SetBinContent(bidx, vData)
                     h[hnameData].SetBinError(bidx, eData)
@@ -246,7 +259,11 @@ if __name__ == '__main__':
                     h[hnameMC+'_deconv'].SetBinError(bidx, eMCDeconv)
             
             hMC = h[hnameMC]; hData = h[hnameData]
+            pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_mc.pkl','wb'))
+            pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_data.pkl','wb'))
             plot(c1, hData, hMC, mode, m, x)
-            if mode != 'pv':
-                hMC = h[hnameMC+'_deconv']; hData = h[hnameData+'_deconv']
-                plot(c1, hData, hMC, mode, m, x, True)
+            
+            hMC = h[hnameMC+'_deconv']; hData = h[hnameData+'_deconv']
+            pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_mc_deconv.pkl','wb'))
+            pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_data_deconv.pkl','wb'))
+            plot(c1, hData, hMC, mode, m, x, True)

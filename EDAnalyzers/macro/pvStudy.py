@@ -44,7 +44,7 @@ if __name__ == '__main__':
     fHistData = ROOT.TFile.Open(options.data,'read')
     fHistMC = ROOT.TFile.Open(options.mc,'read')
 
-    hIncl = ['pvNTrks']
+    hIncl = ['pvNTrks','pvSumTrackPt']
     for h in hIncl:
         
         hData = fHistData.Get('h_'+h)
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         t1, t2 = style.cmslabel(1,777)
         t1.Draw()
         
-        c1.Print(options.output+'/'+h+'.eps')
+        c1.Print(options.output+'/'+h+'.pdf')
         c1.Clear()
     
     #### Basic distributions
@@ -118,25 +118,33 @@ if __name__ == '__main__':
     bs_hXMC = {}; bs_hYMC = {}; bs_hZMC = {}
     bs_hXYData = {}; bs_hXZData = {}; bs_hYZData = {}
     bs_hXYMC = {}; bs_hXZMC = {}; bs_hYZMC = {}
+    bs_hBeamWidthXData = {}; bs_hBeamWidthYData = {}; bs_hSigmaZData = {}
+    bs_hBeamWidthXMC = {}; bs_hBeamWidthYMC = {}; bs_hSigmaZMC = {}
+        
+    bs_hXData[''] = fHistData.Get('h_bsx0')
+    bs_hYData[''] = fHistData.Get('h_bsy0')
+    bs_hZData[''] = fHistData.Get('h_bsz0')
     
-    for k, v in c.PVnTracks.iteritems():
-        
-        bs_hXData[k] = fHistData.Get('h_bsx0'+k)
-        bs_hYData[k] = fHistData.Get('h_bsy0'+k)
-        bs_hZData[k] = fHistData.Get('h_bsz0'+k)
+    bs_hXMC[''] = fHistMC.Get('h_bsx0')
+    bs_hYMC[''] = fHistMC.Get('h_bsy0')
+    bs_hZMC[''] = fHistMC.Get('h_bsz0')
+    
+    bs_hXYData[''] = fHistData.Get('h2_bsx0_y0')
+    bs_hXZData[''] = fHistData.Get('h2_bsx0_z0')
+    bs_hYZData[''] = fHistData.Get('h2_bsy0_z0')
+    
+    bs_hXYMC[''] = fHistMC.Get('h2_bsx0_y0')
+    bs_hXZMC[''] = fHistMC.Get('h2_bsx0_z0')
+    bs_hYZMC[''] = fHistMC.Get('h2_bsy0_z0')
+    
+    bs_hBeamWidthXData[''] = fHistData.Get('h_bsBeamWidthX')
+    bs_hBeamWidthYData[''] = fHistData.Get('h_bsBeamWidthY')
+    bs_hSigmaZData[''] = fHistData.Get('h_bsSigmaZ')
 
-        bs_hXMC[k] = fHistMC.Get('h_bsx0'+k)
-        bs_hYMC[k] = fHistMC.Get('h_bsy0'+k)
-        bs_hZMC[k] = fHistMC.Get('h_bsz0'+k)
-        
-        bs_hXYData[k] = fHistData.Get('h2_bsx0_y0'+k)
-        bs_hXZData[k] = fHistData.Get('h2_bsx0_z0'+k)
-        bs_hYZData[k] = fHistData.Get('h2_bsy0_z0'+k)
-        
-        bs_hXYMC[k] = fHistMC.Get('h2_bsx0_y0'+k)
-        bs_hXZMC[k] = fHistMC.Get('h2_bsx0_z0'+k)
-        bs_hYZMC[k] = fHistMC.Get('h2_bsy0_z0'+k)
-        
+    bs_hBeamWidthXMC[''] = fHistMC.Get('h_bsBeamWidthX')
+    bs_hBeamWidthYMC[''] = fHistMC.Get('h_bsBeamWidthY')
+    bs_hSigmaZMC[''] = fHistMC.Get('h_bsSigmaZ')
+
     for idx, h in enumerate([pv_hXData,pv_hYData,pv_hZData,pv_hXMC,pv_hYMC,pv_hZMC]):
         for k, hh in h.iteritems():
         
@@ -150,7 +158,7 @@ if __name__ == '__main__':
             samp = 'data'
             if idx > 2: samp = 'mc'
             
-            c1.Print(options.output+'/pv'+proj+k+'_'+samp+'.eps')
+            c1.Print(options.output+'/pv'+proj+k+'_'+samp+'.pdf')
             c1.Clear()
 
     for idx, h2 in enumerate([pv_hXYData,pv_hXZData,pv_hYZData,pv_hXYMC,pv_hXZMC,pv_hYZMC]):
@@ -165,39 +173,59 @@ if __name__ == '__main__':
             samp = 'data'
             if idx > 2: samp = 'mc'
 
-            if 'x_y' in hh.GetName(): 
+            if 'x_y' in hh.GetName() and k == '':
                 bs_hXYData[k].SetContour(3)
                 bs_hXYData[k].Draw('CONT3 SAME')
                 bs_hXYData[k].SetLineColor(ROOT.kRed)
-            if 'x_z' in hh.GetName(): 
+            if 'x_z' in hh.GetName() and k == '': 
                 bs_hXZData[k].SetContour(3)
                 bs_hXZData[k].Draw('CONT3 SAME')
                 bs_hXZData[k].SetLineColor(ROOT.kRed)
-            if 'y_z' in hh.GetName():
+            if 'y_z' in hh.GetName() and k == '':
                 bs_hYZData[k].SetContour(3)
                 bs_hYZData[k].Draw('CONT3 SAME')
                 bs_hYZData[k].SetLineColor(ROOT.kRed)
 
-            c1.Print(options.output+'/pv'+proj+k+'_'+samp+'.eps')
+            c1.Print(options.output+'/pv'+proj+k+'_'+samp+'.pdf')
             c1.Clear()
+
+    for idx, h in enumerate([bs_hBeamWidthXData,bs_hBeamWidthYData,bs_hSigmaZData,bs_hBeamWidthXMC,bs_hBeamWidthYMC,bs_hSigmaZMC]):
+        for k, hh in h.iteritems():
+        
+            c1 = ROOT.TCanvas()
+
+            hh.Draw('hist')
+
+            proj = 'X'
+            if 'Y' in hh.GetName(): proj = 'Y'
+            if 'Z' in hh.GetName(): proj = 'Z'
+            samp = 'data'
+            if idx > 2: samp = 'mc'
             
+            c1.Print(options.output+'/bs'+proj+k+'_'+samp+'.pdf')
+            c1.Clear()
+
+    beamWidthXData = bs_hBeamWidthXData[''].GetMean()
+    beamWidthYData = bs_hBeamWidthYData[''].GetMean()
+    sigmaZData = bs_hSigmaZData[''].GetMean()
+
+    beamWidthXMC = bs_hBeamWidthXMC[''].GetMean()
+    beamWidthYMC = bs_hBeamWidthYMC[''].GetMean()
+    sigmaZMC = bs_hSigmaZMC[''].GetMean()
+    
     #### Fits
     
     pstyle.SetOptFit(1111)
     
     rout = {}
-    rout['reso'] = {}
-    rout['pull'] = {}
+    for l1 in ['reso','pull','widthx','widthy','sigmaz']: rout[l1] = {}
     for t in ['data','mc']:
-        rout['reso'][t] = {}
-        rout['pull'][t] = {}
+        for l2 in ['reso','pull','widthx','widthy','sigmaz']: rout[l2][t] = {}
         for x in c.PVmeas:
-            rout['reso'][t][x] = {}
-            rout['pull'][t][x] = {}
+            for l3 in ['reso','pull','widthx','widthy','sigmaz']: rout[l3][t][x] = {}
             for k, v in c.PVnTracks.iteritems():
-                rout['reso'][t][x][k] = {}
-                rout['pull'][t][x][k] = {}
-
+                for l4 in ['reso','pull','widthx','widthy','sigmaz']: rout[l4][t][x][k] = {}
+                
     for k, v in c.PVnTracks.iteritems():
     
         for x in c.PVmeas:
@@ -260,10 +288,10 @@ if __name__ == '__main__':
             hResoMC.Draw('hist')
             hResoData.Draw('e1 sames')
         
-            resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,'g1',38)
+            resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,x,k,38)
             resResoMC.Draw("same")
             
-            resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,'g1',1)
+            resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,x,k,1)
             resResoData.Draw("same")
             resResoData.SetLineStyle(2)
             
@@ -305,7 +333,7 @@ if __name__ == '__main__':
             t1, t2 = style.cmslabel(1,777)
             t1.Draw()
             
-            c1.Print(options.output+'/pvReso_'+x+k+'.eps')
+            c1.Print(options.output+'/pvReso_'+x+k+'.pdf')
             c1.Clear()
 
             # Pull
@@ -313,10 +341,10 @@ if __name__ == '__main__':
             hPullMC.Draw('hist')
             hPullData.Draw('e1 sames')
             
-            resPullMC, pullMC, pullErrMC, pullChi2MC = fit.doFit('mcfit',hPullMC,'g1',38)
+            resPullMC, pullMC, pullErrMC, pullChi2MC = fit.doFit('mcfit',hPullMC,x,k,38)
             resPullMC.Draw("same")
             
-            resPullData, pullData, pullErrData, pullChi2Data = fit.doFit('datafit',hPullData,'g1',1)
+            resPullData, pullData, pullErrData, pullChi2Data = fit.doFit('datafit',hPullData,x,k,1)
             resPullData.Draw("same")
             resPullData.SetLineStyle(2)
             
@@ -358,16 +386,22 @@ if __name__ == '__main__':
             t1, t2 = style.cmslabel(1,777)
             t1.Draw()
             
-            c1.Print(options.output+'/pvPull_'+x+k+'.eps')
+            c1.Print(options.output+'/pvPull_'+x+k+'.pdf')
             c1.Clear()
             
             # collect fit results
-            if k != '':
+#            if k != '':
                 # append bin index to the output string
-                rout['reso']['data'][x][k].update([('value',resoData), ('error',resoErrData)])
-                rout['reso']['mc'][x][k].update([('value',resoMC), ('error',resoErrMC)])
-                rout['pull']['data'][x][k].update([('value',pullData), ('error',pullErrData)])
-                rout['pull']['mc'][x][k].update([('value',pullMC), ('error',pullErrMC)])
-            
-    with open("pv.json", "w") as write_file:
-        json.dump(rout, write_file)
+            rout['reso']['data'][x][k].update([('value',resoData), ('error',resoErrData)])
+            rout['reso']['mc'][x][k].update([('value',resoMC), ('error',resoErrMC)])
+            rout['pull']['data'][x][k].update([('value',pullData), ('error',pullErrData)])
+            rout['pull']['mc'][x][k].update([('value',pullMC), ('error',pullErrMC)])
+            rout['widthx']['data'][x][k].update([('value',beamWidthXData), ('error',0.)])
+            rout['widthx']['mc'][x][k].update([('value',beamWidthXMC), ('error',0.)])
+            rout['widthy']['data'][x][k].update([('value',beamWidthYData), ('error',0.)])
+            rout['widthy']['mc'][x][k].update([('value',beamWidthYMC), ('error',0.)])
+            rout['sigmaz']['data'][x][k].update([('value',sigmaZData), ('error',0.)])
+            rout['sigmaz']['mc'][x][k].update([('value',sigmaZMC), ('error',0.)])
+
+    with open("results/pv.json", "w") as write_file:
+        json.dump(rout, write_file, indent=2)

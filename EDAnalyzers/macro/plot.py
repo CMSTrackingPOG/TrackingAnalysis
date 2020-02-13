@@ -52,113 +52,142 @@ if __name__ == '__main__':
     hd = {}
     h2d = {}
 
-    hd['pvNTrks'] = {'xtit':'Number of tracks','nb':30,'xmin':0.,'xmax':150.,'ytit':'Events'}
-    hd['pvSumTrackPt'] = {'xtit':'Sum of track p_{T}^2','nb':30,'xmin':0.,'xmax':150.,'ytit':'Events'}
+    hd['pvNTrks'] = {'xtit':'Number of tracks','nb':50,'xmin':0.,'xmax':150.,'ytit':'Events'}
+    hd['pvSumTrackPt'] = {'xtit':'Sum of track p_{T} [GeV]','nb':60,'xmin':0.,'xmax':150.,'ytit':'Events'}
     
     hd['ipPt'] = {'xtit':'Track p_{T} [GeV]','nb':100,'xmin':0.,'xmax':5.,'ytit':'Events'}
     hd['ipEta'] = {'xtit':'Track #eta','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
     hd['ipPhi'] = {'xtit':'Track #phi','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
+    hd['ipD0'] = {'xtit':'Track d_{xy} [mm]','nb':100,'xmin':-1.5,'xmax':1.5,'ytit':'Events'}
+    hd['ipDz'] = {'xtit':'Track d_{z} [mm]','nb':100,'xmin':-300.,'xmax':300.,'ytit':'Events'}
+    hd['ipSD0'] = {'xtit':'Track d_{xy} significance','nb':100,'xmin':-100.,'xmax':100.,'ytit':'Events'}
+    hd['ipSDz'] = {'xtit':'Track d_{z} significance','nb':100,'xmin':-300.,'xmax':300.,'ytit':'Events'}
+    hd['ippvD0'] = {'xtit':'Track d_{xy}(PV) [mm]','nb':100,'xmin':-1.5,'xmax':1.5,'ytit':'Events'}
+    hd['ippvDz'] = {'xtit':'Track d_{z}(PV) [mm]','nb':100,'xmin':-4.,'xmax':4.,'ytit':'Events'}
+    hd['ippvSD0'] = {'xtit':'Track d_{xy}(PV) significance','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
+    hd['ippvSDz'] = {'xtit':'Track d_{z}(PV) significance','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
+    hd['ipbsD0'] = {'xtit':'Track d_{xy}(BS) [mm]','nb':100,'xmin':-1.5,'xmax':1.5,'ytit':'Events'}
+    hd['ipbsDz'] = {'xtit':'Track d_{z}(BS) [mm]','nb':100,'xmin':-300.,'xmax':300.,'ytit':'Events'}
+    hd['ipbsSD0'] = {'xtit':'Track d_{xy}(BS) significance','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
+    hd['ipbsSDz'] = {'xtit':'Track d_{z}(BS) significance','nb':100,'xmin':-300.,'xmax':300.,'ytit':'Events'}
+    hd['ipbszpcaD0'] = {'xtit':'Track d_{xy}(BS,z=PCA) [mm]','nb':100,'xmin':-1.5,'xmax':1.5,'ytit':'Events'}
+    hd['ipbszpcaSD0'] = {'xtit':'Track d_{xy}(BS,z=PCA) significance [mm]','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
+    hd['ipbszpvD0'] = {'xtit':'Track d_{xy}(BS,z=PV) [mm]','nb':100,'xmin':-1.5,'xmax':1.5,'ytit':'Events'}
+    hd['ipbszpvSD0'] = {'xtit':'Track d_{xy}(BS,z=PV) significance [mm]','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
 
     PVparam = c.PVnTracks
     if 'PVsumTrackPt' in options.param: PVparam = c.PVsumTrackPt
-    
-    for k, v in PVparam.iteritems():
+        
+    for kk, vv in c.IPpt.iteritems():
+
+        IP = c.IPpt[kk]
+        
+        for k, v in PVparam.iteritems():
+
+            hd['ippvd0'+k+kk] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+            hd['ippvdz'+k+kk] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
+
+            hd['ipd0Err'+k+kk] = {'xtit':'#sigma(d_{xy}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
+            hd['ipdzErr'+k+kk] = {'xtit':'#sigma(d_{z}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
             
-        for kk, vv in c.IPpt.iteritems():
-    
-            nBins = 100
-            xMin = -1500
-            xMax = 1500
-            if v[1] > 1: nBins = 150
-            
-            hd['ippvd0'+k+kk] = {'xtit':'d_{xy} [#mum]','nb':nBins,'xmin':xMin,'xmax':xMax,'ytit':'Events'}
-            hd['ippvdz'+k+kk] = {'xtit':'d_{z} [#mum]','nb':nBins,'xmin':xMin,'xmax':xMax,'ytit':'Events'}
-            hd['ipbsd0'+k+kk] = {'xtit':'d_{xy} [#mum]','nb':nBins,'xmin':xMin,'xmax':xMax,'ytit':'Events'}
-            hd['ipbsdz'+k+kk] = {'xtit':'d_{z} [#mum]','nb':nBins,'xmin':xMin,'xmax':xMax,'ytit':'Events'}
+            hd['ippvd0NoRefit'+k+kk] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+            hd['ippvdzNoRefit'+k+kk] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
+
+        hd['ipbsd0'+kk] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+        hd['ipbsdz'+kk] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
+        
+    for kk, vv in c.IPeta.iteritems():
+        
+        IP = c.IPeta[kk]
+
+        for k, v in PVparam.iteritems():
+
+            hd['ippvd0'+k+kk] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+            hd['ippvdz'+k+kk] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
             
             hd['ipd0Err'+k+kk] = {'xtit':'#sigma(d_{xy}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
             hd['ipdzErr'+k+kk] = {'xtit':'#sigma(d_{z}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
             
-            hd['ippvd0NoRefit'+k+kk] = {'xtit':'d_{xy} [#mum]','nb':nBins,'xmin':xMin,'xmax':xMax,'ytit':'Events'}
-            hd['ippvdzNoRefit'+k+kk] = {'xtit':'d_{z} [#mum]','nb':nBins,'xmin':xMin,'xmax':xMax,'ytit':'Events'}
+            hd['ippvd0NoRefit'+k+kk] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+            hd['ippvdzNoRefit'+k+kk] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
 
-    for k, v in PVparam.iteritems():
-            
-        for kk, vv in c.IPeta.iteritems():
+        hd['ipbsd0'+kk] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+        hd['ipbsdz'+kk] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
         
-            hd['ippvd0'+k+kk] = {'xtit':'d_{xy} [#mum]','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
-            hd['ippvdz'+k+kk] = {'xtit':'d_{z} [#mum]','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
-            hd['ipbsd0'+k+kk] = {'xtit':'d_{xy} [#mum]','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
-            hd['ipbsdz'+k+kk] = {'xtit':'d_{z} [#mum]','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
-            
-            hd['ipd0Err'+k+kk] = {'xtit':'#sigma(d_{xy}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
-            hd['ipdzErr'+k+kk] = {'xtit':'#sigma(d_{z}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
-            
-            hd['ippvd0NoRefit'+k+kk] = {'xtit':'d_{xy} [#mum]','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
-            hd['ippvdzNoRefit'+k+kk] = {'xtit':'d_{z} [#mum]','nb':100,'xmin':-3.,'xmax':3.,'ytit':'Events'}
-
     for k, v in PVparam.iteritems():
 
         if isData:
-            hd['pvx'+k] = {'xtit':'x [mm]','nb':30,'xmin':0.5,'xmax':1.0,'ytit':'Events'}
-            hd['pvy'+k] = {'xtit':'y [mm]','nb':30,'xmin':0.3,'xmax':0.9,'ytit':'Events'}
-            hd['pvz'+k] = {'xtit':'z [cm]','nb':30,'xmin':-20.,'xmax':20.,'ytit':'Events'}
+            PV = c.PVData
+            hd['pvx'+k] = {'xtit':'x [mm]','nb':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'ytit':'Events'}
+            hd['pvy'+k] = {'xtit':'y [mm]','nb':60,'xmin':PV['y'][0],'xmax':PV['y'][1],'ytit':'Events'}
+            hd['pvz'+k] = {'xtit':'z [cm]','nb':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'ytit':'Events'}
             
-            h2d['pvx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':60,'xmin':0.5,'xmax':1.0,'nby':60,'ymin':0.3,'ymax':0.9}
-            h2d['pvx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':60,'xmin':-20.,'xmax':20.,'nby':60,'ymin':0.5,'ymax':1.0}
-            h2d['pvy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':60,'xmin':-20.,'xmax':20.,'nby':60,'ymin':0.3,'ymax':0.9}
+            h2d['pvx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
+            h2d['pvx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['x'][0],'ymax':PV['x'][1]}
+            h2d['pvy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
 
         else:
-            hd['pvx'+k] = {'xtit':'x [mm]','nb':30,'xmin':2.1,'xmax':2.8,'ytit':'Events'}
-            hd['pvy'+k] = {'xtit':'y [mm]','nb':30,'xmin':3.6,'xmax':4.3,'ytit':'Events'}
-            hd['pvz'+k] = {'xtit':'z [cm]','nb':30,'xmin':-25.,'xmax':25.,'ytit':'Events'}
+            PV = c.PVMC
+            hd['pvx'+k] = {'xtit':'x [mm]','nb':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'ytit':'Events'}
+            hd['pvy'+k] = {'xtit':'y [mm]','nb':60,'xmin':PV['y'][0],'xmax':PV['y'][1],'ytit':'Events'}
+            hd['pvz'+k] = {'xtit':'z [cm]','nb':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'ytit':'Events'}
             
-            h2d['pvx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':60,'xmin':2.1,'xmax':2.8,'nby':60,'ymin':3.6,'ymax':4.3}
-            h2d['pvx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':60,'xmin':-25.,'xmax':25.,'nby':60,'ymin':2.1,'ymax':2.8}
-            h2d['pvy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':60,'xmin':-25.,'xmax':25.,'nby':60,'ymin':3.6,'ymax':4.3}
+            h2d['pvx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
+            h2d['pvx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['x'][0],'ymax':PV['x'][1]}
+            h2d['pvy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
+
+        hd['pvdx12'+k] = {'xtit':'Primary vertex resolution in x [#mum]','nb':v['resox'][0],'xmin':v['resox'][1],'xmax':v['resox'][2],'ytit':'Events'}
+        hd['pvdy12'+k] = {'xtit':'Primary vertex resolution in y [#mum]','nb':v['resoy'][0],'xmin':v['resoy'][1],'xmax':v['resoy'][2],'ytit':'Events'}
+        hd['pvdz12'+k] = {'xtit':'Primary vertex resolution in z [#mum]','nb':v['resoz'][0],'xmin':v['resoz'][1],'xmax':v['resoz'][2],'ytit':'Events'}
+
+        hd['pvdxPull12'+k] = {'xtit':'Primary vertex pull in x','nb':v['pullx'][0],'xmin':v['pullx'][1],'xmax':v['pullx'][2],'ytit':'Events'}
+        hd['pvdyPull12'+k] = {'xtit':'Primary vertex pull in y','nb':v['pully'][0],'xmin':v['pully'][1],'xmax':v['pully'][2],'ytit':'Events'}
+        hd['pvdzPull12'+k] = {'xtit':'Primary vertex pull in z','nb':v['pullz'][0],'xmin':v['pullz'][1],'xmax':v['pullz'][2],'ytit':'Events'}
+
+    if isData:
+        PV = c.PVData
+        hd['bsx0'] = {'xtit':'x0 [mm]','nb':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'ytit':'Events'}
+        hd['bsy0'] = {'xtit':'y0 [mm]','nb':60,'xmin':PV['y'][0],'xmax':PV['y'][1],'ytit':'Events'}
+        hd['bsz0'] = {'xtit':'z0 [cm]','nb':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'ytit':'Events'}
         
-        hd['pvdx12'+k] = {'xtit':'Primary vertex resolution in x [#mum]','nb':30,'xmin':-200.,'xmax':200.,'ytit':'Events'}
-        hd['pvdy12'+k] = {'xtit':'Primary vertex resolution in y [#mum]','nb':30,'xmin':-200.,'xmax':200.,'ytit':'Events'}
-        hd['pvdz12'+k] = {'xtit':'Primary vertex resolution in z [#mum]','nb':30,'xmin':-200.,'xmax':200.,'ytit':'Events'}
+        hd['bsx'] = {'xtit':'x [mm]','nb':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'ytit':'Events'}
+        hd['bsy'] = {'xtit':'y [mm]','nb':60,'xmin':PV['y'][0],'xmax':PV['y'][1],'ytit':'Events'}
+        
+        h2d['bsx0_y0'] = {'xtit':'x0 [mm]','ytit':'y0 [mm]','nbx':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
+        h2d['bsx0_z0'] = {'xtit':'z0 [cm]','ytit':'x0 [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['x'][0],'ymax':PV['x'][1]}
+        h2d['bsy0_z0'] = {'xtit':'z0 [cm]','ytit':'y0 [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
+        
+        h2d['bsx_y'] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
+        h2d['bsx_z'] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['x'][0],'ymax':PV['x'][1]}
+        h2d['bsy_z'] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
 
-        hd['pvdxPull12'+k] = {'xtit':'Primary vertex pull in x','nb':30,'xmin':-4,'xmax':4,'ytit':'Events'}
-        hd['pvdyPull12'+k] = {'xtit':'Primary vertex pull in y','nb':30,'xmin':-4,'xmax':4,'ytit':'Events'}
-        hd['pvdzPull12'+k] = {'xtit':'Primary vertex pull in z','nb':30,'xmin':-4,'xmax':4,'ytit':'Events'}
+        BS = c.BSData
+        hd['bsBeamWidthX'] = {'xtit':'Beam width (x) [#mum]','nb':BS['bwx'][0],'xmin':BS['bwx'][1],'xmax':BS['bwx'][2],'ytit':'Events'}
+        hd['bsBeamWidthY'] = {'xtit':'Beam width (y) [#mum]','nb':BS['bwy'][0],'xmin':BS['bwy'][1],'xmax':BS['bwy'][2],'ytit':'Events'}
+        hd['bsSigmaZ'] = {'xtit':'Beam sigma z [#mum]','nb':BS['bwz'][0],'xmin':BS['bwz'][1],'xmax':BS['bwz'][2],'ytit':'Events'}
+        
+    else:
+        PV = c.PVMC
+        hd['bsx0'] = {'xtit':'x0 [mm]','nb':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'ytit':'Events'}
+        hd['bsy0'] = {'xtit':'y0 [mm]','nb':60,'xmin':PV['y'][0],'xmax':PV['y'][1],'ytit':'Events'}
+        hd['bsz0'] = {'xtit':'z0 [cm]','nb':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'ytit':'Events'}
+        
+        hd['bsx'] = {'xtit':'x [mm]','nb':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'ytit':'Events'}
+        hd['bsy'] = {'xtit':'y [mm]','nb':60,'xmin':PV['y'][0],'xmax':PV['y'][1],'ytit':'Events'}
+        
+        h2d['bsx0_y0'] = {'xtit':'x0 [mm]','ytit':'y0 [mm]','nbx':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
+        h2d['bsx0_z0'] = {'xtit':'z0 [cm]','ytit':'x0 [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['x'][0],'ymax':PV['x'][1]}
+        h2d['bsy0_z0'] = {'xtit':'z0 [cm]','ytit':'y0 [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
+        
+        h2d['bsx_y'] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':60,'xmin':PV['x'][0],'xmax':PV['x'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
+        h2d['bsx_z'] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['x'][0],'ymax':PV['x'][1]}
+        h2d['bsy_z'] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':60,'xmin':PV['z'][0],'xmax':PV['z'][1],'nby':60,'ymin':PV['y'][0],'ymax':PV['y'][1]}
 
-    for k, v in PVparam.iteritems():
-
-        if isData:
-            hd['bsx0'+k] = {'xtit':'x0 [mm]','nb':30,'xmin':0.5,'xmax':1.0,'ytit':'Events'}
-            hd['bsy0'+k] = {'xtit':'y0 [mm]','nb':30,'xmin':0.3,'xmax':0.9,'ytit':'Events'}
-            hd['bsz0'+k] = {'xtit':'z0 [cm]','nb':30,'xmin':-20.,'xmax':20.,'ytit':'Events'}
-
-            hd['bsx'+k] = {'xtit':'x [mm]','nb':30,'xmin':0.5,'xmax':1.0,'ytit':'Events'}
-            hd['bsy'+k] = {'xtit':'y [mm]','nb':30,'xmin':0.3,'xmax':0.9,'ytit':'Events'}
-            
-            h2d['bsx0_y0'+k] = {'xtit':'x0 [mm]','ytit':'y0 [mm]','nbx':60,'xmin':0.5,'xmax':1.0,'nby':60,'ymin':0.3,'ymax':0.9}
-            h2d['bsx0_z0'+k] = {'xtit':'z0 [cm]','ytit':'x0 [mm]','nbx':60,'xmin':-20.,'xmax':20.,'nby':60,'ymin':0.5,'ymax':1.0}
-            h2d['bsy0_z0'+k] = {'xtit':'z0 [cm]','ytit':'y0 [mm]','nbx':60,'xmin':-20.,'xmax':20.,'nby':60,'ymin':0.3,'ymax':0.9}
-
-            h2d['bsx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':60,'xmin':0.5,'xmax':1.0,'nby':60,'ymin':0.3,'ymax':0.9}
-            h2d['bsx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':60,'xmin':-20.,'xmax':20.,'nby':60,'ymin':0.5,'ymax':1.0}
-            h2d['bsy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':60,'xmin':-20.,'xmax':20.,'nby':60,'ymin':0.3,'ymax':0.9}
-            
-        else:
-            hd['bsx0'+k] = {'xtit':'x0 [mm]','nb':30,'xmin':2.1,'xmax':2.8,'ytit':'Events'}
-            hd['bsy0'+k] = {'xtit':'y0 [mm]','nb':30,'xmin':3.6,'xmax':4.3,'ytit':'Events'}
-            hd['bsz0'+k] = {'xtit':'z0 [cm]','nb':30,'xmin':-25.,'xmax':25.,'ytit':'Events'}
-
-            hd['bsx'+k] = {'xtit':'x [mm]','nb':30,'xmin':2.1,'xmax':2.8,'ytit':'Events'}
-            hd['bsy'+k] = {'xtit':'y [mm]','nb':30,'xmin':3.6,'xmax':4.3,'ytit':'Events'}
-            
-            h2d['bsx0_y0'+k] = {'xtit':'x0 [mm]','ytit':'y0 [mm]','nbx':60,'xmin':2.1,'xmax':2.8,'nby':60,'ymin':3.6,'ymax':4.3}
-            h2d['bsx0_z0'+k] = {'xtit':'z0 [cm]','ytit':'x0 [mm]','nbx':60,'xmin':-25.,'xmax':25.,'nby':60,'ymin':2.1,'ymax':2.8}
-            h2d['bsy0_z0'+k] = {'xtit':'z0 [cm]','ytit':'y0 [mm]','nbx':60,'xmin':-25.,'xmax':25.,'nby':60,'ymin':3.6,'ymax':4.3}
-
-            h2d['bsx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':60,'xmin':2.1,'xmax':2.8,'nby':60,'ymin':3.6,'ymax':4.3}
-            h2d['bsx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':60,'xmin':-25.,'xmax':25.,'nby':60,'ymin':2.1,'ymax':2.8}
-            h2d['bsy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':60,'xmin':-25.,'xmax':25.,'nby':60,'ymin':3.6,'ymax':4.3}
-            
+        BS = c.BSMC
+        hd['bsBeamWidthX'] = {'xtit':'Beam width (x) [#mum]','nb':BS['bwx'][0],'xmin':BS['bwx'][1],'xmax':BS['bwx'][2],'ytit':'Events'}
+        hd['bsBeamWidthY'] = {'xtit':'Beam width (y) [#mum]','nb':BS['bwy'][0],'xmin':BS['bwy'][1],'xmax':BS['bwy'][2],'ytit':'Events'}
+        hd['bsSigmaZ'] = {'xtit':'Beam sigma z [#mum]','nb':BS['bwz'][0],'xmin':BS['bwz'][1],'xmax':BS['bwz'][2],'ytit':'Events'}
+        
     outFile = ROOT.TFile.Open(options.output,"RECREATE")
         
     h = {}
@@ -208,10 +237,16 @@ if __name__ == '__main__':
             eta = tr.trk_eta[t]
             phi = tr.trk_phi[t]
 
+            d0 = tr.trk_d0[t]
+            dz = tr.trk_dz[t]
+
             d0_pv = tr.trk_d0_pv[t]
             dz_pv = tr.trk_dz_pv[t]
             d0_bs = tr.trk_d0_bs[t]
             dz_bs = tr.trk_dz_bs[t]
+
+            d0_bs_zpv = tr.trk_d0_bs_zpv[t]
+            d0_bs_zpca = tr.trk_d0_bs_zpca[t]
             
             d0Err = tr.trk_d0Err[t]
             dzErr = tr.trk_dzErr[t]
@@ -219,48 +254,89 @@ if __name__ == '__main__':
             d0NoRefit = tr.trk_d0_pv_NoRefit[t]
             dzNoRefit = tr.trk_dz_pv_NoRefit[t]
             
-            if math.fabs(d0_pv) > 2000 or math.fabs(dz_pv) > 2000: continue
+#            if math.fabs(d0_pv) > 2000 or math.fabs(dz_pv) > 2000: continue
 
             h['h_ipPt'].Fill(pt)
             h['h_ipEta'].Fill(eta)
             h['h_ipPhi'].Fill(phi)
 
-            for kparam, vparam in PVparam.iteritems():
-                
-                paramMin = vparam[1]
-                paramMax = vparam[2]
-                
-                if not (param >= paramMin and param < paramMax): continue
+            sd0 = d0/d0Err if d0Err > 0 else -777
+            sdz = dz/dzErr if dzErr > 0 else -777
+            sd0_pv = d0_pv/d0Err if d0Err > 0 else -777
+            sdz_pv = dz_pv/dzErr if dzErr > 0 else -777
+            sd0_bs = d0_bs/d0Err if d0Err > 0 else -777
+            sdz_bs = dz_bs/dzErr if dzErr > 0 else -777
+            sd0_bs_zpv = d0_bs_zpv/d0Err if d0Err > 0 else -777
+            sd0_bs_zpca = d0_bs_zpca/d0Err if d0Err > 0 else -777
             
-                for keta, veta in c.IPeta.iteritems():
-                        
-                    etaMin = veta[1]
-                    etaMax = veta[2]
+            mm = 1E-3
+            h['h_ipD0'].Fill(d0*mm)
+            h['h_ipDz'].Fill(dz*mm)
+            h['h_ipSD0'].Fill(sd0)
+            h['h_ipSDz'].Fill(sdz)
+            
+            h['h_ippvD0'].Fill(d0_pv*mm)
+            h['h_ippvDz'].Fill(dz_pv*mm)
+            h['h_ippvSD0'].Fill(sd0_pv)
+            h['h_ippvSDz'].Fill(sdz_pv)
+            
+            h['h_ipbsD0'].Fill(d0_bs*mm)
+            h['h_ipbsDz'].Fill(dz_bs*mm)
+            h['h_ipbsSD0'].Fill(sd0_bs)
+            h['h_ipbsSDz'].Fill(sdz_bs)
+            
+            h['h_ipbszpvD0'].Fill(d0_bs_zpv*mm)
+            h['h_ipbszpcaD0'].Fill(d0_bs_zpca*mm)
+            h['h_ipbszpvSD0'].Fill(sd0_bs_zpv)
+            h['h_ipbszpcaSD0'].Fill(sd0_bs_zpca)
+
+            for keta, veta in c.IPeta.iteritems():
+
+                etaMin = veta['bins'][1]
+                etaMax = veta['bins'][2]
                 
-                    if not (eta >= etaMin and eta < etaMax): continue
+                if not (math.fabs(eta) >= etaMin and math.fabs(eta) < etaMax): continue
+
+                h['h_ipbsd0'+keta].Fill(d0_bs_zpv)
+#                h['h_ipbsd0'+keta].Fill(d0_bs)
+                h['h_ipbsdz'+keta].Fill(dz_bs)
+                
+                for kparam, vparam in PVparam.iteritems():
+                
+                    paramMin = vparam['bins'][1]
+                    paramMax = vparam['bins'][2]
+                
+                    if not (param >= paramMin and param < paramMax): continue
 
                     h['h_ippvd0'+kparam+keta].Fill(d0_pv)
                     h['h_ippvdz'+kparam+keta].Fill(dz_pv)
-                    h['h_ipbsd0'+kparam+keta].Fill(d0_bs)
-                    h['h_ipbsdz'+kparam+keta].Fill(dz_bs)
                     
                     h['h_ipd0Err'+kparam+keta].Fill(d0Err)
                     h['h_ipdzErr'+kparam+keta].Fill(dzErr)
                     
                     h['h_ippvd0NoRefit'+kparam+keta].Fill(d0NoRefit)
                     h['h_ippvdzNoRefit'+kparam+keta].Fill(dzNoRefit)
-                
-                for kpt, vpt in c.IPpt.iteritems():
                     
-                    ptMin = vpt[1]
-                    ptMax = vpt[2]
-                
-                    if not (pt >= ptMin and pt < ptMax): continue
+            for kpt, vpt in c.IPpt.iteritems():
                     
+                ptMin = vpt['bins'][1]
+                ptMax = vpt['bins'][2]
+                
+                if not (pt >= ptMin and pt < ptMax): continue
+                
+                h['h_ipbsd0'+kpt].Fill(d0_bs_zpv)
+#                h['h_ipbsd0'+kpt].Fill(d0_bs)
+                h['h_ipbsdz'+kpt].Fill(dz_bs)
+                
+                for kparam, vparam in PVparam.iteritems():
+                
+                    paramMin = vparam['bins'][1]
+                    paramMax = vparam['bins'][2]
+                
+                    if not (param >= paramMin and param < paramMax): continue
+                
                     h['h_ippvd0'+kparam+kpt].Fill(d0_pv)
                     h['h_ippvdz'+kparam+kpt].Fill(dz_pv)
-                    h['h_ipbsd0'+kparam+kpt].Fill(d0_bs)
-                    h['h_ipbsdz'+kparam+kpt].Fill(dz_bs)
                     
                     h['h_ipd0Err'+kparam+kpt].Fill(d0Err)
                     h['h_ipdzErr'+kparam+kpt].Fill(dzErr)
@@ -290,9 +366,15 @@ if __name__ == '__main__':
         bs_y0 = tr.bs_y0
         bs_z0 = tr.bs_z0
 
+#        print 'x0='+str(tr.bs_x0), ' x0Error='+str(tr.bs_x0Error), ' BeamWidthX='+str(tr.bs_BeamWidthX), ' z0='+str(tr.bs_z0), ' z0Error='+str(tr.bs_z0Error), ' sigmaZ='+str(tr.bs_sigmaZ)
+        
         bs_x = tr.bs_x_zpv
         bs_y = tr.bs_y_zpv
         
+        bs_beamWidthX = tr.bs_BeamWidthX
+        bs_beamWidthY = tr.bs_BeamWidthY
+        bs_sigmaZ = tr.bs_sigmaZ
+
         pv_x = tr.pv_x
         pv_y = tr.pv_y
         pv_z = tr.pv_z
@@ -327,14 +409,34 @@ if __name__ == '__main__':
 
         bs_cm = 1.
         bs_mm = 10.
+        bs_micron = 10000.
         
         h['h_pvNTrks'].Fill(nPVTracks)
         h['h_pvSumTrackPt'].Fill(sumPtTrackPV)
-            
+
+        h['h_bsx0'].Fill(bs_x0*bs_mm)
+        h['h_bsy0'].Fill(bs_y0*bs_mm)
+        h['h_bsz0'].Fill(bs_z0*bs_cm)
+        
+        h['h_bsx'].Fill(bs_x*bs_mm)
+        h['h_bsy'].Fill(bs_y*bs_mm)
+        
+        h2['h2_bsx0_y0'].Fill(bs_x0*bs_mm,bs_y0*bs_mm)
+        h2['h2_bsx0_z0'].Fill(bs_z0*bs_cm,bs_x0*bs_mm)
+        h2['h2_bsy0_z0'].Fill(bs_z0*bs_cm,bs_y0*bs_mm)
+        
+        h2['h2_bsx_y'].Fill(bs_x*bs_mm,bs_y*bs_mm)
+        h2['h2_bsx_z'].Fill(bs_z0*bs_cm,bs_x*bs_mm)
+        h2['h2_bsy_z'].Fill(bs_z0*bs_cm,bs_y*bs_mm)
+
+        h['h_bsBeamWidthX'].Fill(bs_beamWidthX*bs_micron)
+        h['h_bsBeamWidthY'].Fill(bs_beamWidthY*bs_micron)
+        h['h_bsSigmaZ'].Fill(bs_sigmaZ*bs_cm)
+        
         for k, v in PVparam.iteritems():
                 
-            paramMin = v[1]
-            paramMax = v[2]
+            paramMin = v['bins'][1]
+            paramMax = v['bins'][2]
                 
             if param >= paramMin and param < paramMax:
                     
@@ -346,28 +448,13 @@ if __name__ == '__main__':
                 h2['h2_pvx_z'+k].Fill(pv_z*pv_cm,pv_x*pv_mm)
                 h2['h2_pvy_z'+k].Fill(pv_z*pv_cm,pv_y*pv_mm)
                     
-                h['h_pvdx12'+k].Fill(pv_dx12*pv_mm)
-                h['h_pvdy12'+k].Fill(pv_dy12*pv_mm)
-                h['h_pvdz12'+k].Fill(pv_dz12*pv_cm)
+                h['h_pvdx12'+k].Fill(pv_dx12)
+                h['h_pvdy12'+k].Fill(pv_dy12)
+                h['h_pvdz12'+k].Fill(pv_dz12)
                 
                 h['h_pvdxPull12'+k].Fill(pv_dxPull12)
                 h['h_pvdyPull12'+k].Fill(pv_dyPull12)
                 h['h_pvdzPull12'+k].Fill(pv_dzPull12)
-
-                h['h_bsx0'+k].Fill(bs_x0*bs_mm)
-                h['h_bsy0'+k].Fill(bs_y0*bs_mm)
-                h['h_bsz0'+k].Fill(bs_z0*bs_cm)
-
-                h['h_bsx'+k].Fill(bs_x*bs_mm)
-                h['h_bsy'+k].Fill(bs_y*bs_mm)
-                
-                h2['h2_bsx0_y0'+k].Fill(bs_x0*bs_mm,bs_y0*bs_mm)
-                h2['h2_bsx0_z0'+k].Fill(bs_z0*bs_cm,bs_x0*bs_mm)
-                h2['h2_bsy0_z0'+k].Fill(bs_z0*bs_cm,bs_y0*bs_mm)
-
-                h2['h2_bsx_y'+k].Fill(bs_x*bs_mm,bs_y*bs_mm)
-                h2['h2_bsx_z'+k].Fill(bs_z0*bs_cm,bs_x*bs_mm)
-                h2['h2_bsy_z'+k].Fill(bs_z0*bs_cm,bs_y*bs_mm)
                 
     print '\033[1;32mdone\033[1;m'
 

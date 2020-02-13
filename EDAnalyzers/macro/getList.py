@@ -5,7 +5,7 @@ import sys
 import json
 
 #ntupleProd = 'v20200106'
-ntupleProd = 'v20200118'
+ntupleProd = 'v20200124'
 
 sys.tracebacklimit = 0
 

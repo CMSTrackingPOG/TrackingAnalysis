@@ -47,4 +47,4 @@ if __name__ == '__main__':
         
         flist = " ".join(fd[k])
         os.system('hadd -f jobs/'+k+'.root '+flist)
-#        os.system('rm jobs/list_'+k+'_*.root')
+        os.system('rm jobs/list_'+k+'_*.root')
