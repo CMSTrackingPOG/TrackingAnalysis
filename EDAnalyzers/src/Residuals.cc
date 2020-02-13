@@ -63,6 +63,7 @@ class Residuals : public edm::EDAnalyzer
   
    // ----------member data ---------------------------
    edm::InputTag thePVLabel_;
+   edm::InputTag thePVPrimaryLabel_;
    edm::InputTag theTrackLabel_;
    edm::InputTag theBeamspotLabel_;
    edm::InputTag theRhoLabel_;
@@ -94,6 +95,7 @@ class Residuals : public edm::EDAnalyzer
 Residuals::Residuals(const edm::ParameterSet& pset)
 {
    thePVLabel_  = pset.getParameter<edm::InputTag>("VertexLabel");
+   thePVPrimaryLabel_  = pset.getParameter<edm::InputTag>("VertexPrimaryLabel");
    theTrackLabel_  = pset.getParameter<edm::InputTag>("TrackLabel");
    theBeamspotLabel_  = pset.getParameter<edm::InputTag>("BeamSpotLabel");
    theRhoLabel_  = pset.getParameter<edm::InputTag>("RhoLabel");
@@ -142,6 +144,9 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    ftree->Init();
 
+   Handle<BeamSpot> pvbeamspot;
+   iEvent.getByLabel(theBeamspotLabel_, pvbeamspot);
+   
    Handle<TrackCollection> tracks;
    iEvent.getByLabel(theTrackLabel_,tracks);
    
@@ -153,22 +158,38 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    Handle<VertexCollection> vtxH;
    iEvent.getByLabel(thePVLabel_, vtxH);
 
-   if (!vtxH.isValid()) return;
+   Handle<VertexCollection> vtxP;
+   iEvent.getByLabel(thePVPrimaryLabel_, vtxP);
+   
+   if( !vtxH.isValid() || !vtxP.isValid() ) return;
 
-//   std::cout << "size of vtx collection: "<< vtxH->size() << std::endl;
+   if( vtxP->size() == 0 || vtxH->size() == 0 ) return;
+   
+   VertexReProducer revertex(vtxH, iEvent);
+   
+   TrackCollection tracksAll;
+   tracksAll.assign(tracks->begin(), tracks->end());
+
+   // refit primary vertices
+   vector<TransientVertex> pvs0 = revertex.makeVertices(tracksAll, *pvbeamspot, iSetup);
+   
+   if( pvs0.empty() ) return;
+   
+   reco::Vertex vtx0 = reco::Vertex(pvs0.front());
+   reco::Vertex vtx = vtxP->front();
+   
+   // refitted vertices are the same as the original ones
+   if( fabs(vtx.x()-vtx0.x()) > 10E-10 || fabs(vtx.y()-vtx0.y()) > 10E-10 || fabs(vtx.z()-vtx0.z()) > 10E-10 ) return;
+   
+   if( !vertexSelection(vtx) ) return;
 
    ESHandle<MagneticField> theMF;
    iSetup.get<IdealMagneticFieldRecord>().get(theMF);
-
-   VertexReProducer revertex(vtxH, iEvent);
 
    //Handle<TrackCollection> pvtracks;
    //iEvent.getByLabel(revertex.inputTracks(),   pvtracks);
    //Handle<BeamSpot>        pvbeamspot;
    //iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
-
-   Handle<BeamSpot> pvbeamspot;
-   iEvent.getByLabel(theBeamspotLabel_, pvbeamspot);
    
    Handle<double> rhoPtr;
    iEvent.getByLabel(theRhoLabel_, rhoPtr);   
@@ -226,18 +247,6 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //  edm::LogWarning("Inconsistency") << "The BeamSpot used for PV reco is not the same used in this analyzer.";
 
    double micron = 10000;
-   
-   // ------ check if the vertex is good enough -------
-   if( vtxH->size() == 0 ) return;
-   if( ! vertexSelection(vtxH->front()) ) return;
-   // -------------------------------------------------
-
-/*   cout << "original vtx x,y,z: " 
-	<< vtxH->front().position().x() << " , "
-	<< vtxH->front().position().y() << " , "
-        << vtxH->front().position().z() << endl;
-*/
-   const reco::Vertex vtx = vtxH->front();
 
    ftree->bs_type = pvbeamspot->type();
    ftree->bs_x0 = pvbeamspot->x0();
@@ -261,15 +270,20 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ftree->bs_emittanceX = pvbeamspot->emittanceX();
    ftree->bs_emittanceY = pvbeamspot->emittanceY();
    ftree->bs_betaStar = pvbeamspot->betaStar();
-   
-   double trackSumPt = 0;   
+
+   double trackSumPt = 0;
+   double trackSumPt2 = 0;
    for( std::vector<reco::TrackBaseRef>::const_iterator it = vtx.tracks_begin(); it != vtx.tracks_end(); it++ )
-     trackSumPt += (*it)->pt();   
+     {	
+	trackSumPt += (*it)->pt();
+	trackSumPt2 += pow((*it)->pt(),2);
+     }   
    
    ftree->pv_IsValid = vtx.isValid();
    ftree->pv_IsFake = vtx.isFake();	
    ftree->pv_NTracks = vtx.tracksSize();
-   ftree->pv_SumTrackPt = trackSumPt;	
+   ftree->pv_SumTrackPt = trackSumPt;
+   ftree->pv_SumTrackPt2 = trackSumPt2;
    ftree->pv_chi2 = vtx.chi2();	
    ftree->pv_ndof = vtx.ndof();   
    ftree->pv_x = vtx.x()*micron;
@@ -282,20 +296,25 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    std::vector<reco::TrackBaseRef> vtxTkCollection1;
    std::vector<reco::TrackBaseRef> vtxTkCollection2;
 
-   double trackSumPt1 = 0;
-   double trackSumPt2 = 0;
+   double trackSumPt_p1 = 0;
+   double trackSumPt2_p1 = 0;
 
+   double trackSumPt_p2 = 0;
+   double trackSumPt2_p2 = 0;
+   
    for( std::vector<reco::TrackBaseRef>::const_iterator it = vtx.tracks_begin(); it != vtx.tracks_end(); it++ )
      {
 	if( rnd->Rndm() > 0.5 )
 	  {
 	     vtxTkCollection1.push_back(*it);
-	     trackSumPt1 += (*it)->pt();
+	     trackSumPt_p1 += (*it)->pt();
+	     trackSumPt2_p1 += pow((*it)->pt(),2);
 	  }	
 	else
 	  {	     
 	     vtxTkCollection2.push_back(*it);
-	     trackSumPt2 += (*it)->pt();
+	     trackSumPt_p2 += (*it)->pt();
+	     trackSumPt2_p2 += pow((*it)->pt(),2);
 	  }	
      }
 
@@ -316,8 +335,11 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_NTracks_p1 = vtxTkCollection1.size();
 	ftree->pv_NTracks_p2 = vtxTkCollection2.size();
 	
-	ftree->pv_SumTrackPt_p1 = trackSumPt1;
-	ftree->pv_SumTrackPt_p2 = trackSumPt2;
+	ftree->pv_SumTrackPt_p1 = trackSumPt_p1;
+	ftree->pv_SumTrackPt_p2 = trackSumPt_p2;
+
+	ftree->pv_SumTrackPt2_p1 = trackSumPt2_p1;
+	ftree->pv_SumTrackPt2_p2 = trackSumPt2_p2;
 	
 	ftree->pv_chi2_p1 = vtx1.chi2();
 	ftree->pv_chi2_p2 = vtx2.chi2();
@@ -357,13 +379,14 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	// Refit the primary vertex
 	vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, iSetup);
 	//cout << "vertices before,after: " << vtxH->size() << " , " << pvs.size() << endl;
-
+	
 	if( pvs.empty() ) continue;
 
 	reco::Vertex newPV = reco::Vertex(pvs.front());
 	Track::Point vtxPosition = Track::Point(newPV.position().x(),
 						newPV.position().y(),
 						newPV.position().z());
+	
 	// ---
 	if( ! vertexSelection(newPV) ) continue;
 

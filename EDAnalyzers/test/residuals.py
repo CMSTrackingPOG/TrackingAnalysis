@@ -11,6 +11,7 @@ source = cms.Source ("PoolSource",fileNames = readFiles, secondaryFileNames = se
 readFiles.extend( [
 #'/store/data/Run2011A/MinimumBias/AOD/12Oct2013-v1/20001/6A9F67BD-8746-E311-AC78-0025901D5CDC.root'
 'root://maite.iihe.ac.be/pnfs/iihe/cms/ph/sc4/store/data/Run2012A/MinimumBias/AOD/22Jan2013-v1/20000/1097F002-8D67-E211-8536-003048FFCC18.root'
+###'root://maite.iihe.ac.be/pnfs/iihe/cms/ph/sc4/store/data/Run2012A/MinimumBias/AOD/22Jan2013-v1/20000/C85888F6-8C67-E211-B758-00304867904E.root'
 #'/store/data/Run2012A/MinimumBias/AOD/22Jan2013-v1/20003/F286D9D5-8667-E211-949A-003048679188.root'
 #'/store/mc/Fall11/MinBias_Tune4C_7TeV-pythia8/AODSIM/PU_S6_START44_V9B-v1/0001/FEAD5287-9736-E111-AF86-0030487D8121.root'
 #'/store/mc/Summer12_DR53X/MinBias_Tune4C_8TeV-pythia8/AODSIM/PU_S10_START53_V7A-v1/0000/1EB5119C-52DA-E111-9679-0018F3D09642.root'
@@ -52,18 +53,17 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.GlobalTag.globaltag = 'FT_R_53_V21::All'
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 process.source = source
 
-process.HLT = cms.EDFilter("HLTHighLevel",
-                           TriggerResultsTag = cms.InputTag("TriggerResults","","HLT"),
-                           HLTPaths = cms.vstring('HLT_ZeroBiasPixel_DoubleTrack_v*','HLT_ZeroBias_v*'),
-#                           HLTPaths = cms.vstring('HLT_*'),
-                           eventSetupPathsKey = cms.string(''), # not empty => use read paths from AlCaRecoTriggerBitsRcd via this key
-                           andOr = cms.bool(True),              # how to deal with multiple triggers: True (OR) accept if ANY is true, False (AND) accept if ALL are true
-                           throw = cms.bool(True)               # throw exception on unknown path names
-)
+#process.HLT = cms.EDFilter("HLTHighLevel",
+#                           TriggerResultsTag = cms.InputTag("TriggerResults","","HLT"),
+#                           HLTPaths = cms.vstring('HLT_ZeroBiasPixel_DoubleTrack_v*','HLT_ZeroBias_v*'),
+#                           eventSetupPathsKey = cms.string(''), # not empty => use read paths from AlCaRecoTriggerBitsRcd via this key
+#                           andOr = cms.bool(True),              # how to deal with multiple triggers: True (OR) accept if ANY is true, False (AND) accept if ALL are true
+#                           throw = cms.bool(True)               # throw exception on unknown path names
+#)
 
 
 # process.load("RecoTracker.TrackProducer.TrackRefitters_cff")
@@ -107,6 +107,10 @@ process.offlinePrimaryVerticesRerun.TkClusParameters.algorithm = cms.string("DA"
 #print process.offlinePrimaryVerticesRerun.dumpPython()
 
 process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
+
+if options.withBS:
+    process.residuals.VertexPrimaryLabel = cms.InputTag('offlinePrimaryVerticesWithBS')
+
 #process.residuals.TrackLabel = cms.InputTag("TrackRefitter")
 #process.residuals.VertexLabel = cms.InputTag("offlinePrimaryVerticesFromRefittedTrks")
 
@@ -117,7 +121,8 @@ process.TFileService = cms.Service("TFileService",
 
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 
-process.p = cms.Path(process.HLT*
+process.p = cms.Path(
+    # process.HLT*
     # process.offlineBeamSpot                        +
     # process.TrackRefitter                          +
     # process.offlinePrimaryVerticesFromRefittedTrks +

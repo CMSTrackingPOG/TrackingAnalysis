@@ -60,6 +60,7 @@ class ResTree
    bool pv_IsFake;
    int pv_NTracks;
    float pv_SumTrackPt;
+   float pv_SumTrackPt2;
    float pv_chi2;
    int pv_ndof;
    float pv_x;
@@ -73,6 +74,7 @@ class ResTree
    bool pv_IsFake_p1;
    int pv_NTracks_p1;
    float pv_SumTrackPt_p1;
+   float pv_SumTrackPt2_p1;
    float pv_chi2_p1;
    int pv_ndof_p1;
    float pv_x_p1;
@@ -86,6 +88,7 @@ class ResTree
    bool pv_IsFake_p2;
    int pv_NTracks_p2;
    float pv_SumTrackPt_p2;
+   float pv_SumTrackPt2_p2;
    float pv_chi2_p2;
    int pv_ndof_p2;
    float pv_x_p2;
@@ -104,6 +107,8 @@ class ResTree
    std::vector<int> trk_nMissedIn;
    std::vector<int> trk_hasPXL;
    std::vector<int> trk_quality;
+   std::vector<float> trk_d0;
+   std::vector<float> trk_dz;
    std::vector<float> trk_d0_pv;
    std::vector<float> trk_dz_pv;
    std::vector<float> trk_d0_bs;

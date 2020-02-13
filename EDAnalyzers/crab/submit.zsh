@@ -6,7 +6,7 @@ slist="list.txt"
 pver="1" # production tentative
 pset="crabConfigTemplate.py"
 psetData="crabConfigTemplateData.py"
-ver="Track-v20191229"
+ver="Track-v20200123"
 prodv="/store/user/kskovpen/Track/Ntuple/${ver}/"
 
 rm -f crabConfig.py*
