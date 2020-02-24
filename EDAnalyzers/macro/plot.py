@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     isData = False
     for k,v in flist.items():
-        if 'MinimumBias' in k: isData = True
+        if 'ZeroBias' in k: isData = True
         for f in flist[k]: tr.Add(f)
     
     nEvents = tr.GetEntries()
@@ -213,7 +213,7 @@ if __name__ == '__main__':
 
         tr.GetEntry(i)
 
-        if not tr.trig_ZeroBias_pass and not tr.trig_ZeroBiasPixel_DoubleTrack_pass: continue
+        if not tr.trig_ZeroBias_pass: continue
         
         isValid = tr.pv_IsValid
         isFake = tr.pv_IsFake
@@ -349,7 +349,7 @@ if __name__ == '__main__':
         
         tr.GetEntry(i)
         
-        if not tr.trig_ZeroBias_pass and not tr.trig_ZeroBiasPixel_DoubleTrack_pass: continue
+        if not tr.trig_ZeroBias_pass: continue
         
         isValid = tr.pv_IsValid
         isFake = tr.pv_IsFake

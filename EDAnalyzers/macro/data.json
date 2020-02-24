@@ -1,14 +1,7 @@
 {
-  "MinimumBias_Run2012B22Jan2013v1AOD": [
-    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200124/MinimumBias/Run2012B_22Jan2013_v1_AOD/200123_100435/0000/output_101.root"
-  ], 
-  "MinimumBias_Run2012C22Jan2013v1AOD": [
-    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200124/MinimumBias/Run2012C_22Jan2013_v1_AOD/200123_100324/0000/output_100.root"
-  ], 
-  "MinimumBias_Run2012D22Jan2013v1AOD": [
-    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200124/MinimumBias/Run2012D_22Jan2013_v1_AOD/200123_092957/0000/output_100.root"
-  ], 
-  "MinimumBias_Run2012A22Jan2013v1AOD": [
-    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200124/MinimumBias/Run2012A_22Jan2013_v1_AOD/200123_092929/0000/output_100.root"
+  "ZeroBias_Run2018C17Sep2018v1AOD": [
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200223/ZeroBias/Run2018C_17Sep2018_v1_AOD/200223_193228/0000/output_10.root", 
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200223/ZeroBias/Run2018C_17Sep2018_v1_AOD/200223_193228/0000/output_11.root", 
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200223/ZeroBias/Run2018C_17Sep2018_v1_AOD/200223_193228/0000/output_6.root"
   ]
 }

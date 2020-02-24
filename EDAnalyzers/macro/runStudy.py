@@ -26,9 +26,9 @@ if __name__ == '__main__':
 
     jobDir = 'jobs/'
 
-    inputMC = ['MinBiasTune4C8TeVpythia8_Summer12DR53XPUS10START53V7Av1AODSIM']
-    inputData = ['MinimumBias_Run2012A22Jan2013v1AOD','MinimumBias_Run2012B22Jan2013v1AOD',\
-    'MinimumBias_Run2012C22Jan2013v1AOD','MinimumBias_Run2012D22Jan2013v1AOD']
+    inputMC = ['SingleNeutrino_RunIIAutumn18DRPremixforRECO102Xupgrade2018realisticv15ext1v1AODSIM']
+    inputData = ['ZeroBias_Run2018DPromptRecov2AOD',\
+    'ZeroBias_Run2018C17Sep2018v1AOD']
 
     for f in range(len(inputMC)): inputMC[f] = jobDir+inputMC[f]+'.root'
     for f in range(len(inputData)): inputData[f] = jobDir+inputData[f]+'.root'
