@@ -15,10 +15,10 @@ config.JobType.maxJobRuntimeMin = 2749 # min
 config.section_('Data')
 config.Data.splitting='LumiBased'
 config.Data.totalUnits = -1
-config.Data.unitsPerJob = 20
+config.Data.unitsPerJob = 50
 
 #config.Data.allowNonValidInputDataset = True
-config.Data.lumiMask = 'JSON/Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt'
+config.Data.lumiMask = 'JSON/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt'
 config.Data.publication = False
 config.Data.inputDataset = 'INPUTDATASET'
 config.Data.outputDatasetTag = 'PUBLISHDATANAME'
@@ -29,4 +29,4 @@ config.section_('User')
 config.User.voGroup = 'becms'
 config.section_('Site')
 config.Site.storageSite = 'T2_BE_IIHE'
-config.Site.whitelist = ['T2_BE_IIHE']
+#config.Site.whitelist = ['T2_BE_IIHE']

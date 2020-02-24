@@ -16,6 +16,7 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+#include "HLTrigger/HLTcore/interface/HLTPrescaleProvider.h"
 
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
@@ -46,6 +47,15 @@
 
 #include "TrackingAnalysis/EDAnalyzers/interface/Tree.h"
 
+namespace
+{   
+   bool sortPt(const reco::TransientTrack & t1,
+	       const reco::TransientTrack & t2) 
+     {
+	return t1.track().pt() > t2.track().pt();
+     }
+}
+
 class Residuals : public edm::EDAnalyzer 
 {  
    
@@ -57,17 +67,17 @@ class Residuals : public edm::EDAnalyzer
    virtual void beginRun(const edm::Run&, const edm::EventSetup&);
    virtual void analyze(const edm::Event&, const edm::EventSetup&);
    virtual void endRun() ;
-
+   
    bool trackSelection(const reco::Track& track) const;
    bool vertexSelection(const reco::Vertex& vertex) const;
   
    // ----------member data ---------------------------
-   edm::InputTag thePVLabel_;
-   edm::InputTag thePVPrimaryLabel_;
-   edm::InputTag theTrackLabel_;
-   edm::InputTag theBeamspotLabel_;
-   edm::InputTag theRhoLabel_;
-   edm::InputTag theTriggerBitsLabel_;
+   edm::EDGetTokenT<reco::VertexCollection> thePVToken_;
+//   edm::EDGetTokenT<reco::VertexCollection> thePVPrimaryToken_;
+   edm::EDGetTokenT<reco::TrackCollection> theTracksToken_;
+   edm::EDGetTokenT<reco::BeamSpot> theBeamspotToken_;
+   edm::EDGetTokenT<double> theRhoToken_;
+   edm::EDGetTokenT<edm::TriggerResults> theTriggerBitsToken_;
 
    // --- track selection variables
    double tkMinPt;
@@ -81,10 +91,12 @@ class Residuals : public edm::EDAnalyzer
    double vtxErrorZMin,vtxErrorZMax;
 
    int eventScale;
+   int trackScale;
    
    TRandom3 *rnd;
    
    HLTConfigProvider hltConfig_;
+   HLTPrescaleProvider hltPrescale_;
    
    const edm::Service<TFileService> fs;
    ResTree* ftree;
@@ -92,14 +104,26 @@ class Residuals : public edm::EDAnalyzer
    int ncount;
 };
 
-Residuals::Residuals(const edm::ParameterSet& pset)
+Residuals::Residuals(const edm::ParameterSet& pset):
+   hltPrescale_(pset,consumesCollector(),*this)
 {
-   thePVLabel_  = pset.getParameter<edm::InputTag>("VertexLabel");
-   thePVPrimaryLabel_  = pset.getParameter<edm::InputTag>("VertexPrimaryLabel");
-   theTrackLabel_  = pset.getParameter<edm::InputTag>("TrackLabel");
-   theBeamspotLabel_  = pset.getParameter<edm::InputTag>("BeamSpotLabel");
-   theRhoLabel_  = pset.getParameter<edm::InputTag>("RhoLabel");
-   theTriggerBitsLabel_  = pset.getParameter<edm::InputTag>("TriggerResultsLabel");
+   edm::InputTag TrackCollectionTag_ = pset.getParameter<edm::InputTag>("TrackLabel");
+   theTracksToken_= consumes<reco::TrackCollection>(TrackCollectionTag_);
+   
+   edm::InputTag VertexCollectionTag_ = pset.getParameter<edm::InputTag>("VertexLabel");
+   thePVToken_ = consumes<reco::VertexCollection>(VertexCollectionTag_);
+
+//   edm::InputTag VertexPrimaryCollectionTag_ = pset.getParameter<edm::InputTag>("VertexPrimaryLabel");
+//   thePVPrimaryToken_ = consumes<reco::VertexCollection>(VertexPrimaryCollectionTag_);
+   
+   edm::InputTag BeamspotTag_ = edm::InputTag("offlineBeamSpot");
+   theBeamspotToken_ = consumes<reco::BeamSpot>(BeamspotTag_);
+
+   edm::InputTag RhoTag_ = pset.getParameter<edm::InputTag>("RhoLabel");
+   theRhoToken_ = consumes<double>(RhoTag_);
+
+   edm::InputTag TriggerBitsTag_ = pset.getParameter<edm::InputTag>("TriggerResultsLabel");
+   theTriggerBitsToken_ = consumes<edm::TriggerResults>(TriggerBitsTag_);
    
    tkMinPt = pset.getParameter<double>("TkMinPt");
    tkMinXLayers = pset.getParameter<int>("TkMinXLayers");
@@ -116,6 +140,7 @@ Residuals::Residuals(const edm::ParameterSet& pset)
    vtxErrorZMax     = pset.getParameter<double>("VtxErrorZMax");
 
    eventScale = pset.getParameter<int>("EventScale");
+   trackScale = pset.getParameter<int>("TrackScale");
    
    rnd = new TRandom3();
 
@@ -144,26 +169,21 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    ftree->Init();
 
-   Handle<BeamSpot> pvbeamspot;
-   iEvent.getByLabel(theBeamspotLabel_, pvbeamspot);
-   
    Handle<TrackCollection> tracks;
-   iEvent.getByLabel(theTrackLabel_,tracks);
+   iEvent.getByToken(theTracksToken_, tracks);
    
-//   ESHandle<TransientTrackBuilder> transTrackBuilder;
-//   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", transTrackBuilder);
-   
-//   std::cout << "size of track collection: "<< tracks->size() << std::endl;
-
    Handle<VertexCollection> vtxH;
-   iEvent.getByLabel(thePVLabel_, vtxH);
+   iEvent.getByToken(thePVToken_, vtxH);
 
-   Handle<VertexCollection> vtxP;
-   iEvent.getByLabel(thePVPrimaryLabel_, vtxP);
+//   Handle<VertexCollection> vtxP;
+//   iEvent.getByToken(thePVPrimaryToken_, vtxP);
+
+   Handle<BeamSpot> pvbeamspot;
+   iEvent.getByToken(theBeamspotToken_, pvbeamspot);
    
-   if( !vtxH.isValid() || !vtxP.isValid() ) return;
+   if( !vtxH.isValid() ) return;
 
-   if( vtxP->size() == 0 || vtxH->size() == 0 ) return;
+   if( vtxH->size() == 0 ) return;
    
    VertexReProducer revertex(vtxH, iEvent);
    
@@ -171,81 +191,72 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    tracksAll.assign(tracks->begin(), tracks->end());
 
    // refit primary vertices
-   vector<TransientVertex> pvs0 = revertex.makeVertices(tracksAll, *pvbeamspot, iSetup);
+   vector<TransientVertex> pvs = revertex.makeVertices(tracksAll, *pvbeamspot, iSetup);
    
-   if( pvs0.empty() ) return;
+   if( pvs.empty() ) return;
    
-   reco::Vertex vtx0 = reco::Vertex(pvs0.front());
-   reco::Vertex vtx = vtxP->front();
-   
-   // refitted vertices are the same as the original ones
-   if( fabs(vtx.x()-vtx0.x()) > 10E-10 || fabs(vtx.y()-vtx0.y()) > 10E-10 || fabs(vtx.z()-vtx0.z()) > 10E-10 ) return;
+   TransientVertex vtxTrans = pvs.front();
+   reco::Vertex vtx = reco::Vertex(vtxTrans);
    
    if( !vertexSelection(vtx) ) return;
 
    ESHandle<MagneticField> theMF;
    iSetup.get<IdealMagneticFieldRecord>().get(theMF);
 
-   //Handle<TrackCollection> pvtracks;
-   //iEvent.getByLabel(revertex.inputTracks(),   pvtracks);
-   //Handle<BeamSpot>        pvbeamspot;
-   //iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
-   
    Handle<double> rhoPtr;
-   iEvent.getByLabel(theRhoLabel_, rhoPtr);   
-   
+   iEvent.getByToken(theRhoToken_, rhoPtr);
+
    ftree->ev_run = iEvent.id().run();
    ftree->ev_id = iEvent.id().event();
    ftree->ev_lumi = iEvent.id().luminosityBlock();
    ftree->ev_rho = *rhoPtr;
-   
+
    Handle<TriggerResults> triggerBits;
-   iEvent.getByLabel(theTriggerBitsLabel_, triggerBits);
+   iEvent.getByToken(theTriggerBitsToken_, triggerBits);
    const TriggerNames &names = iEvent.triggerNames(*triggerBits);
    for( unsigned int i=0;i<names.size();i++ )
      {
-	std::string trigName = names.triggerName(i);
+	TString trigName = TString(names.triggerName(i));
 //	std::cout << i << " " << trigName << std::endl;
 	
-	if( TString(trigName).Contains("HLT_Physics_v") ||
-	    TString(trigName).Contains("HLT_PixelTracks_Multiplicity70_v") ||
-	    TString(trigName).Contains("HLT_PixelTracks_Multiplicity80_v") ||
-	    TString(trigName).Contains("HLT_PixelTracks_Multiplicity90_v") ||
-	    TString(trigName).Contains("HLT_Random_v") ||
-	    TString(trigName).Contains("HLT_ZeroBiasPixel_DoubleTrack_v") ||
-	    TString(trigName).Contains("HLT_ZeroBias_v") )
-	  {	    
-	     std::pair<int,int> prescales =
-	       hltConfig_.prescaleValues(iEvent, iSetup, trigName);
+	bool pass = (triggerBits->accept(i) ? true : false); 
 	
-	     int L1ps = prescales.first;
-	     int HLTps = prescales.second;
-	     bool pass = (triggerBits->accept(i) ? true : false); 
-	     	     
-	     if( TString(trigName).Contains("HLT_ZeroBiasPixel_DoubleTrack_v") )
-	       {
-		  ftree->trig_ZeroBiasPixel_DoubleTrack_pass = pass;
-		  ftree->trig_ZeroBiasPixel_DoubleTrack_L1ps = L1ps;
-		  ftree->trig_ZeroBiasPixel_DoubleTrack_HLTps = HLTps;
-	       }	     
-	     else if( TString(trigName).Contains("HLT_ZeroBias_v") )
-	       {
-		  ftree->trig_ZeroBias_pass = pass;
-		  ftree->trig_ZeroBias_L1ps = L1ps;
-		  ftree->trig_ZeroBias_HLTps = HLTps;
-	       }	     
-	     
+	if( trigName.Contains("HLT_ZeroBias_v") ) ftree->trig_ZeroBias_pass = pass;
+	else if( trigName.Contains("HLT_ZeroBias_Beamspot_v") ) ftree->trig_ZeroBias_Beamspot_pass = pass;
+	else if( trigName.Contains("HLT_ZeroBias_Alignment_v") ) ftree->trig_ZeroBias_Alignment_pass = pass;
+	
+	else if( trigName.Contains("HLT_ZeroBias_part0_v") ) ftree->trig_ZeroBias_part0_pass = pass;
+	else if( trigName.Contains("HLT_ZeroBias_part1_v") ) ftree->trig_ZeroBias_part1_pass = pass;
+	else if( trigName.Contains("HLT_ZeroBias_part2_v") ) ftree->trig_ZeroBias_part2_pass = pass;
+	else if( trigName.Contains("HLT_ZeroBias_part3_v") ) ftree->trig_ZeroBias_part3_pass = pass;
+	else if( trigName.Contains("HLT_ZeroBias_part4_v") ) ftree->trig_ZeroBias_part4_pass = pass;
+	else if( trigName.Contains("HLT_ZeroBias_part5_v") ) ftree->trig_ZeroBias_part5_pass = pass;
+	else if( trigName.Contains("HLT_ZeroBias_part6_v") ) ftree->trig_ZeroBias_part6_pass = pass;
+	else if( trigName.Contains("HLT_ZeroBias_part7_v") ) ftree->trig_ZeroBias_part7_pass = pass;
+	
+	else if( trigName.Contains("HLT_PFJet15_v") ) ftree->trig_PFJet15_pass = pass;
+	else if( trigName.Contains("HLT_PFJet25_v") ) ftree->trig_PFJet25_pass = pass;
+	else if( trigName.Contains("HLT_PFJet40_v") ) ftree->trig_PFJet40_pass = pass;
+	else if( trigName.Contains("HLT_PFJet60_v") ) ftree->trig_PFJet60_pass = pass;
+	else if( trigName.Contains("HLT_PFJet80_v") ) ftree->trig_PFJet80_pass = pass;
+	else if( trigName.Contains("HLT_PFJet140_v") ) ftree->trig_PFJet140_pass = pass;
+	else if( trigName.Contains("HLT_PFJet200_v") ) ftree->trig_PFJet200_pass = pass;
+	else if( trigName.Contains("HLT_PFJet260_v") ) ftree->trig_PFJet260_pass = pass;
+	else if( trigName.Contains("HLT_PFJet320_v") ) ftree->trig_PFJet320_pass = pass;
+	else if( trigName.Contains("HLT_PFJet400_v") ) ftree->trig_PFJet400_pass = pass;
+	else if( trigName.Contains("HLT_PFJet450_v") ) ftree->trig_PFJet450_pass = pass;
+	else if( trigName.Contains("HLT_PFJet500_v") ) ftree->trig_PFJet500_pass = pass;
+	else if( trigName.Contains("HLT_PFJet550_v") ) ftree->trig_PFJet550_pass = pass;
+	
+	else if( trigName.Contains("HLT_AK4PFJet30_v") ) ftree->trig_AK4PFJet30_pass = pass;
+	else if( trigName.Contains("HLT_AK4PFJet50_v") ) ftree->trig_AK4PFJet50_pass = pass;
+	else if( trigName.Contains("HLT_AK4PFJet80_v") ) ftree->trig_AK4PFJet80_pass = pass;
+	else if( trigName.Contains("HLT_AK4PFJet100_v") ) ftree->trig_AK4PFJet100_pass = pass;
+	else if( trigName.Contains("HLT_AK4PFJet120_v") ) ftree->trig_AK4PFJet120_pass = pass;
+	  
 //	     std::cout << i << " " << trigName << " L1=" << L1prescale << " HLT=" << HLTprescale << std::endl;
-	  }	
      }
    
-   //if(tracks.id() != pvtracks.id())
-   // cout << "WARNING: the tracks originally used for PV are not the same used in this analyzer."
-   //	  << "Is this really what you want?" << endl;
-
-   //if (pvbeamspot.id() != theBeamSpot.id()) 
-   //  edm::LogWarning("Inconsistency") << "The BeamSpot used for PV reco is not the same used in this analyzer.";
-
    double micron = 10000;
 
    ftree->bs_type = pvbeamspot->type();
@@ -273,14 +284,19 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    double trackSumPt = 0;
    double trackSumPt2 = 0;
-   for( std::vector<reco::TrackBaseRef>::const_iterator it = vtx.tracks_begin(); it != vtx.tracks_end(); it++ )
-     {	
-	trackSumPt += (*it)->pt();
-	trackSumPt2 += pow((*it)->pt(),2);
-     }   
+   
+   std::vector<reco::TransientTrack> vtxTracks = vtxTrans.originalTracks();   
+   stable_sort(vtxTracks.begin(), vtxTracks.end(), sortPt);
+   
+   for( std::vector<reco::TransientTrack>::const_iterator it = vtxTracks.begin(); it != vtxTracks.end(); it++ )
+     {
+	reco::Track trk = (*it).track();
+	trackSumPt += trk.pt();
+	trackSumPt2 += pow(trk.pt(),2);
+     }
    
    ftree->pv_IsValid = vtx.isValid();
-   ftree->pv_IsFake = vtx.isFake();	
+   ftree->pv_IsFake = vtx.isFake();
    ftree->pv_NTracks = vtx.tracksSize();
    ftree->pv_SumTrackPt = trackSumPt;
    ftree->pv_SumTrackPt2 = trackSumPt2;
@@ -293,8 +309,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ftree->pv_yError = vtx.yError()*micron;
    ftree->pv_zError = vtx.zError()*micron;
 
-   std::vector<reco::TrackBaseRef> vtxTkCollection1;
-   std::vector<reco::TrackBaseRef> vtxTkCollection2;
+   reco::TrackCollection vtxTkCollection1;
+   reco::TrackCollection vtxTkCollection2;
 
    double trackSumPt_p1 = 0;
    double trackSumPt2_p1 = 0;
@@ -302,27 +318,29 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    double trackSumPt_p2 = 0;
    double trackSumPt2_p2 = 0;
    
-   for( std::vector<reco::TrackBaseRef>::const_iterator it = vtx.tracks_begin(); it != vtx.tracks_end(); it++ )
+   for( std::vector<reco::TransientTrack>::const_iterator it = vtxTracks.begin(); it != vtxTracks.end(); it++ )
      {
+	reco::Track trk = (*it).track();
+
 	if( rnd->Rndm() > 0.5 )
 	  {
-	     vtxTkCollection1.push_back(*it);
-	     trackSumPt_p1 += (*it)->pt();
-	     trackSumPt2_p1 += pow((*it)->pt(),2);
+	     vtxTkCollection1.push_back(trk);
+	     trackSumPt_p1 += trk.pt();
+	     trackSumPt2_p1 += pow(trk.pt(),2);
 	  }	
 	else
 	  {	     
-	     vtxTkCollection2.push_back(*it);
-	     trackSumPt_p2 += (*it)->pt();
-	     trackSumPt2_p2 += pow((*it)->pt(),2);
-	  }	
+	     vtxTkCollection2.push_back(trk);
+	     trackSumPt_p2 += trk.pt();
+	     trackSumPt2_p2 += pow(trk.pt(),2);
+	  }
      }
 
    vector<TransientVertex> pvs1 = revertex.makeVertices(vtxTkCollection1, *pvbeamspot, iSetup);
    vector<TransientVertex> pvs2 = revertex.makeVertices(vtxTkCollection2, *pvbeamspot, iSetup);
 
    if( !pvs1.empty() && !pvs2.empty() )
-     {	
+     {
 	reco::Vertex vtx1 = reco::Vertex(pvs1.front());
 	reco::Vertex vtx2 = reco::Vertex(pvs2.front());
 
@@ -362,8 +380,15 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_zError_p2 = vtx2.zError()*micron;
      }
 
+   float trackProb = 1./float(trackScale);
+   int nTracks = tracks->size();
+   
+   std::cout << "Tracks = " << nTracks << ", use = " << int(float(nTracks)/float(trackScale)) << std::endl;
+   
    for( TrackCollection::const_iterator itk = tracks->begin(); itk != tracks->end(); ++itk )
      {
+	if( rnd->Rndm() > trackProb && trackScale > 0 ) continue;
+	
 	// --- track selection ---
 	if( ! trackSelection(*itk) ) continue;
 	// ---
@@ -375,7 +400,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	//newTkCollection.insert(newTkCollection.end(),itk,tracks->end()); // only for debugging purpose
 
 	//cout << "tracks before,after size: " << tracks->size() << " , " << newTkCollection.size() << endl;
-  
+
 	// Refit the primary vertex
 	vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, iSetup);
 	//cout << "vertices before,after: " << vtxH->size() << " , " << pvs.size() << endl;
@@ -387,7 +412,6 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 						newPV.position().y(),
 						newPV.position().z());
 	
-	// ---
 	if( ! vertexSelection(newPV) ) continue;
 
 	double pt = itk->pt();
@@ -396,9 +420,10 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	double phi = itk->phi();
 	
 	int nXLayers = itk->hitPattern().trackerLayersWithMeasurement();
-	int nMissedOut = itk->trackerExpectedHitsOuter().numberOfLostHits();
-	int nMissedIn = itk->trackerExpectedHitsInner().numberOfLostHits();
-	int hasPXL = (itk->hitPattern().hasValidHitInFirstPixelBarrel() || itk->hitPattern().hasValidHitInFirstPixelEndcap());
+	int nMissedOut = itk->hitPattern().numberOfLostHits(HitPattern::MISSING_OUTER_HITS);
+	int nMissedIn  = itk->hitPattern().numberOfLostHits(HitPattern::MISSING_INNER_HITS);
+	int hasPXL     = (itk->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 1) || 
+		          itk->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 1));
 	double quality = itk->qualityMask();
 
 	double d0 = itk->dxy();
@@ -417,8 +442,6 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	
 	double d0Error = itk->d0Error();
 	double dzError = itk->dzError();
-	
-	//cout << "d0:" << d0 << " dz:" << dz << std::endl;
 
 	ftree->trk_pt.push_back( pt );
 	ftree->trk_p.push_back( p );
@@ -451,6 +474,10 @@ void Residuals::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
    bool changed = true;
    if( !hltConfig_.init(iRun, iSetup, "HLT", changed) )
      std::cout << "Warning, didn't find HLTConfigProvider with label "
+     << "HLT" << " in run " << iRun.run() << std::endl;
+
+   if( !hltPrescale_.init(iRun, iSetup, "HLT", changed) )
+     std::cout << "Warning, didn't find HLTPrescaleProvider with label "
      << "HLT" << " in run " << iRun.run() << std::endl;
 }
 

@@ -2,11 +2,11 @@
 
 # source /cvmfs/cms.cern.ch/crab3/crab.sh
 
-slist="list.txt"
+slist="data.txt"
 pver="1" # production tentative
 pset="crabConfigTemplate.py"
 psetData="crabConfigTemplateData.py"
-ver="Track-v20200123"
+ver="Track-v20200223"
 prodv="/store/user/kskovpen/Track/Ntuple/${ver}/"
 
 rm -f crabConfig.py*

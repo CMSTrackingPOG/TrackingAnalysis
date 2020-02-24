@@ -13,7 +13,7 @@ residuals = cms.EDAnalyzer("Residuals",
                            
                            # Selection of Tracks
                            TrackLabel = cms.InputTag("generalTracks"),
-                           TkMinPt = cms.double(0.3),
+                           TkMinPt = cms.double(0.0),
                            TkMinXLayers = cms.int32(7),
                            TkMaxMissedOuterLayers = cms.int32(4),
                            TkMaxMissedInnerLayers = cms.int32(0),
@@ -33,8 +33,9 @@ residuals = cms.EDAnalyzer("Residuals",
                            VtxErrorZMax = cms.double(0.0036),
 
                            # Event filter
-                           EventScale = cms.int32(10),
-                           
+                           EventScale = cms.int32(1000),
+                           TrackScale = cms.int32(10),
+
                            # Vertex selection for MinBias trigger
                            ##VtxErrorXMin = cms.double(0.0020),
                            ##VtxErrorXMax = cms.double(0.0055),

@@ -30,8 +30,8 @@
 #include <TrackingTools/TrajectoryState/interface/TrajectoryStateClosestToPoint.h>
 #include <TrackingTools/PatternTools/interface/TSCPBuilderNoMaterial.h>
 //#include "SimDataFormats/Associations/interface/TrackToTrackingParticleAssociator.h"
-#include "SimTracker/TrackAssociation/interface/TrackAssociatorByChi2.h"
-#include "SimTracker/TrackAssociation/interface/TrackAssociatorByHits.h"
+//#include "SimTracker/TrackAssociation/interface/TrackAssociatorByChi2.h"
+//#include "SimTracker/TrackAssociation/interface/TrackAssociatorByHits.h"
 #include "SimTracker/TrackerHitAssociation/interface/TrackerHitAssociator.h"
 #include "SimTracker/Records/interface/TrackAssociatorRecord.h"
 
@@ -184,18 +184,18 @@ VertexResponsesAndTrueResolutions::~VertexResponsesAndTrueResolutions()
 
 void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   using namespace edm;
+/*   using namespace edm;
    using namespace reco;
    using namespace std;
    
-   ESHandle<TrackAssociatorBase> theAssociator;
-   iSetup.get<TrackAssociatorRecord>().get("TrackAssociatorByHitsRecoDenom",theAssociator);
-   
+   edm::Handle<reco::TrackToTrackingParticleAssociator> theAssociator;
+   iEvent.getByToken(theAssociatorToken_, theAssociator);
+
    Handle<TrackingParticleCollection>  TPCollectionH;
-   iEvent.getByLabel("mergedtruth","MergedTrackTruth", TPCollectionH);
+   iEvent.getByToken(theTPCollectionHToken_, TPCollectionH);
    
    Handle<TrackingVertexCollection> TVCollectionH;
-   iEvent.getByLabel("mergedtruth","MergedTrackTruth", TVCollectionH);
+   iEvent.getByToken(theTVCollectionHToken_, TVCollectionH);
    
    ESHandle<ParametersDefinerForTP> parametersDefinerTP;
    iSetup.get<TrackAssociatorRecord>().get("LhcParametersDefinerForTP",parametersDefinerTP);
@@ -204,17 +204,18 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
    iSetup.get<IdealMagneticFieldRecord>().get(theMF);
    
    Handle<VertexCollection> vtxH;
-   iEvent.getByLabel(vertexLabel, vtxH);      
-
+   iEvent.getByToken(thePVToken_, vtxH);
+   
 //   Handle<edm::SimTrackContainer> theSimTrack;
 //   iEvent.getByToken(theSimTrackToken_, theSimTrack);
    
    VertexReProducer revertex(vtxH, iEvent);
-   Handle<TrackCollection> pvtracks;
-   iEvent.getByLabel(revertex.inputTracks(),   pvtracks);
+
+//   Handle<TrackCollection> pvtracks;
+//   iEvent.getByLabel(revertex.inputTracks(),   pvtracks);
    
-   Handle<BeamSpot>        pvbeamspot;
-   iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
+//   Handle<BeamSpot>        pvbeamspot;
+//   iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
    
    Handle<TrackCollection> tracks;
    iEvent.getByLabel(trackLabel, tracks);
@@ -380,14 +381,14 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
 
 	GlobalPoint closestStatePointVTX = closestToPointVTX.position();
 	GlobalVector closestStateVectorVTX = closestToPointVTX.momentum();
-
+*/
 	/*
 	 cout << "tp closestPoint: " 
 	 << closestStatePointVTX.x() << " , "
 	 << closestStatePointVTX.y() << " , "
 	 << closestStatePointVTX.z() << endl;
 	 */
-
+/*
 	GlobalPoint v1(closestStatePointVTX.x()-vtxGPosition.x(),
 		       closestStatePointVTX.y()-vtxGPosition.y(),
 		       closestStatePointVTX.z()-vtxGPosition.z());
@@ -413,7 +414,7 @@ void VertexResponsesAndTrueResolutions::analyze(const edm::Event& iEvent, const 
 	resp.dzResp = dzResp*10000.;
 	tResp->Fill();     
 	// ============================ DONE ==============================
-     }
+     }*/
 }
 
 void VertexResponsesAndTrueResolutions::beginJob()
@@ -430,8 +431,8 @@ bool VertexResponsesAndTrueResolutions::trackSelection(const reco::Track& track)
    
    if( track.pt() < tkMinPt ) return false;
    if( track.hitPattern().trackerLayersWithMeasurement() < tkMinXLayers ) return false;
-   if( track.trackerExpectedHitsOuter().numberOfLostHits() > tkMaxMissedOuterLayers ) return false;
-   if( track.trackerExpectedHitsInner().numberOfLostHits() > tkMaxMissedInnerLayers ) return false;
+//   if( track.trackerExpectedHitsOuter().numberOfLostHits() > tkMaxMissedOuterLayers ) return false;
+//   if( track.trackerExpectedHitsInner().numberOfLostHits() > tkMaxMissedInnerLayers ) return false;
    if( ! track.quality(reco::TrackBase::highPurity) ) return false;
 //   if( ! (track.hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelBarrel, 1) ||
 //	  track.hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelEndcap, 1)) ) return false;

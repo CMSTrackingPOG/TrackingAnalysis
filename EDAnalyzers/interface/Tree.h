@@ -25,13 +25,38 @@ class ResTree
    int ev_lumi;
    float ev_rho;
 
-   bool trig_ZeroBiasPixel_DoubleTrack_pass;
-   int trig_ZeroBiasPixel_DoubleTrack_L1ps;
-   int trig_ZeroBiasPixel_DoubleTrack_HLTps;
-
    bool trig_ZeroBias_pass;
-   int trig_ZeroBias_L1ps;
-   int trig_ZeroBias_HLTps;
+   bool trig_ZeroBias_Beamspot_pass;
+   bool trig_ZeroBias_Alignment_pass;
+   
+   bool trig_ZeroBias_part0_pass;
+   bool trig_ZeroBias_part1_pass;
+   bool trig_ZeroBias_part2_pass;
+   bool trig_ZeroBias_part3_pass;
+   bool trig_ZeroBias_part4_pass;
+   bool trig_ZeroBias_part5_pass;
+   bool trig_ZeroBias_part6_pass;
+   bool trig_ZeroBias_part7_pass;
+
+   bool trig_PFJet15_pass;
+   bool trig_PFJet25_pass;
+   bool trig_PFJet40_pass;
+   bool trig_PFJet60_pass;
+   bool trig_PFJet80_pass;
+   bool trig_PFJet140_pass;
+   bool trig_PFJet200_pass;
+   bool trig_PFJet260_pass;
+   bool trig_PFJet320_pass;
+   bool trig_PFJet400_pass;
+   bool trig_PFJet450_pass;
+   bool trig_PFJet500_pass;
+   bool trig_PFJet550_pass;
+
+   bool trig_AK4PFJet30_pass;
+   bool trig_AK4PFJet50_pass;
+   bool trig_AK4PFJet80_pass;
+   bool trig_AK4PFJet100_pass;
+   bool trig_AK4PFJet120_pass;
    
    int bs_type;
    float bs_x0;

@@ -66,4 +66,4 @@ Use the same MC as for 2015
 /ZeroBias/Run2018D-PromptReco-v1/AOD
 /ZeroBias/Run2018D-PromptReco-v2/AOD
 
-/SingleNeutrino/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15_ext1-v1/AODSIM
+/SingleNeutrino/RunIIAutumn18DRPremix-forRECO_102X_upgrade2018_realistic_v15_ext1-v1/AODSIM
