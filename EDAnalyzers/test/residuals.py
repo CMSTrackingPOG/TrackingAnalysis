@@ -9,7 +9,9 @@ readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring() 
 source = cms.Source ("PoolSource",fileNames = readFiles, secondaryFileNames = secFiles)
 readFiles.extend( [
-'/store/mc/RunIIAutumn18DRPremix/SingleNeutrino/AODSIM/forRECO_102X_upgrade2018_realistic_v15_ext1-v1/100000/03EA430F-EE65-EE48-8435-A9F4A1E08D43.root'
+'/store/mc/RunIISummer19UL17RECO/SingleNeutrino/AODSIM/106X_mc2017_realistic_v6-v2/30000/01989700-04AA-5F49-BDFE-C79CEA5EECE3.root'
+#'/store/data/Run2017F/ZeroBias/AOD/09Aug2019_UL2017-v1/00000/E543BEF4-7BDC-F141-87EC-734B88DC42D6.root'
+#'/store/mc/RunIIAutumn18DRPremix/SingleNeutrino/AODSIM/forRECO_102X_upgrade2018_realistic_v15_ext1-v1/100000/03EA430F-EE65-EE48-8435-A9F4A1E08D43.root'
 #'/store/data/Run2018C/ZeroBias/AOD/17Sep2018-v1/110000/0773B928-0421-A44D-A3F9-B09C054FBE63.root'
 ]);
 
@@ -21,15 +23,17 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport = cms.untracked.PSet( reportEvery = cms.untracked.int32(1) )
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+#process.GlobalTag.globaltag = '106X_dataRun2_v20'
+process.GlobalTag.globaltag = '106X_mc2017_realistic_v6'
 #process.GlobalTag.globaltag = '102X_dataRun2_v12'
-process.GlobalTag.globaltag = '102X_upgrade2018_realistic_v20'
+#process.GlobalTag.globaltag = '102X_upgrade2018_realistic_v20'
 
 process.load("CondCore.CondDB.CondDB_cfi")
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 process.source = source
 
@@ -50,7 +54,8 @@ process.offlinePrimaryVerticesRerun = primVtx.clone( maxDistanceToBeam = primVtx
                                                      chi2cutoff = primVtx.vertexCollections[0].chi2cutoff,
                                                      verbose = False,
                                                      algorithm = primVtx.vertexCollections[0].algorithm,
-                                                     minNdof = primVtx.vertexCollections[0].minNdof
+                                                     minNdof = primVtx.vertexCollections[0].minNdof,
+                                                     label = primVtx.vertexCollections[0].label
 )
 
 if options.withBS:
@@ -59,15 +64,18 @@ if options.withBS:
                                                          chi2cutoff = primVtx.vertexCollections[1].chi2cutoff,
                                                          verbose = False,
                                                          algorithm = primVtx.vertexCollections[1].algorithm,
-                                                         minNdof = primVtx.vertexCollections[1].minNdof
+                                                         minNdof = primVtx.vertexCollections[1].minNdof,
+                                                         label = primVtx.vertexCollections[1].label
     )
 
 #print process.offlinePrimaryVerticesRerun.dumpPython()
 
 process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
+process.residuals.BeamSpotConfig = ''
 
 if options.withBS:
     process.residuals.VertexPrimaryLabel = cms.InputTag('offlinePrimaryVerticesWithBS')
+    process.residuals.BeamSpotConfig = 'WithBS'
 
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string("output.root"),

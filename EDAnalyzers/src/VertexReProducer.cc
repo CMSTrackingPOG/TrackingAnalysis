@@ -12,8 +12,10 @@
 
 #include "DataFormats/Provenance/interface/BranchDescription.h"
 
-VertexReProducer::VertexReProducer(const edm::Handle<reco::VertexCollection> &handle, const edm::Event &iEvent) 
+VertexReProducer::VertexReProducer(const edm::Handle<reco::VertexCollection> &handle, const edm::Event &iEvent, const std::string beamSpotConfig)
 {
+   beamSpotConfig_ = beamSpotConfig;
+   
    const edm::Provenance *prov = handle.provenance();
    if( prov == nullptr ) throw cms::Exception("CorruptData") << "Vertex handle doesn't have provenance.";
 
@@ -79,7 +81,7 @@ std::vector<TransientVertex> VertexReProducer::makeVertices(const reco::TrackCol
 	t_tks.back().setBeamSpot(bs);
      }
 
-   return algo_->vertices(t_tks, bs);
+   return algo_->vertices(t_tks, bs, beamSpotConfig_);
 }
 
 std::vector<TransientVertex> VertexReProducer::makeVertices(const std::vector<reco::TrackBaseRef> &tracks,
@@ -99,5 +101,5 @@ std::vector<TransientVertex> VertexReProducer::makeVertices(const std::vector<re
 	t_tks.back().setBeamSpot(bs);
      }
    
-   return algo_->vertices(t_tks, bs);
+   return algo_->vertices(t_tks, bs, beamSpotConfig_);
 }

@@ -18,7 +18,7 @@ class VertexReProducer
  public:
    /// This is the real constructor to be used
    VertexReProducer(const edm::Handle<reco::VertexCollection> &configFromOriginalVertexCollection,
-                    const edm::Event &iEvent);
+                    const edm::Event &iEvent, const std::string beamSpotConfig);
    /// This is only for testing
    VertexReProducer(const edm::ParameterSet &configByHand) { configure(configByHand); }
    
@@ -48,6 +48,7 @@ class VertexReProducer
    edm::InputTag tracksTag_;
    edm::InputTag beamSpotTag_;
    std::auto_ptr<PrimaryVertexProducerAlgorithm> algo_;
+   std::string beamSpotConfig_;
 };
 
 #endif

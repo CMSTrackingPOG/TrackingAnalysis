@@ -23,11 +23,12 @@ class ResTree
    int ev_run;
    Int_t ev_id;
    int ev_lumi;
+   int ev_bunchCrossing;
+   int ev_orbitNumber;
    float ev_rho;
+   int ev_nPV;
 
    bool trig_ZeroBias_pass;
-   bool trig_ZeroBias_Beamspot_pass;
-   bool trig_ZeroBias_Alignment_pass;
    
    bool trig_ZeroBias_part0_pass;
    bool trig_ZeroBias_part1_pass;
@@ -38,8 +39,6 @@ class ResTree
    bool trig_ZeroBias_part6_pass;
    bool trig_ZeroBias_part7_pass;
 
-   bool trig_PFJet15_pass;
-   bool trig_PFJet25_pass;
    bool trig_PFJet40_pass;
    bool trig_PFJet60_pass;
    bool trig_PFJet80_pass;
@@ -122,16 +121,60 @@ class ResTree
    float pv_xError_p2;
    float pv_yError_p2;
    float pv_zError_p2;
-
+   
    std::vector<float> trk_pt;
+   std::vector<float> trk_px;
+   std::vector<float> trk_py;
+   std::vector<float> trk_pz;
    std::vector<float> trk_p;
    std::vector<float> trk_eta;
    std::vector<float> trk_phi;
-   std::vector<int> trk_nXLayers;
+   
+   std::vector<int> trk_nTrackerLayers;
+   std::vector<int> trk_nPixelBarrelLayers;
+   std::vector<int> trk_nPixelEndcapLayers;
+   std::vector<int> trk_nStripLayers;
+   
+   std::vector<int> trk_nValid;
+   std::vector<float> trk_fValid;
+   std::vector<int> trk_nValidTracker;
+   std::vector<int> trk_nValidPixelBarrel;
+   std::vector<int> trk_nValidPixelEndcap;
+   std::vector<int> trk_nValidStrip;
+
+   std::vector<int> trk_nMissed;
    std::vector<int> trk_nMissedOut;
    std::vector<int> trk_nMissedIn;
-   std::vector<int> trk_hasPXL;
+   std::vector<int> trk_nMissedTrackerOut;
+   std::vector<int> trk_nMissedTrackerIn;
+   std::vector<int> trk_nMissedPixelBarrelOut;
+   std::vector<int> trk_nMissedPixelBarrelIn;
+   std::vector<int> trk_nMissedPixelEndcapOut;
+   std::vector<int> trk_nMissedPixelEndcapIn;
+   
+   std::vector<bool> trk_hasPixelBarrelLayer1;
+   std::vector<bool> trk_hasPixelEndcapLayer1;
+   std::vector<bool> trk_hasPixelBarrelLayer2;
+   std::vector<bool> trk_hasPixelEndcapLayer2;
+   std::vector<bool> trk_hasPixelBarrelLayer3;
+   std::vector<bool> trk_hasPixelEndcapLayer3;
+   std::vector<bool> trk_hasPixelBarrelLayer4;
+   std::vector<bool> trk_hasPixelEndcapLayer4;
+   
    std::vector<int> trk_quality;
+   std::vector<float> trk_normalizedChi2;
+   std::vector<int> trk_ndof;
+   std::vector<int> trk_charge;
+   std::vector<float> trk_qoverp;
+   std::vector<float> trk_qoverpError;
+   std::vector<float> trk_theta;
+   std::vector<float> trk_thetaError;
+   std::vector<float> trk_lambda;
+   std::vector<float> trk_lambdaError;
+   std::vector<float> trk_ptError;
+   std::vector<float> trk_etaError;
+   std::vector<float> trk_phiError;
+   
    std::vector<float> trk_d0;
    std::vector<float> trk_dz;
    std::vector<float> trk_d0_pv;
@@ -145,6 +188,87 @@ class ResTree
    std::vector<float> trk_d0_pv_NoRefit;
    std::vector<float> trk_dz_pv_NoRefit;
    
+   std::vector<bool> trk_jet_found;
+   
+   std::vector<float> trk_jet_pt;
+   std::vector<float> trk_jet_eta;
+   std::vector<float> trk_jet_phi;
+   std::vector<int> trk_jet_nTracks;
+   
+   std::vector<float> trk_jet_pv_x;
+   std::vector<float> trk_jet_pv_y;
+   std::vector<float> trk_jet_pv_z;
+
+   std::vector<bool> trk_jetTrk_found;
+   
+   std::vector<float> trk_jetTrk_deltaR;
+   
+   std::vector<float> trk_jetTrk_pt;
+   std::vector<float> trk_jetTrk_px;
+   std::vector<float> trk_jetTrk_py;
+   std::vector<float> trk_jetTrk_pz;
+   std::vector<float> trk_jetTrk_p;
+   std::vector<float> trk_jetTrk_eta;
+   std::vector<float> trk_jetTrk_phi;
+   
+   std::vector<int> trk_jetTrk_nTrackerLayers;
+   std::vector<int> trk_jetTrk_nPixelBarrelLayers;
+   std::vector<int> trk_jetTrk_nPixelEndcapLayers;
+   std::vector<int> trk_jetTrk_nStripLayers;
+   
+   std::vector<int> trk_jetTrk_nValid;
+   std::vector<float> trk_jetTrk_fValid;
+   std::vector<int> trk_jetTrk_nValidTracker;
+   std::vector<int> trk_jetTrk_nValidPixelBarrel;
+   std::vector<int> trk_jetTrk_nValidPixelEndcap;
+   std::vector<int> trk_jetTrk_nValidStrip;
+   
+   std::vector<int> trk_jetTrk_nMissed;
+   std::vector<int> trk_jetTrk_nMissedOut;
+   std::vector<int> trk_jetTrk_nMissedIn;
+   std::vector<int> trk_jetTrk_nMissedTrackerOut;
+   std::vector<int> trk_jetTrk_nMissedTrackerIn;
+   std::vector<int> trk_jetTrk_nMissedPixelBarrelOut;
+   std::vector<int> trk_jetTrk_nMissedPixelBarrelIn;
+   std::vector<int> trk_jetTrk_nMissedPixelEndcapOut;
+   std::vector<int> trk_jetTrk_nMissedPixelEndcapIn;
+   
+   std::vector<bool> trk_jetTrk_hasPixelBarrelLayer1;
+   std::vector<bool> trk_jetTrk_hasPixelEndcapLayer1;
+   std::vector<bool> trk_jetTrk_hasPixelBarrelLayer2;
+   std::vector<bool> trk_jetTrk_hasPixelEndcapLayer2;
+   std::vector<bool> trk_jetTrk_hasPixelBarrelLayer3;
+   std::vector<bool> trk_jetTrk_hasPixelEndcapLayer3;
+   std::vector<bool> trk_jetTrk_hasPixelBarrelLayer4;
+   std::vector<bool> trk_jetTrk_hasPixelEndcapLayer4;
+   
+   std::vector<int> trk_jetTrk_quality;
+   std::vector<float> trk_jetTrk_normalizedChi2;
+   std::vector<int> trk_jetTrk_ndof;
+   std::vector<int> trk_jetTrk_charge;
+   std::vector<float> trk_jetTrk_qoverp;
+   std::vector<float> trk_jetTrk_qoverpError;
+   std::vector<float> trk_jetTrk_theta;
+   std::vector<float> trk_jetTrk_thetaError;
+   std::vector<float> trk_jetTrk_lambda;
+   std::vector<float> trk_jetTrk_lambdaError;
+   std::vector<float> trk_jetTrk_ptError;
+   std::vector<float> trk_jetTrk_etaError;
+   std::vector<float> trk_jetTrk_phiError;
+   
+   std::vector<float> trk_jetTrk_d0;
+   std::vector<float> trk_jetTrk_dz;
+   std::vector<float> trk_jetTrk_d0_pv;
+   std::vector<float> trk_jetTrk_dz_pv;
+   std::vector<float> trk_jetTrk_d0_bs;
+   std::vector<float> trk_jetTrk_d0_bs_zpca;
+   std::vector<float> trk_jetTrk_d0_bs_zpv;
+   std::vector<float> trk_jetTrk_dz_bs;
+   std::vector<float> trk_jetTrk_d0Err;
+   std::vector<float> trk_jetTrk_dzErr;
+   std::vector<float> trk_jetTrk_d0_pv_NoRefit;
+   std::vector<float> trk_jetTrk_dz_pv_NoRefit;
+
 };
 
 #endif

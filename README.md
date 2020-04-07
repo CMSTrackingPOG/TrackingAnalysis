@@ -5,10 +5,10 @@ parameter (IP) reconstruction.
 
 Inspired by the IP resolution studies done by B. Mangano et al. (see http://cmscvs.web.cern.ch/cmscvs/cgi/viewvc.cgi/cvsroot/UserCode/Mangano/IpResoStudies/)
 
-Install (Run 2) on SL6:
+Install:
 ```
-cmsrel CMSSW_10_2_18
-cd CMSSW_10_2_18/src
+cmsrel CMSSW_10_6_3
+cd CMSSW_10_6_3/src
 cmsenv
 
 git cms-init
