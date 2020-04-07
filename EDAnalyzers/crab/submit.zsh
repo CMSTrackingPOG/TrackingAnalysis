@@ -2,11 +2,11 @@
 
 # source /cvmfs/cms.cern.ch/crab3/crab.sh
 
-slist="data.txt"
+slist="mc.txt"
 pver="1" # production tentative
 pset="crabConfigTemplate.py"
 psetData="crabConfigTemplateData.py"
-ver="Track-v20200223"
+ver="Track-v20200408"
 prodv="/store/user/kskovpen/Track/Ntuple/${ver}/"
 
 rm -f crabConfig.py*
@@ -25,7 +25,8 @@ done
 for i in ${samp}
 do
   spl=($(echo $i | tr "/" "\n"))
-  pubdn=$(echo "${spl[2]}_${spl[3]}" | sed 's%-%_%g')
+  pubdn=$(echo "${spl[2]}_${spl[3]}" | sed 's%-%_%g' | \
+  sed 's%106X.*%%g' | sed 's%09Aug2019.*%%g')
   isdata=$(echo "${spl[2]}" | grep -b -o Run2 | awk '{print $1}')
   run=$(echo "${spl[2]}" | cut -c$[${isdata%:*}+1]-$[${isdata%:*}+8])
   nam=$(echo "${spl[1]}" | sed 's%-%_%g')
@@ -44,6 +45,7 @@ do
   > crabConfig.py
 
   echo "${nam} ${pubdn}"
+#  crab submit -c crabConfig.py --dryrun
   crab submit -c crabConfig.py
   
 done
