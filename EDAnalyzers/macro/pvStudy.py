@@ -81,6 +81,7 @@ if __name__ == '__main__':
 
         t1, t2 = style.cmslabel(1,777)
         t1.Draw()
+        t2.Draw()
         
         c1.Print(options.output+'/'+h+'.pdf')
         c1.Clear()
@@ -177,10 +178,13 @@ if __name__ == '__main__':
                 bs_hXYData[k].SetContour(3)
                 bs_hXYData[k].Draw('CONT3 SAME')
                 bs_hXYData[k].SetLineColor(ROOT.kRed)
+                print 'rms(x) = ', bs_hXYData[k].GetRMS(1), ' mm'
+                print 'rms(y) = ', bs_hXYData[k].GetRMS(2), ' mm'
             if 'x_z' in hh.GetName() and k == '': 
                 bs_hXZData[k].SetContour(3)
                 bs_hXZData[k].Draw('CONT3 SAME')
                 bs_hXZData[k].SetLineColor(ROOT.kRed)
+                print 'rms(z) = ', bs_hXZData[k].GetRMS(1), ' mm'
             if 'y_z' in hh.GetName() and k == '':
                 bs_hYZData[k].SetContour(3)
                 bs_hYZData[k].Draw('CONT3 SAME')
@@ -201,6 +205,10 @@ if __name__ == '__main__':
             if 'Z' in hh.GetName(): proj = 'Z'
             samp = 'data'
             if idx > 2: samp = 'mc'
+
+            t1, t2 = style.cmslabel(1,777)
+            t1.Draw()
+            t2.Draw()
             
             c1.Print(options.output+'/bs'+proj+k+'_'+samp+'.pdf')
             c1.Clear()
@@ -245,10 +253,10 @@ if __name__ == '__main__':
             func.addbin(hPullMC)
             
             if hResoData.GetEntries() < 10:
-                print 'No stats in '+hResoData.GetName()
+                print 'No stats in data: '+hResoData.GetName()
                 sys.exit()
             if hResoMC.GetEntries() < 10:
-                print 'No stats in '+hResoMC.GetName()
+                print 'No stats in mc: '+hResoMC.GetName()
                 sys.exit()
 
             for h in [hResoData,hPullData]:
@@ -332,6 +340,7 @@ if __name__ == '__main__':
             
             t1, t2 = style.cmslabel(1,777)
             t1.Draw()
+            t2.Draw()
             
             c1.Print(options.output+'/pvReso_'+x+k+'.pdf')
             c1.Clear()
@@ -385,6 +394,7 @@ if __name__ == '__main__':
             
             t1, t2 = style.cmslabel(1,777)
             t1.Draw()
+            t2.Draw()
             
             c1.Print(options.output+'/pvPull_'+x+k+'.pdf')
             c1.Clear()
@@ -403,5 +413,7 @@ if __name__ == '__main__':
             rout['sigmaz']['data'][x][k].update([('value',sigmaZData), ('error',0.)])
             rout['sigmaz']['mc'][x][k].update([('value',sigmaZMC), ('error',0.)])
 
-    with open("results/pv.json", "w") as write_file:
+    if not os.path.isdir('results'): os.system('mkdir results/')
+        
+    with open('results/pv.json', 'w') as write_file:
         json.dump(rout, write_file, indent=2)

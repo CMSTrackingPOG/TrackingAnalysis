@@ -62,6 +62,7 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
     
     t1, t2 = style.cmslabel(1,777)
     t1.Draw()
+    t2.Draw()
 
     if isDeconv == False:
         c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'.pdf')
@@ -263,7 +264,9 @@ if __name__ == '__main__':
             pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_data.pkl','wb'))
             plot(c1, hData, hMC, mode, m, x)
             
-            hMC = h[hnameMC+'_deconv']; hData = h[hnameData+'_deconv']
-            pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_mc_deconv.pkl','wb'))
-            pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_data_deconv.pkl','wb'))
-            plot(c1, hData, hMC, mode, m, x, True)
+            if mode != 'pv':
+                
+                hMC = h[hnameMC+'_deconv']; hData = h[hnameData+'_deconv']
+                pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_mc_deconv.pkl','wb'))
+                pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_data_deconv.pkl','wb'))
+                plot(c1, hData, hMC, mode, m, x, True)

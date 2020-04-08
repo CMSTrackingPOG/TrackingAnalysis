@@ -254,6 +254,8 @@ if __name__ == '__main__':
             d0NoRefit = tr.trk_d0_pv_NoRefit[t]
             dzNoRefit = tr.trk_dz_pv_NoRefit[t]
             
+            if math.fabs(eta) > 2.5: continue
+            
 #            if math.fabs(d0_pv) > 2000 or math.fabs(dz_pv) > 2000: continue
 
             h['h_ipPt'].Fill(pt)
@@ -388,13 +390,15 @@ if __name__ == '__main__':
         pv_xError1 = tr.pv_xError_p1
         pv_yError1 = tr.pv_yError_p1
         pv_zError1 = tr.pv_zError_p1
-            
+        
         pv_x2 = tr.pv_x_p2
         pv_y2 = tr.pv_y_p2
         pv_z2 = tr.pv_z_p2
         pv_xError2 = tr.pv_xError_p2
         pv_yError2 = tr.pv_yError_p2
         pv_zError2 = tr.pv_zError_p2
+        
+        if pv_x1 == -777 or pv_x2 == -777: continue
             
         pv_dx12 = (pv_x1-pv_x2)/math.sqrt(2)
         pv_dy12 = (pv_y1-pv_y2)/math.sqrt(2)

@@ -4,7 +4,7 @@ import os
 import sys
 import json
 
-ntupleProd = 'v20200223'
+ntupleProd = 'v20200224'
 
 sys.tracebacklimit = 0
 

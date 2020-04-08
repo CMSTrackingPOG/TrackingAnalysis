@@ -91,6 +91,7 @@ if __name__ == '__main__':
 
         t1, t2 = style.cmslabel(1,777)
         t1.Draw()
+        t2.Draw()
         
         c1.Print(options.output+'/'+h+'.pdf')
         c1.Clear()
@@ -169,59 +170,68 @@ if __name__ == '__main__':
 #                    resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,'g1',1)
                 
 #                if (resoChi2MC > 2. or resoChi2Data > 2.) and hResoData.Integral() > 1000:
-                    resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,x,k,38)
-                    resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,x,k,1)
+                    if hResoData.Integral() > 1000 and hResoMC.Integral() > 1000:
+                        
+                        resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,x,k,38)
+                        resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,x,k,1)
+
+                        resResoMC.Draw("same")
+                        resResoData.Draw("same")
                 
-                    resResoMC.Draw("same")
-                    resResoData.Draw("same")
-                
-                    resResoData.SetLineStyle(2)
+                        resResoData.SetLineStyle(2)
             
-                    c1.Update()
+                        c1.Update()
             
-                    finfoData = hResoData.GetListOfFunctions().FindObject("stats")
-                    finfoData.__class__ = ROOT.TPaveStats
-                    finfoData.SetX1NDC(0.7)
-                    finfoData.SetX2NDC(0.95)
-                    finfoData.SetY1NDC(0.20)
-                    finfoData.SetY2NDC(0.40)
-                    lData = ROOT.TText(0.81,0.41,"Data (fit)")
-                    lData.SetTextSize(0.035)
-                    lData.SetNDC()
-                    lData.Draw()
+                        finfoData = hResoData.GetListOfFunctions().FindObject("stats")
+                        finfoData.__class__ = ROOT.TPaveStats
+                        finfoData.SetX1NDC(0.7)
+                        finfoData.SetX2NDC(0.95)
+                        finfoData.SetY1NDC(0.20)
+                        finfoData.SetY2NDC(0.40)
+                        lData = ROOT.TText(0.81,0.41,"Data (fit)")
+                        lData.SetTextSize(0.035)
+                        lData.SetNDC()
+                        lData.Draw()
             
-                    finfoMC = hResoMC.GetListOfFunctions().FindObject("stats")
-                    finfoMC.__class__ = ROOT.TPaveStats
-                    finfoMC.SetX1NDC(0.7)
-                    finfoMC.SetX2NDC(0.95)
-                    finfoMC.SetY1NDC(0.45)
-                    finfoMC.SetY2NDC(0.65)
-                    lMC = ROOT.TText(0.81,0.66,"Simulation (fit)")
-                    lMC.SetTextSize(0.035)
-                    lMC.SetNDC()
-                    lMC.Draw()
+                        finfoMC = hResoMC.GetListOfFunctions().FindObject("stats")
+                        finfoMC.__class__ = ROOT.TPaveStats
+                        finfoMC.SetX1NDC(0.7)
+                        finfoMC.SetX2NDC(0.95)
+                        finfoMC.SetY1NDC(0.45)
+                        finfoMC.SetY2NDC(0.65)
+                        lMC = ROOT.TText(0.81,0.66,"Simulation (fit)")
+                        lMC.SetTextSize(0.035)
+                        lMC.SetNDC()
+                        lMC.Draw()
                 
-                    c1.Update()
+                        c1.Update()
                 
-                    leg = ROOT.TLegend(0.82,0.92,0.990,0.75)
-                    leg.SetFillColor(253)
-                    leg.SetBorderSize(0)
-                    leg.AddEntry(hResoData,"Data","p")
-                    leg.AddEntry(hResoMC,"Simulation","f")
-                    leg.AddEntry(resResoData,"Data (fit)","l")
-                    leg.AddEntry(resResoMC,"Simulation (fit)","l")
-                    leg.Draw()        
+                        leg = ROOT.TLegend(0.82,0.92,0.990,0.75)
+                        leg.SetFillColor(253)
+                        leg.SetBorderSize(0)
+                        leg.AddEntry(hResoData,"Data","p")
+                        leg.AddEntry(hResoMC,"Simulation","f")
+                        leg.AddEntry(resResoData,"Data (fit)","l")
+                        leg.AddEntry(resResoMC,"Simulation (fit)","l")
+                        leg.Draw()        
                 
-                    t1, t2 = style.cmslabel(1,777)
-                    t1.Draw()
+                        t1, t2 = style.cmslabel(1,777)
+                        t1.Draw()
+                        t2.Draw()
                 
-                    c1.Print(options.output+'/ip'+ip+'Reso_'+x+ktrk+k+'.pdf')
-                    c1.Clear()
+                        c1.Print(options.output+'/ip'+ip+'Reso_'+x+ktrk+k+'.pdf')
+                        c1.Clear()
+                        
+                    else:
+                        
+                        resoMC, resoErrMC, resoData, resoErrData = 0, 0, 0, 0
                 
                     # collect fit results
                     if k != '':
                         rout['reso']['data'][x][k][ktrk].update([('value',resoData), ('error',resoErrData), ('int',intResoData)])
                         rout['reso']['mc'][x][k][ktrk].update([('value',resoMC), ('error',resoErrMC), ('int',intResoMC)])
-                    
+
+    if not os.path.isdir('results'): os.system('mkdir results/')
+                        
     with open("results/ip.json", "w") as write_file:
         json.dump(rout, write_file, indent=2)

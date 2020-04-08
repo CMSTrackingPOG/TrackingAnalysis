@@ -87,7 +87,7 @@ def cmslabel(mode,year):
     tex.SetTextSize(0.07475)
     tex.SetLineWidth(2)
    
-    tex2 = ROOT.TLatex(0.1969,0.817125,"Preliminary")
+    tex2 = ROOT.TLatex(0.51,0.817125,"Work in progress")
     tex2.SetNDC()
     tex2.SetTextAlign(13)
     tex2.SetTextFont(52)
