@@ -9,7 +9,7 @@ def main(argv = None):
     if argv == None:
         argv = sys.argv[1:]
         
-    usage = "usage: %prog [options]\n Submit jobs"
+    usage = "usage: %prog [options]\n Merge the output of processed jobs"
     
     parser = OptionParser(usage)
     parser.add_option("-d","--dir",default="jobs/",help="directory with the plot results [default: %default]")
