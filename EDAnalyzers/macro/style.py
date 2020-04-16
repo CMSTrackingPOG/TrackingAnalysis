@@ -93,6 +93,9 @@ def cmslabel(mode,year):
     tex2.SetTextFont(52)
     tex2.SetTextSize(0.05681)
     tex2.SetLineWidth(2)
+    
+    if year == '2017':
+        lyear = ROOT.TLatex(0.81,0.94,"#sqrt{s} = 13 TeV (UL17)")
 
 #    intLumi = c.lumiRun2
 #    if year == '2017': intLumi = c.lumi2017
@@ -104,14 +107,13 @@ def cmslabel(mode,year):
 #    elif mode == 2:        
 #        text1 = ROOT.TLatex(0.94,0.94,intLumi+" fb^{-1}, #sqrt{s} = 13 TeV ("+year+")")
         
-#    text1.SetNDC()
-#    text1.SetTextAlign(31)
-#    text1.SetTextFont(42)
-#    text1.SetTextSize(0.04875)
-#    text1.SetLineWidth(2)
+    lyear.SetNDC()
+    lyear.SetTextAlign(31)
+    lyear.SetTextFont(42)
+    lyear.SetTextSize(0.04875)
+    lyear.SetLineWidth(2)
         
-#    return tex, tex2, text1
-    return tex, tex2
+    return tex, tex2, lyear
 
 def channel(chan):
 

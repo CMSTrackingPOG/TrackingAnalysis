@@ -23,6 +23,8 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Plotting script to overlay histograms"
     
     parser = OptionParser(usage)
+    parser.add_option("-p","--param",default="pt",help="parametrization [default: %default]")
+    parser.add_option("-q","--qcd",action='store_true',help="compare between ZeroBias and QCD [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -38,6 +40,7 @@ if __name__ == '__main__':
     pstyle.SetErrorX(0.5)
         
     c1 = ROOT.TCanvas()
+    c1.SetLogy(1)
     
     h = {}
 
@@ -45,40 +48,53 @@ if __name__ == '__main__':
     leg.SetFillColor(253)
     leg.SetBorderSize(0)
     
-    lst = [20,20,21,21]
-    lab = ['IPBS (Data)','IPBS (MC)','IPPV (Data)','IPPV (MC)']
-    hname = ['ipbspt_reso_d0_data_deconv','ipbspt_reso_d0_mc_deconv',\
-    'ippvpt_reso_d0_data_deconv','ippvpt_reso_d0_mc_deconv']
+    lst = [20,20,22,22]
+    lab = ['IPBS (Data)','IPBS (Sim.)','IPPV (Data)','IPPV (Sim.)']
+    if options.qcd:
+        lab = ['ZeroBias (Data)','ZeroBias (Sim.)','QCD (Data)','QCD (Sim.)']
+        
+    hname = ['ipbs'+options.param+'_reso_d0_zb_data_deconv','ipbs'+options.param+'_reso_d0_zb_mc_deconv',\
+    'ippv'+options.param+'_reso_d0_zb_data_deconv','ippv'+options.param+'_reso_d0_zb_mc_deconv']
+    if options.qcd:
+        hname = ['ippv'+options.param+'_reso_d0_zb_data_deconv','ippv'+options.param+'_reso_d0_zb_mc_deconv',\
+        'ippv'+options.param+'_reso_d0_qcd_data_deconv','ippv'+options.param+'_reso_d0_qcd_mc_deconv']
     
     for i, hn in enumerate(hname):
 
         h[hn] = pickle.load(open('results/'+hn+'.pkl','rb'))
 
         h[hn].SetMarkerStyle(lst[i])
-        h[hn].SetMarkerSize(0.7)
+        h[hn].SetMarkerSize(1.0)
         
         if 'data' in hn:
             h[hn].SetMarkerColor(1)
             h[hn].SetLineColor(1)
         else:    
-            h[hn].SetMarkerColor(ROOT.kBlue-10)
-            h[hn].SetLineColor(ROOT.kBlue-10)
+            h[hn].SetMarkerColor(c.mccol)
+            h[hn].SetLineColor(c.mccol)
 
-        if i == 0: h[hn].Draw('hist e1p')
-        else: h[hn].Draw('hist e1p same')
+        if i == 0: 
+            h[hn].Draw('')
+            h[hn].Draw('p same')
+        else: 
+            h[hn].Draw('same')
+            h[hn].Draw('p same')
             
         leg.AddEntry(h[hn],lab[i],'p')
 
     leg.Draw()
-    
-    h[hname[0]].GetYaxis().SetRangeUser(0,350)
-    
-    t1, t2 = style.cmslabel(1,777)
-    t1.Draw()
-    c1.Print('pics/comp.pdf')
-    c1.Clear()    
 
-    hfit = h['ipbspt_reso_d0_data_deconv']
+    h[hname[0]].GetYaxis().SetRangeUser(0,350)
+    if c1.GetLogy(): h[hname[0]].GetYaxis().SetRangeUser(10,350)
+    
+    t1, t2, t3 = style.cmslabel(1,c.year)
+    t1.Draw()
+    t2.Draw()
+    t3.Draw()
+    c1.Print('pics/comp.pdf')
+    c1.Clear()
+
+    hfit = h['ippv'+options.param+'_reso_d0_zb_data_deconv']
 
     hfit.Draw('e1p')
     
@@ -90,12 +106,16 @@ if __name__ == '__main__':
         
     gr = ROOT.TGraph(int(len(x)),x,y)
         
+    c1.SetLogy(0)
+    hfit.SetMinimum(0.)
     res, p0, p1, chi2 = fit.doFitIP('ipfit',gr,ROOT.kRed)
     print p0, p1
     res.Draw('same')
     
-    t1, t2 = style.cmslabel(1,777)
+    t1, t2, t3 = style.cmslabel(1,c.year)
     t1.Draw()
+    t2.Draw()
+    t3.Draw()
     c1.Print('pics/ipfit.pdf')
     c1.Clear()    
     

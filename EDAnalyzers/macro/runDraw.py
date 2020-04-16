@@ -2,10 +2,14 @@
 
 import os, sys
 
-#mode = 'pv'
-mode = 'ipbspt'
-#mode = 'ippvpt'
-#input = 'results/pv.json'
-input = 'results/ip.json'
+#process = 'zb'
+process = 'qcd'
 
-os.system('python draw.py --mode='+mode+' --input='+input)
+#mode = 'pv'
+mode = 'ippveta'
+#mode = 'ipbsdr'
+#mode = 'ipbsnpv'
+inputpv = 'results/pv_'+process+'.json'
+input = 'results/ip_'+process+'.json'
+
+os.system('python draw.py --mode='+mode+' --input='+input+' --inputpv='+inputpv+' --process='+process)

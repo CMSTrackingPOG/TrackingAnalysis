@@ -15,6 +15,8 @@ def main(argv = None):
     parser.add_option("-p","--pv",action='store_true',help="Run PV study [default: %default]")
     parser.add_option("--ippv",action='store_true',help="Run IPPV measurement[default: %default]")
     parser.add_option("--ipbs",action='store_true',help="Run IPBS measurement [default: %default]")
+    parser.add_option("--withbs",action='store_true',help="Use WithBS samples [default: %default]")
+    parser.add_option("--qcd",action='store_true',help="Use QCD events [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -26,9 +28,20 @@ if __name__ == '__main__':
 
     jobDir = 'jobs/'
 
-    inputMC = ['SingleNeutrino_RunIIAutumn18DRPremixforRECO102Xupgrade2018realisticv15ext1v1AODSIM']
-    inputData = ['ZeroBias_Run2018DPromptRecov2AOD','ZeroBias_Run2018A17Sep2018v1AOD',\
-    'ZeroBias_Run2018C17Sep2018v1AOD','ZeroBias_Run2018B17Sep2018v1AOD']
+    inputMC = ['SingleNeutrino_RunIISummer19UL17RECO']
+    inputData = ['ZeroBias_Run2017B','ZeroBias_Run2017C',\
+    'ZeroBias_Run2017D','ZeroBias_Run2017E','ZeroBias_Run2017F']
+    if options.qcd:
+        inputMC = ['QCDPt15to7000TuneCP5Flat13TeVpythia8_RunIISummer19UL17RECO']
+        inputData = ['JetHT_Run2017B','JetHT_Run2017D',\
+        'JetHT_Run2017E']
+        
+    if options.withbs:
+        inputMC = ['SingleNeutrino_RunIISummer19UL17RECOwithBS']
+#        inputData = ['ZeroBias_Run2017BwithBS','ZeroBias_Run2017CwithBS',\
+#        'ZeroBias_Run2017DwithBS','ZeroBias_Run2017EwithBS','ZeroBias_Run2017FwithBS']        
+        inputData = ['ZeroBias_Run2017CwithBS',\
+        'ZeroBias_Run2017DwithBS','ZeroBias_Run2017FwithBS']
 
     for f in range(len(inputMC)): inputMC[f] = jobDir+inputMC[f]+'.root'
     for f in range(len(inputData)): inputData[f] = jobDir+inputData[f]+'.root'
@@ -49,15 +62,17 @@ if __name__ == '__main__':
         os.system("rm -rf "+picdir)
     os.system("mkdir "+picdir)
 
+    isQCD = '--qcd' if options.qcd else ''
+    
     if options.pv:
         print "Run PV study"
-        os.system('python pvStudy.py --data='+fData+' --mc='+fMC)
+        os.system('python pvStudy.py --data='+fData+' --mc='+fMC+' '+isQCD)
 
     if options.ippv:
         print "Run IPPV study"
-        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=pv')
+        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=pv'+' '+isQCD)
 
     if options.ipbs:
         print "Run IPBS study"
-        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=bs')
+        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=bs'+' '+isQCD)
         

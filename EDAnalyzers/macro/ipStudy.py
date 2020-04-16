@@ -26,6 +26,8 @@ def main(argv = None):
     parser.add_option("-m","--mc",default="mc.root",help="input mc file name [default: %default]")
     parser.add_option("-o","--output",default="pics",help="output directory [default: %default]")
     parser.add_option("-t","--type",default="pv",help="type of the measurement [default: %default]")
+    parser.add_option("--qcd",action='store_true',help="Use QCD events [default: %default]")
+#    parser.add_option("-s","--switch",default="",help="use only mc or data [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -46,21 +48,26 @@ if __name__ == '__main__':
         
     fHistData = ROOT.TFile.Open(options.data,'read')
     fHistMC = ROOT.TFile.Open(options.mc,'read')
+    
+#    ParamList = [c.IPpt,c.IPeta,c.IPphi,c.IPnpv,c.IPsz]
+#    ParamList = [c.IPpt,c.IPeta,c.IPphi,c.IPnpv,c.IPdr,c.IPsz]
+    ParamList = [c.IPeta]
 
     hIncl = [\
-    'ipPt','ipEta','ipPhi',\
+    'evNpv','ipPt','ipEta','ipPhi',\
+    'ipDrTrkJet','ipNTrkJet',\
     'ipD0','ipDz','ipSD0','ipSDz',\
     'ippvD0','ippvDz','ippvSD0','ippvSDz',\
     'ipbsD0','ipbsDz','ipbsSD0','ipbsSDz',\
     'ipbszpvD0','ipbszpvSD0',\
-    'ipbszpcaD0','ipbszpcaSD0'\
+    'ipbszpcaD0','ipbszpcaSD0','bsSigmaZ'\
     ]
     for h in hIncl:
         
+        c1 = ROOT.TCanvas()
+        
         hData = fHistData.Get('h_'+h)
         hMC = fHistMC.Get('h_'+h)
-        
-        c1 = ROOT.TCanvas()
         
         hMC.Draw('hist')
         hData.Draw('e1 same')
@@ -77,9 +84,9 @@ if __name__ == '__main__':
         hData.SetLineColor(1)
         
         hMC.SetMarkerSize(0)
-        hMC.SetMarkerColor(ROOT.kBlue-10)
-        hMC.SetLineColor(ROOT.kBlue-10)
-        hMC.SetFillColor(ROOT.kBlue-10)
+        hMC.SetMarkerColor(c.mccol)
+        hMC.SetLineColor(c.mccol)
+        hMC.SetFillColor(c.mccol)
         hMC.SetLineStyle(1)
         
         leg = ROOT.TLegend(0.82,0.92,0.990,0.75)
@@ -89,9 +96,16 @@ if __name__ == '__main__':
         leg.AddEntry(hMC,"Simulation","f")
         leg.Draw()        
 
-        t1, t2 = style.cmslabel(1,777)
+        t1, t2, t3 = style.cmslabel(1,c.year)
         t1.Draw()
         t2.Draw()
+        t3.Draw()
+
+        if h in ['ipPt','ipDrTrkJet']:
+            hData.SetMinimum(10)
+            hMC.SetMinimum(10)
+            c1.SetLogy(1)
+        else: c1.SetLogy(0)
         
         c1.Print(options.output+'/'+h+'.pdf')
         c1.Clear()
@@ -106,7 +120,7 @@ if __name__ == '__main__':
         rout['reso'][t] = {}
         for x in c.IPmeas:
             rout['reso'][t][x] = {}
-            for p in [c.IPpt,c.IPeta]:
+            for p in ParamList:
                 for k, v in p.iteritems():
                     rout['reso'][t][x][k] = {}
                     for ktrk, vtrk in c.PVnTracks.iteritems():
@@ -117,13 +131,15 @@ if __name__ == '__main__':
 
         if ip == 'bs' and ktrk != '': break
         
-#        if ktrk != '_nTrks20to30': continue
+#        if ktrk != '_nTrks0to15': continue
         
-        for param in [c.IPpt,c.IPeta]:
+        for param in ParamList:
         
             for k, v in param.iteritems():
     
-                for x in c.IPmeas:
+#                if k != '_pt1p3to1p5': continue
+                
+                for x in c.IPmeas:                    
 
                     hNameResoData = 'h_ip'+ip+x+ktrk+k
                     hResoData = fHistData.Get(hNameResoData)
@@ -147,13 +163,21 @@ if __name__ == '__main__':
 
                     for h in [hResoMC]:
                         h.SetMarkerSize(0)
-                        h.SetMarkerColor(ROOT.kBlue-10)
-                        h.SetLineColor(ROOT.kBlue-10)
-                        h.SetFillColor(ROOT.kBlue-10)
+                        h.SetMarkerColor(c.mccol)
+                        h.SetLineColor(c.mccol)
+                        h.SetFillColor(c.mccol)
                         h.SetLineStyle(1)
         
                     intResoMC = hResoMC.Integral()
                     intResoData = hResoData.Integral()
+                    
+                    if intResoData < 20000 or intResoMC < 20000:
+                        hResoMC = hResoMC.Rebin(2)
+                        hResoData = hResoData.Rebin(2)
+#                        if intResoData < 1000 or intResoMC < 1000:
+#                            hResoMC = hResoMC.Rebin(5)
+#                            hResoData = hResoData.Rebin(5)
+                    
                     hResoMC.Scale(intResoData/intResoMC)        
             
                     maxResoData = hResoData.GetMaximum()
@@ -162,18 +186,20 @@ if __name__ == '__main__':
                     hResoMC.SetMinimum(0.)
         
                     c1 = ROOT.TCanvas()
-                
+                    
                     hResoMC.Draw('hist')
                     hResoData.Draw('e1 sames')
-        
-#                    resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,'g1',38)
-#                    resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,'g1',1)
-                
-#                if (resoChi2MC > 2. or resoChi2Data > 2.) and hResoData.Integral() > 1000:
-                    if hResoData.Integral() > 1000 and hResoMC.Integral() > 1000:
+                    
+                    if intResoData > 100 and intResoMC > 100:
+
+                        ffit = ''
+#                        if x in ['dz']: 
+#                            ffit = '3g'
+#                            if lowstat: ffit = '1g'
                         
-                        resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,x,k,38)
-                        resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,x,k,1)
+                        resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,x,k,c.mcfit,ffit)
+
+                        resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,x,k,1,ffit)
 
                         resResoMC.Draw("same")
                         resResoData.Draw("same")
@@ -203,7 +229,48 @@ if __name__ == '__main__':
                         lMC.SetTextSize(0.035)
                         lMC.SetNDC()
                         lMC.Draw()
-                
+
+                        xLabel = x
+                        if x == 'd0': xLabel = 'd_{xy}'
+                        elif x == 'dz': xLabel = 'd_{z}'
+                        
+                        lDataReso = ROOT.TLatex(0.20,0.56,"#sigma^{Data}_{"+xLabel+"} = %.1f #mum" % (resoData))
+                        lDataReso.SetNDC(); lDataReso.SetTextFont(43); lDataReso.SetTextSize(20); lDataReso.Draw()
+                        
+                        lMCReso = ROOT.TLatex(0.20,0.65,"#sigma^{Sim.}_{"+xLabel+"} = %.1f #mum" % (resoMC))
+                        lMCReso.SetNDC(); lMCReso.SetTextFont(43); lMCReso.SetTextSize(20); lMCReso.Draw()
+
+                        if ip != 'bs':
+                            lSelPV = ROOT.TLatex(0.20,0.80,str(vtrk['bins'][1])+' < N_{trk} < '+str(vtrk['bins'][2]))
+                            lSelPV.SetTextSize(0.035)
+                            lSelPV.SetNDC()
+                            lSelPV.Draw()
+
+                        pLabel = 'p_{T}'
+                        pUnits = 'GeV'
+                        pPrec = '%.1f'
+                        if param == c.IPeta: 
+                            pLabel = '#eta'
+                            pUnits = ''
+                        elif param == c.IPphi: 
+                            pLabel = '#phi'
+                            pUnits = ''
+                        elif param == c.IPnpv: 
+                            pLabel = 'N_{PV}'
+                            pUnits = ''
+                            pPrec = '%d'
+                        elif param == c.IPdr: 
+                            pLabel = '#DeltaR'
+                            pUnits = ''
+                        elif param == c.IPsz: 
+                            pLabel = '#sigma_{z}'
+                            pUnits = '#mum'
+
+                        lSel = ROOT.TLatex(0.20,0.75,(pPrec+' < '+pLabel+' < '+pPrec+' '+pUnits) % (v['bins'][1], v['bins'][2]))
+                        lSel.SetTextSize(0.035)
+                        lSel.SetNDC()
+                        lSel.Draw()
+                        
                         c1.Update()
                 
                         leg = ROOT.TLegend(0.82,0.92,0.990,0.75)
@@ -215,9 +282,10 @@ if __name__ == '__main__':
                         leg.AddEntry(resResoMC,"Simulation (fit)","l")
                         leg.Draw()        
                 
-                        t1, t2 = style.cmslabel(1,777)
+                        t1, t2, t3 = style.cmslabel(1,c.year)
                         t1.Draw()
                         t2.Draw()
+                        t3.Draw()
                 
                         c1.Print(options.output+'/ip'+ip+'Reso_'+x+ktrk+k+'.pdf')
                         c1.Clear()
@@ -233,5 +301,7 @@ if __name__ == '__main__':
 
     if not os.path.isdir('results'): os.system('mkdir results/')
                         
-    with open("results/ip.json", "w") as write_file:
+    foutput = 'results/ip_zb.json'
+    if options.qcd: foutput = 'results/ip_qcd.json'
+    with open(foutput, "w") as write_file:
         json.dump(rout, write_file, indent=2)

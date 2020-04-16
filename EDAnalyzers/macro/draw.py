@@ -23,28 +23,32 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Analysis script to plot the PV resolution results"
     
     parser = OptionParser(usage)
-    parser.add_option("-i","--input",default="results/pv.json",help="input file name [default: %default]")
+    parser.add_option("--input",default="results/ip.json",help="input file name for IP [default: %default]")
+    parser.add_option("--inputpv",default="results/pv.json",help="input file name for PV [default: %default]")
     parser.add_option("-o","--output",default="pics",help="output directory [default: %default]")
     parser.add_option("-m","--mode",default="pv",help="measurement mode [default: %default]")
+    parser.add_option("-p","--process",default="zb",help="type of process [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
     return options
 
 def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
-    
-    hMC.Draw('e1')
-    hData.Draw('e1 same')
 
     hData.SetMarkerStyle(20)
-    hData.SetMarkerSize(0.7)
+    hData.SetMarkerSize(1.0)
     hData.SetMarkerColor(1)
     hData.SetLineColor(1)
     
-    hMC.SetMarkerStyle(21)
-    hMC.SetMarkerSize(0.7)
-    hMC.SetMarkerColor(ROOT.kBlue-10)
-    hMC.SetLineColor(ROOT.kBlue-10)
+    hMC.SetMarkerStyle(22)
+    hMC.SetMarkerSize(1.0)
+    hMC.SetMarkerColor(c.mccol)
+    hMC.SetLineColor(c.mccol)
+
+    hMC.Draw('')
+    hMC.Draw('p same')
+    hData.Draw('same')
+    hData.Draw('p same')
     
     if mode == 'pv':
         if m == 'reso' and x != 'z': hMC.GetYaxis().SetRangeUser(0.,100.)
@@ -52,6 +56,7 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
         else: hMC.GetYaxis().SetRangeUser(0.,1.4)
     else:
         hMC.GetYaxis().SetRangeUser(0.,350.)
+        if 'eta' in mode and x == 'dz': hMC.GetYaxis().SetRangeUser(0.,1000.)
             
     leg = ROOT.TLegend(0.82,0.92,0.990,0.75)
     leg.SetFillColor(253)
@@ -60,14 +65,15 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
     leg.AddEntry(hMC,"Simulation","p")
     leg.Draw()        
     
-    t1, t2 = style.cmslabel(1,777)
+    t1, t2, t3 = style.cmslabel(1,c.year)
     t1.Draw()
     t2.Draw()
+    t3.Draw()
 
     if isDeconv == False:
-        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'.pdf')
+        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'_'+options.process+'.pdf')
     else:
-        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'_deconv.pdf')
+        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'_deconv_'+options.process+'.pdf')
     c1.Clear()    
 
 if __name__ == '__main__':
@@ -88,7 +94,7 @@ if __name__ == '__main__':
     with open(options.input, "r") as read_file:
         data = json.load(read_file)        
 
-    with open('results/pv.json', "r") as read_file:
+    with open(options.inputpv, "r") as read_file:
         datapv = json.load(read_file)
         
     c1 = ROOT.TCanvas()
@@ -123,8 +129,17 @@ if __name__ == '__main__':
                             h[hn] = ROOT.TH1F(hn,hn,len(c.IPptBins)-1,c.IPptBins)
                             h[hn].GetXaxis().SetTitle('Track p_{T} [GeV]')
                         elif 'eta' in mode:
-                            h[hn].GetXaxis().SetTitle('Track #eta')
                             h[hn] = ROOT.TH1F(hn,hn,len(c.IPetaBins)-1,c.IPetaBins)
+                            h[hn].GetXaxis().SetTitle('Track #eta')
+                        elif 'phi' in mode:
+                            h[hn] = ROOT.TH1F(hn,hn,len(c.IPphiBins)-1,c.IPphiBins)
+                            h[hn].GetXaxis().SetTitle('Track #phi')
+                        elif 'npv' in mode:
+                            h[hn] = ROOT.TH1F(hn,hn,len(c.IPnpvBins)-1,c.IPnpvBins)
+                            h[hn].GetXaxis().SetTitle('Number of primary vertices')
+                        elif 'dr' in mode:
+                            h[hn] = ROOT.TH1F(hn,hn,len(c.IPdrBins)-1,c.IPdrBins)
+                            h[hn].GetXaxis().SetTitle('#DeltaR(track,jet axis)')
                             
                         lab = x.replace('0','_{xy}').replace('z','_{z}')
                         ytit = 'Track IP resolution ('+lab+') [#mum]'
@@ -137,6 +152,10 @@ if __name__ == '__main__':
             param = c.PVnTracks
             if 'pt' in mode: param = c.IPpt
             elif 'eta' in mode: param = c.IPeta
+            elif 'phi' in mode: param = c.IPphi
+            elif 'npv' in mode: param = c.IPnpv
+            elif 'dr' in mode: param = c.IPdr
+            elif 'sz' in mode: param = c.IPsz
             
             for kparam, vparam in param.iteritems():
 
@@ -177,7 +196,7 @@ if __name__ == '__main__':
                         resMC = data[m]['mc'][x][kparam][ktrk]
                         if 'ippv' in mode:
                             pvx = 'x'
-                            if x == 'dz': pvx = 'z'                        
+                            if x == 'dz': pvx = 'z'
                             resPVData = datapv[m]['data'][pvx][ktrk]
                             resPVMC = datapv[m]['mc'][pvx][ktrk]
                         elif 'ipbs' in mode:
@@ -260,13 +279,13 @@ if __name__ == '__main__':
                     h[hnameMC+'_deconv'].SetBinError(bidx, eMCDeconv)
             
             hMC = h[hnameMC]; hData = h[hnameData]
-            pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_mc.pkl','wb'))
-            pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_data.pkl','wb'))
+            pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_'+options.process+'_mc.pkl','wb'))
+            pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_'+options.process+'_data.pkl','wb'))
             plot(c1, hData, hMC, mode, m, x)
             
             if mode != 'pv':
                 
                 hMC = h[hnameMC+'_deconv']; hData = h[hnameData+'_deconv']
-                pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_mc_deconv.pkl','wb'))
-                pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_data_deconv.pkl','wb'))
+                pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_'+options.process+'_mc_deconv.pkl','wb'))
+                pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_'+options.process+'_data_deconv.pkl','wb'))
                 plot(c1, hData, hMC, mode, m, x, True)

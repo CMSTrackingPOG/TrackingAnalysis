@@ -2,7 +2,21 @@ import ROOT
 import math
 import sys
 
-def doFit(name, hist, var, param, color=38):
+def setFunction(gfit, fname, xmin, xmax):
+    
+    if gfit == '1g':
+        ffunc = ROOT.TF1(fname,"[0]/sqrt(2*pi)/[1]*exp(-x*x/2/[1]/[1])",xmin,xmax)
+    elif gfit == '2g':
+        ffunc = ROOT.TF1(fname,"[0]*exp(-x*x/2/[1]/[1])+[2]*exp(-x*x/2/[3]/[3])",xmin,xmax)
+    elif gfit == '3g':
+        ffunc = ROOT.TF1(fname,"[0]*exp(-x*x/2/[1]/[1])+[2]*exp(-x*x/2/[3]/[3])+[4]*exp(-x*x/2/[5]/[5])",xmin,xmax)
+    else:
+        print 'Function is unknown'
+        sys.exit()
+        
+    return ffunc
+
+def doFit(name, hist, var, param, color=38, func=''):
 
     rand = ROOT.TRandom3()
     
@@ -19,138 +33,149 @@ def doFit(name, hist, var, param, color=38):
     
     a = hist.GetMaximum()
 
-    if var in ['x','y','z']:
-        ffunc = ROOT.TF1(name,"[0]/sqrt(2*pi)/[1]*exp(-x*x/2/[1]/[1])",xmin,xmax)
-    elif var == 'd0':
-        ffunc = ROOT.TF1(name,"[0]*exp(-x*x/2/[1]/[1])+[2]*exp(-x*x/2/[3]/[3])",xmin,xmax)
-#        ffunc.SetParLimits(0,0.5*a,1.1*a)
-#        ffunc.SetParLimits(1,0.,1.5*rms)
-#        ffunc.SetParLimits(2,0.,0.3*a)
-#        ffunc.SetParLimits(3,rms,4*rms)
-    elif var == 'dz':
-        ffunc = ROOT.TF1(name,"[0]*exp(-x*x/2/[1]/[1])+[2]*exp(-x*x/2/[3]/[3])+[4]*exp(-x*x/2/[5]/[5])",xmin,xmax)
-#        ffunc.SetParLimits(0,0.4*a,1.0*a)
-#        ffunc.SetParLimits(1,0.,1.0*rms)
-#        ffunc.SetParLimits(2,0.,0.5*a)
-#        ffunc.SetParLimits(3,0.5*rms,2*rms)
-#        ffunc.SetParLimits(4,0.,0.3*a)
-#        ffunc.SetParLimits(5,2*rms,1E+10)
-    else:
-        print 'Function is unknown'
-        sys.exit()
+    nTries = 100
+    chi2Min = 10E+10
+    tryMin = -1
+    fMin = ''
+
+    p0, p1, p2, p3, p4, p5 = {}, {}, {}, {}, {}, {}
+    p0Err, p1Err, p2Err, p3Err, p4Err, p5Err = {}, {}, {}, {}, {}, {}
         
-    ffunc.SetParameter(0,a)
-    ffunc.SetParameter(1,rms)
-    if var == 'd0':
-        ffunc.SetParameter(2,a*0.01)
-        ffunc.SetParameter(3,rms*2.)
-    if var == 'dz':
+    for f in ['3g','2g','1g']:
+
+        if func != '' and func != f: continue
+        
+        ffunc = setFunction(f, name, xmin, xmax)
+            
         ffunc.SetParameter(0,a)
         ffunc.SetParameter(1,0.5*rms)
-        ffunc.SetParameter(2,0.3*a)
-        ffunc.SetParameter(3,1.0*rms)
-        ffunc.SetParameter(4,0.1*a)
-        ffunc.SetParameter(5,10*rms)
+        if f == '2g':
+            ffunc.SetParameter(2,a*0.2)
+            ffunc.SetParameter(3,rms*5.)
+        elif f == '3g':
+            ffunc.SetParameter(0,a)
+            ffunc.SetParameter(1,0.5*rms)
+            ffunc.SetParameter(2,0.2*a)
+            ffunc.SetParameter(3,5.*rms)
+            ffunc.SetParameter(4,0.1*a)
+            ffunc.SetParameter(5,30.*rms)
+            
+        hist.Fit(name,"QR")
+        res = hist.GetFunction(name)
+        if res.GetNDF() < 1: continue
+        chi2 = res.GetChisquare()/res.GetNDF()
         
-    hist.Fit(name,"QR")
-    res = hist.GetFunction(name)
-    chi2 = res.GetChisquare()/res.GetNDF()
-        
-    if (var == 'd0' or var == 'dz') and chi2 > 1:
-        nTries = 100
-        tryMin = -1
-        chi2Min = 10E+10
-        p0, p1, p2, p3, p4, p5 = ({} for i in range(6))
-        for f in range(nTries):
-            hist.Fit(name,"QR")
-            if param == '': break
-            res = hist.GetFunction(name)
-            chi2 = res.GetChisquare()/res.GetNDF()
+        if chi2 > 1:
 
-            if chi2 < chi2Min: 
-                chi2Min = chi2
-                tryMin = f
+            p0[f], p1[f], p2[f], p3[f], p4[f], p5[f] = ({} for i in range(6))
+            p0Err[f], p1Err[f], p2Err[f], p3Err[f], p4Err[f], p5Err[f] = ({} for i in range(6))
+            
+            for it in range(nTries):
                 
-                p0[f] = ffunc.GetParameter(0)
-                p1[f] = ffunc.GetParameter(1)
-                p2[f] = ffunc.GetParameter(2)
-                p3[f] = ffunc.GetParameter(3)
-                if var == 'dz':
-                    p4[f] = ffunc.GetParameter(4)
-                    p5[f] = ffunc.GetParameter(5)
-                        
-            if var == 'd0':
-                ra1 = rand.Uniform(0,1)
-                rs1 = rand.Uniform(0,1)
-                ra2 = rand.Uniform(0,1)
-                rs2 = rand.Uniform(0,1)
+                ra1 = rand.Uniform(0.,1.)
+                rs1 = rand.Uniform(0.,1.)
                 ffunc.SetParameter(0,a*ra1)
                 ffunc.SetParameter(1,rms*rs1)
-                ffunc.SetParameter(2,a*ra2*0.1)
-                ffunc.SetParameter(3,rms*rs2*4.)
-            elif var == 'dz':
-                ra1 = rand.Uniform(0,1)
-                rs1 = rand.Uniform(0,1)
-                ra2 = rand.Uniform(0,1)
-                rs2 = rand.Uniform(0,1)
-                ra3 = rand.Uniform(0,1)
-                rs3 = rand.Uniform(0,1)
-                ffunc.SetParameter(0,a*ra1)
-                ffunc.SetParameter(1,rms*rs1*0.7)
-                ffunc.SetParameter(2,a*ra2*0.4)
-                ffunc.SetParameter(3,rms*rs2*2.)
-                ffunc.SetParameter(4,a*ra3*0.2)
-                ffunc.SetParameter(5,rms*rs3*20.)
+                if f in ['2g']:
+                    ra1 = rand.Uniform(0.,1.)
+                    rs1 = rand.Uniform(0.,1.)
+                    ffunc.SetParameter(0,a*ra1*0.7)
+                    ffunc.SetParameter(1,rms*rs1)
+                    ra2 = rand.Uniform(0.,1.)
+                    rs2 = rand.Uniform(0.,1.)
+                    ffunc.SetParameter(2,a*ra2*0.3)
+                    ffunc.SetParameter(3,rms*rs2*5.)
+                if f in ['3g']:
+                    ra1 = rand.Uniform(0.,1.)
+                    rs1 = rand.Uniform(0.,1.)
+                    ffunc.SetParameter(0,a*ra1*0.5)
+                    ffunc.SetParameter(1,rms*rs1)
+                    ra2 = rand.Uniform(0.,1.)
+                    rs2 = rand.Uniform(0.,1.)
+                    ffunc.SetParameter(2,a*ra2*0.3)
+                    ffunc.SetParameter(3,rms*rs2*5.)
+                    ra3 = rand.Uniform(0.,1.)
+                    rs3 = rand.Uniform(0.,1.)
+                    ffunc.SetParameter(4,a*ra3*0.2)
+                    ffunc.SetParameter(5,rms*rs3*30.)                    
                 
-            if chi2 < 1: break
+                hist.Fit(name,"QR")
+                
+                if param == '': break
+                
+                res = hist.GetFunction(name)
+                chi2 = res.GetChisquare()/res.GetNDF()
+                
+                if chi2 < chi2Min: 
+                                
+                    p0[f][it] = ffunc.GetParameter(0)
+                    p0Err[f][it] = ffunc.GetParError(0)
+                    p1[f][it] = ffunc.GetParameter(1)
+                    p1Err[f][it] = ffunc.GetParError(1)
+                    
+                    if f in ['2g','3g']:
+                        if p0Err[f][it] > p0[f][it] or p1Err[f][it] > p1[f][it]: continue
+                    
+                    if f in ['2g','3g']:
+                        p2[f][it] = ffunc.GetParameter(2)
+                        p2Err[f][it] = ffunc.GetParError(2)
+                        p3[f][it] = ffunc.GetParameter(3)
+                        p3Err[f][it] = ffunc.GetParError(3)
+
+                        if p2Err[f][it] > p2[f][it] or p3Err[f][it] > p3[f][it]: continue
+                        
+                    if f in ['3g']:
+                        p4[f][it] = ffunc.GetParameter(4)
+                        p4Err[f][it] = ffunc.GetParError(4)
+                        p5[f][it] = ffunc.GetParameter(5)
+                        p5Err[f][it] = ffunc.GetParError(5)
+                        
+                        if p4Err[f][it] > p4[f][it] or p5Err[f][it] > p5[f][it]: continue
+
+                    chi2Min = chi2
+                    tryMin = it
+                    fMin = f
+
+                    if chi2 < 1: break
     
-        if tryMin >= 0:
-            ffunc.SetParameter(0,p0[tryMin])
-            ffunc.SetParameter(1,p1[tryMin])
-            ffunc.SetParameter(2,p2[tryMin])
-            ffunc.SetParameter(3,p3[tryMin])
-            if var == 'dz':
-                ffunc.SetParameter(4,p4[tryMin])
-                ffunc.SetParameter(5,p5[tryMin])
-            hist.Fit(name,"QR")
-    
+    if tryMin >= 0:
+        
+        ffunc = setFunction(fMin, name, xmin, xmax)
+        
+        ffunc.SetParameter(0,p0[fMin][tryMin])
+        ffunc.SetParameter(1,p1[fMin][tryMin])
+        if fMin in ['2g','3g']:
+            ffunc.SetParameter(2,p2[fMin][tryMin])
+            ffunc.SetParameter(3,p3[fMin][tryMin])
+        if fMin in ['3g']:
+            ffunc.SetParameter(4,p4[fMin][tryMin])
+            ffunc.SetParameter(5,p5[fMin][tryMin])
+        hist.Fit(name,"QR")
+            
     res = hist.GetFunction(name)
-    
+        
     chi2 = res.GetChisquare()/res.GetNDF()
     
     res.SetLineColor(color)
-
-    reso = res.GetParameter(1)
-    resoErr = res.GetParError(1)
-    if var == 'd0' or var == 'dz':
-        ymax = res.GetMaximum()
-        xmax = res.GetMaximumX()
-        xlow = res.GetXmin()
-        xhigh = res.GetXmax()
-        wl = res.GetX(ymax/2.,xlow,xmax)
-        wr = res.GetX(ymax/2.,xmax,xhigh)
-        FWHM = wr - wl
-        reso = FWHM/2.36
-        resoErr = 0.
-
-#    reso = 10E+10
-#    resoErr = 10E+10
-#    for p in range(res.GetNpar()):
-#        if res.GetParName(p) in ['p1','p3','p5']:
-#            par = res.GetParameter(p)
-#            err = res.GetParError(p)
-#            if par < reso and par >= 0:
-#                reso = par
-#                resoErr = err
     
+    ymax = res.GetMaximum()
+    xmax = res.GetMaximumX()
+    xlow = res.GetXmin()
+    xhigh = res.GetXmax()
+    wl = res.GetX(ymax/2.,xlow,xmax)
+    wr = res.GetX(ymax/2.,xmax,xhigh)
+    FWHM = wr - wl
+    reso = FWHM/2.36
+    resoErr = 0.
+
     return res, reso, resoErr, chi2
 
 def doFitIP(name, gr, color=38):
 
-    ffunc = ROOT.TF1(name,"sqrt([0]*[0]+[1]*[1]/(x*x))",0.,350.)
+    ffunc = ROOT.TF1(name,"sqrt([0]*[0]+[1]*[1]/(x*x))",0.5,10.)
         
-    ffunc.SetParameter(0,24)
-    ffunc.SetParameter(1,90)
+    ffunc.SetParameter(0,40)
+    ffunc.SetParameter(1,80)
 
     gr.Fit(name,"QR")
 
