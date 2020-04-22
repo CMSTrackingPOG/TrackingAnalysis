@@ -169,7 +169,8 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    edm::InputTag TriggerBitsTag_ = pset.getParameter<edm::InputTag>("TriggerResultsLabel");
    theTriggerBitsToken_ = consumes<edm::TriggerResults>(TriggerBitsTag_);
    
-   puInfoToken_ = consumes<std::vector<PileupSummaryInfo> >(pset.getParameter<edm::InputTag>("puInfoInput"));
+   edm::InputTag PUInfoTag_ = pset.getParameter<edm::InputTag>("puInfoLabel");
+   puInfoToken_ = consumes<std::vector<PileupSummaryInfo> >(PUInfoTag_);
    
    beamSpotConfig = pset.getParameter<std::string>("BeamSpotConfig");
    

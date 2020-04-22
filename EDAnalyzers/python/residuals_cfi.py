@@ -14,6 +14,9 @@ residuals = cms.EDAnalyzer("Residuals",
 
                            # Trigger results
                            TriggerResultsLabel = cms.InputTag("TriggerResults","","HLT"),
+                           
+                           # Pileup
+                           puInfoLabel = cms.InputTag("addPileupInfo"),
 
                            # Selection of Tracks
                            TrackLabel = cms.InputTag("generalTracks"),
