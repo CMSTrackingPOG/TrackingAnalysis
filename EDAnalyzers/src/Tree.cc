@@ -43,6 +43,18 @@ void ResTree::Init()
    trig_AK4PFJet80_pass = 0;
    trig_AK4PFJet100_pass = 0;
    trig_AK4PFJet120_pass = 0;
+
+   trig_PFHT180_pass = 0;
+   trig_PFHT250_pass = 0;
+   trig_PFHT370_pass = 0;
+   trig_PFHT430_pass = 0;
+   trig_PFHT510_pass = 0;
+   trig_PFHT590_pass = 0;
+   trig_PFHT680_pass = 0;
+   trig_PFHT780_pass = 0;
+   trig_PFHT890_pass = 0;
+   trig_PFHT1050_pass = 0;
+   trig_PFHT350_pass = 0;
    
    mc_pu_intime_NumInt = null;
    mc_pu_trueNumInt = null;
@@ -319,6 +331,18 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("trig_AK4PFJet80_pass", &trig_AK4PFJet80_pass, "trig_AK4PFJet80_pass/O", buff);
    tree->Branch("trig_AK4PFJet100_pass", &trig_AK4PFJet100_pass, "trig_AK4PFJet100_pass/O", buff);
    tree->Branch("trig_AK4PFJet120_pass", &trig_AK4PFJet120_pass, "trig_AK4PFJet120_pass/O", buff);
+   
+   tree->Branch("trig_PFHT180_pass", &trig_PFHT180_pass, "trig_PFHT180_pass/O", buff);
+   tree->Branch("trig_PFHT250_pass", &trig_PFHT250_pass, "trig_PFHT250_pass/O", buff);
+   tree->Branch("trig_PFHT370_pass", &trig_PFHT370_pass, "trig_PFHT370_pass/O", buff);
+   tree->Branch("trig_PFHT430_pass", &trig_PFHT430_pass, "trig_PFHT430_pass/O", buff);
+   tree->Branch("trig_PFHT510_pass", &trig_PFHT510_pass, "trig_PFHT510_pass/O", buff);
+   tree->Branch("trig_PFHT590_pass", &trig_PFHT590_pass, "trig_PFHT590_pass/O", buff);
+   tree->Branch("trig_PFHT680_pass", &trig_PFHT680_pass, "trig_PFHT680_pass/O", buff);
+   tree->Branch("trig_PFHT780_pass", &trig_PFHT780_pass, "trig_PFHT780_pass/O", buff);
+   tree->Branch("trig_PFHT890_pass", &trig_PFHT890_pass, "trig_PFHT890_pass/O", buff);
+   tree->Branch("trig_PFHT1050_pass", &trig_PFHT1050_pass, "trig_PFHT1050_pass/O", buff);
+   tree->Branch("trig_PFHT350_pass", &trig_PFHT350_pass, "trig_PFHT350_pass/O", buff);
    
    if( !runOnData ) 
      {

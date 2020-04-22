@@ -57,6 +57,18 @@ class ResTree
    bool trig_AK4PFJet100_pass;
    bool trig_AK4PFJet120_pass;
    
+   bool trig_PFHT180_pass;
+   bool trig_PFHT250_pass;
+   bool trig_PFHT370_pass;
+   bool trig_PFHT430_pass;
+   bool trig_PFHT510_pass;
+   bool trig_PFHT590_pass;
+   bool trig_PFHT680_pass;
+   bool trig_PFHT780_pass;
+   bool trig_PFHT890_pass;
+   bool trig_PFHT1050_pass;
+   bool trig_PFHT350_pass;
+   
    int mc_pu_intime_NumInt;
    int mc_pu_trueNumInt;
    int mc_pu_before_npu;

@@ -274,6 +274,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    for( unsigned int i=0;i<names.size();i++ )
      {
 	TString trigName = TString(names.triggerName(i));
+
 //	std::cout << i << " " << trigName << std::endl;
 	
 	bool pass = (triggerBits->accept(i) ? true : false);
@@ -307,7 +308,17 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	else if( trigName.Contains("HLT_AK4PFJet100_v") ) ftree->trig_AK4PFJet100_pass = pass;
 	else if( trigName.Contains("HLT_AK4PFJet120_v") ) ftree->trig_AK4PFJet120_pass = pass;
 	
-	// add HT triggers
+	else if( trigName.Contains("HLT_PFHT180_v") ) ftree->trig_PFHT180_pass = pass;
+	else if( trigName.Contains("HLT_PFHT250_v") ) ftree->trig_PFHT250_pass = pass;	
+	else if( trigName.Contains("HLT_PFHT370_v") ) ftree->trig_PFHT370_pass = pass;
+	else if( trigName.Contains("HLT_PFHT430_v") ) ftree->trig_PFHT430_pass = pass;
+	else if( trigName.Contains("HLT_PFHT510_v") ) ftree->trig_PFHT510_pass = pass;
+	else if( trigName.Contains("HLT_PFHT590_v") ) ftree->trig_PFHT590_pass = pass;
+	else if( trigName.Contains("HLT_PFHT680_v") ) ftree->trig_PFHT680_pass = pass;
+	else if( trigName.Contains("HLT_PFHT780_v") ) ftree->trig_PFHT780_pass = pass;
+	else if( trigName.Contains("HLT_PFHT890_v") ) ftree->trig_PFHT890_pass = pass;
+	else if( trigName.Contains("HLT_PFHT1050_v") ) ftree->trig_PFHT1050_pass = pass;
+	else if( trigName.Contains("HLT_PFHT350_v") ) ftree->trig_PFHT350_pass = pass;
 	  
 //	     std::cout << i << " " << trigName << " L1=" << L1prescale << " HLT=" << HLTprescale << std::endl;
      }
