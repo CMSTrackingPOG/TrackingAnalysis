@@ -31,6 +31,8 @@
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/TrackReco/interface/HitPattern.h"
 
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+
 #include "DataFormats/JetReco/interface/TrackJet.h"
 
 #include <TrackingTools/TrajectoryState/interface/PerigeeConversions.h>
@@ -112,6 +114,7 @@ class Residuals : public edm::EDAnalyzer
    edm::EDGetTokenT<double> theRhoToken_;
    edm::EDGetTokenT< vector<reco::TrackJet> > theTrackJetsToken_;
    edm::EDGetTokenT<edm::TriggerResults> theTriggerBitsToken_;
+   edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puInfoToken_;
 
    // --- track selection variables
    double tkMinPt;
@@ -125,6 +128,8 @@ class Residuals : public edm::EDAnalyzer
 //   double vtxErrorZMin,vtxErrorZMax;
 
    std::string beamSpotConfig;
+   
+   bool runOnData;
 
    int eventScale;
    int trackScale;
@@ -164,6 +169,8 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    edm::InputTag TriggerBitsTag_ = pset.getParameter<edm::InputTag>("TriggerResultsLabel");
    theTriggerBitsToken_ = consumes<edm::TriggerResults>(TriggerBitsTag_);
    
+   puInfoToken_ = consumes<std::vector<PileupSummaryInfo> >(pset.getParameter<edm::InputTag>("puInfoInput"));
+   
    beamSpotConfig = pset.getParameter<std::string>("BeamSpotConfig");
    
    tkMinPt = pset.getParameter<double>("TkMinPt");
@@ -183,13 +190,15 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    eventScale = pset.getParameter<int>("EventScale");
    trackScale = pset.getParameter<int>("TrackScale");
    
+   runOnData = pset.getParameter<bool>("RunOnData");
+   
    rnd = new TRandom3();
 
    TFile& f = fs->file();
    f.SetCompressionAlgorithm(ROOT::kZLIB);
    f.SetCompressionLevel(9);
    ftree = new ResTree(fs->make<TTree>("tree","tree"));   
-   ftree->CreateBranches(32000);
+   ftree->CreateBranches(32000,runOnData);
    
    ncount = 0;
 }
@@ -296,9 +305,53 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	else if( trigName.Contains("HLT_AK4PFJet80_v") ) ftree->trig_AK4PFJet80_pass = pass;
 	else if( trigName.Contains("HLT_AK4PFJet100_v") ) ftree->trig_AK4PFJet100_pass = pass;
 	else if( trigName.Contains("HLT_AK4PFJet120_v") ) ftree->trig_AK4PFJet120_pass = pass;
+	
+	// add HT triggers
 	  
 //	     std::cout << i << " " << trigName << " L1=" << L1prescale << " HLT=" << HLTprescale << std::endl;
      }
+
+   if( !runOnData )
+     {	
+	edm::Handle<std::vector< PileupSummaryInfo> > pileupInfo;
+	iEvent.getByToken(puInfoToken_,pileupInfo);
+
+	ftree->mc_pu_Npvi = pileupInfo->size();
+	for(std::vector<PileupSummaryInfo>::const_iterator pvi=pileupInfo->begin();pvi!=pileupInfo->end();pvi++)
+	  {
+	     signed int n_bc = pvi->getBunchCrossing();
+	     ftree->mc_pu_BunchCrossing.push_back(n_bc);
+	     if( n_bc == 0 )
+	       {		  
+		  ftree->mc_pu_intime_NumInt = pvi->getPU_NumInteractions();
+		  ftree->mc_pu_trueNumInt = pvi->getTrueNumInteractions();
+	       }	     
+	     else if( n_bc == -1 ) ftree->mc_pu_before_npu = pvi->getPU_NumInteractions();
+	     else if( n_bc == +1 ) ftree->mc_pu_after_npu  = pvi->getPU_NumInteractions();
+	     
+	     std::vector<float> mc_pu_zpositions;
+	     std::vector<float> mc_pu_sumpT_lowpT;
+	     std::vector<float> mc_pu_sumpT_highpT;
+	     std::vector<int> mc_pu_ntrks_lowpT;
+	     std::vector<int> mc_pu_ntrks_highpT;
+	     
+	     ftree->mc_pu_Nzpositions.push_back(pvi->getPU_zpositions().size());
+	     for( unsigned int ipu=0;ipu<pvi->getPU_zpositions().size();ipu++ )
+	       {		  
+		  mc_pu_zpositions.push_back((pvi->getPU_zpositions())[ipu]);
+		  mc_pu_sumpT_lowpT.push_back((pvi->getPU_sumpT_lowpT())[ipu]);
+		  mc_pu_sumpT_highpT.push_back((pvi->getPU_sumpT_highpT())[ipu]);
+		  mc_pu_ntrks_lowpT.push_back((pvi->getPU_ntrks_lowpT())[ipu]);
+		  mc_pu_ntrks_highpT.push_back((pvi->getPU_ntrks_highpT())[ipu]);
+	       }	     
+	     
+	     ftree->mc_pu_zpositions.push_back(mc_pu_zpositions);
+	     ftree->mc_pu_sumpT_lowpT.push_back(mc_pu_sumpT_lowpT);
+	     ftree->mc_pu_sumpT_highpT.push_back(mc_pu_sumpT_highpT);
+	     ftree->mc_pu_ntrks_lowpT.push_back(mc_pu_ntrks_lowpT);
+	     ftree->mc_pu_ntrks_highpT.push_back(mc_pu_ntrks_highpT);
+	  }	
+     }   
    
    double micron = 10000;
 

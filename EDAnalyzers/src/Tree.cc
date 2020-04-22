@@ -43,6 +43,30 @@ void ResTree::Init()
    trig_AK4PFJet80_pass = 0;
    trig_AK4PFJet100_pass = 0;
    trig_AK4PFJet120_pass = 0;
+   
+   mc_pu_intime_NumInt = null;
+   mc_pu_trueNumInt = null;
+   mc_pu_before_npu = null;
+   mc_pu_after_npu = null;
+   
+   mc_pu_Npvi = null;
+   mc_pu_Nzpositions.clear();
+   mc_pu_BunchCrossing.clear();
+   for(unsigned int i=0;i<mc_pu_zpositions.size();i++) 
+     mc_pu_zpositions[i].clear();
+   mc_pu_zpositions.clear();
+   for(unsigned int i=0;i<mc_pu_sumpT_lowpT.size();i++) 
+     mc_pu_sumpT_lowpT[i].clear();
+   mc_pu_sumpT_lowpT.clear();
+   for(unsigned int i=0;i<mc_pu_sumpT_highpT.size();i++) 
+     mc_pu_sumpT_highpT[i].clear();
+   mc_pu_sumpT_highpT.clear();
+   for(unsigned int i=0;i<mc_pu_ntrks_lowpT.size();i++) 
+     mc_pu_ntrks_lowpT[i].clear();
+   mc_pu_ntrks_lowpT.clear();
+   for(unsigned int i=0;i<mc_pu_ntrks_highpT.size();i++) 
+     mc_pu_ntrks_highpT[i].clear();
+   mc_pu_ntrks_highpT.clear();
      
    bs_type = null;
    bs_x0 = null;
@@ -257,7 +281,7 @@ void ResTree::Init()
    trk_jetTrk_dz_pv_NoRefit.clear();
 }
 
-void ResTree::CreateBranches(int buff = 32000)
+void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
 {
    tree->Branch("ev_run", &ev_run, "ev_run/I", buff);
    tree->Branch("ev_id", &ev_id, "ev_id/I", buff);
@@ -295,6 +319,23 @@ void ResTree::CreateBranches(int buff = 32000)
    tree->Branch("trig_AK4PFJet80_pass", &trig_AK4PFJet80_pass, "trig_AK4PFJet80_pass/O", buff);
    tree->Branch("trig_AK4PFJet100_pass", &trig_AK4PFJet100_pass, "trig_AK4PFJet100_pass/O", buff);
    tree->Branch("trig_AK4PFJet120_pass", &trig_AK4PFJet120_pass, "trig_AK4PFJet120_pass/O", buff);
+   
+   if( !runOnData ) 
+     {
+	tree->Branch("mc_pu_intime_NumInt", &mc_pu_intime_NumInt, "mc_pu_intime_NumInt/I", buff);
+	tree->Branch("mc_pu_trueNumInt", &mc_pu_trueNumInt, "mc_pu_trueNumInt/I", buff);
+	tree->Branch("mc_pu_before_npu", &mc_pu_before_npu, "mc_pu_before_npu/I", buff);
+	tree->Branch("mc_pu_after_npu", &mc_pu_after_npu, "mc_pu_after_npu/I", buff);
+	
+	tree->Branch("mc_pu_Npvi", &mc_pu_Npvi, "mc_pu_Npvi/I", buff);
+	tree->Branch("mc_pu_Nzpositions", "std::vector<int>", &mc_pu_Nzpositions, buff);
+	tree->Branch("mc_pu_BunchCrossing", "std::vector<int>", &mc_pu_BunchCrossing, buff);
+	tree->Branch("mc_pu_zpositions", "std::vector<std::vector<float> >", &mc_pu_zpositions, buff);
+	tree->Branch("mc_pu_sumpT_lowpT", "std::vector<std::vector<float> >", &mc_pu_sumpT_lowpT, buff);
+	tree->Branch("mc_pu_sumpT_highpT", "std::vector<std::vector<float> >", &mc_pu_sumpT_highpT, buff);
+	tree->Branch("mc_pu_ntrks_lowpT", "std::vector<std::vector<int> >", &mc_pu_ntrks_lowpT, buff);
+	tree->Branch("mc_pu_ntrks_highpT", "std::vector<std::vector<int> >", &mc_pu_ntrks_highpT, buff);
+     }   
    
    tree->Branch("bs_type", &bs_type, "bs_type/I", buff);
    tree->Branch("bs_x0", &bs_x0, "bs_x0/F", buff);

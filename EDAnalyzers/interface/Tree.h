@@ -18,7 +18,7 @@ class ResTree
    TTree *tree;
    
    void Init();
-   void CreateBranches(int buff);
+   void CreateBranches(int buff, bool runOnData);
 
    int ev_run;
    Int_t ev_id;
@@ -56,6 +56,20 @@ class ResTree
    bool trig_AK4PFJet80_pass;
    bool trig_AK4PFJet100_pass;
    bool trig_AK4PFJet120_pass;
+   
+   int mc_pu_intime_NumInt;
+   int mc_pu_trueNumInt;
+   int mc_pu_before_npu;
+   int mc_pu_after_npu;
+   
+   int mc_pu_Npvi;
+   std::vector<int> mc_pu_Nzpositions;
+   std::vector<int> mc_pu_BunchCrossing;
+   std::vector<std::vector<float> > mc_pu_zpositions;
+   std::vector<std::vector<float> > mc_pu_sumpT_lowpT;
+   std::vector<std::vector<float> > mc_pu_sumpT_highpT;
+   std::vector<std::vector<int> > mc_pu_ntrks_lowpT;
+   std::vector<std::vector<int> > mc_pu_ntrks_highpT;
    
    int bs_type;
    float bs_x0;

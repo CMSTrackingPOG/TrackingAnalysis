@@ -3,6 +3,7 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 
 options = VarParsing('analysis')
 options.register('withBS',False,VarParsing.multiplicity.singleton,VarParsing.varType.bool,'Primary vertex reconstruction with BS constraint')
+options.register('isData',False,VarParsing.multiplicity.singleton,VarParsing.varType.bool,'Run on data')
 options.parseArguments()
 
 readFiles = cms.untracked.vstring()
@@ -76,6 +77,10 @@ process.residuals.BeamSpotConfig = ''
 if options.withBS:
     process.residuals.VertexPrimaryLabel = cms.InputTag('offlinePrimaryVerticesWithBS')
     process.residuals.BeamSpotConfig = 'WithBS'
+    
+process.residuals.RunOnData = False
+if options.isData:
+    process.residuals.RunOnData = True
 
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string("output.root"),

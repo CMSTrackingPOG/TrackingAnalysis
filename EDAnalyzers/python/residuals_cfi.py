@@ -2,6 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 residuals = cms.EDAnalyzer("Residuals",
 
+                           # Run on data
+                           RunOnData = cms.bool(False),
+
                            # Beam spot
                            BeamSpotLabel = cms.InputTag("offlineBeamSpot"),
                            BeamSpotConfig = cms.string(""),
