@@ -18,7 +18,7 @@ config.Data.totalUnits = -1
 config.Data.unitsPerJob = 6
 
 #config.Data.allowNonValidInputDataset = True
-config.Data.lumiMask = 'JSON/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt'
+config.Data.lumiMask = 'JSON/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt'
 config.Data.publication = False
 config.Data.inputDataset = 'INPUTDATASET'
 config.Data.outputDatasetTag = 'PUBLISHDATANAME'
