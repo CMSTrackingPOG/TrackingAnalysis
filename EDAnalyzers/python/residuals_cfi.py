@@ -34,6 +34,9 @@ residuals = cms.EDAnalyzer("Residuals",
 
                            # Track jets
                            TrackJetsLabel = cms.InputTag("ak4TrackJets","","RECO"),
+
+                           # PF jets
+                           PFJetsLabel = cms.InputTag("ak4PFJets","","RECO"),
                            
                            # Vertex selection for Jet6U trigger
 #                           VtxErrorXMin = cms.double(0.0015),

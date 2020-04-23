@@ -144,6 +144,12 @@ void ResTree::Init()
    pv_xError_p2 = null;
    pv_yError_p2 = null;
    pv_zError_p2 = null;
+   
+   pfjet_n = null;
+   pfjet_pt.clear();
+   pfjet_eta.clear();
+   pfjet_phi.clear();
+   pfjet_E.clear();
 
    trk_pt.clear();
    trk_px.clear();
@@ -211,6 +217,8 @@ void ResTree::Init()
    trk_d0_pv_NoRefit.clear();
    trk_dz_pv_NoRefit.clear();
 
+   // Tracks from TrackJets
+   
    trk_jet_found.clear();
    
    trk_jet_pt.clear();
@@ -291,6 +299,85 @@ void ResTree::Init()
    trk_jetTrk_dzErr.clear();
    trk_jetTrk_d0_pv_NoRefit.clear();
    trk_jetTrk_dz_pv_NoRefit.clear();
+
+   // Tracks from PFJets
+   
+   trk_pfjet_found.clear();
+   
+   trk_pfjet_pt.clear();
+   trk_pfjet_eta.clear();
+   trk_pfjet_phi.clear();
+   trk_pfjet_nTracks.clear();
+
+   trk_pfjetTrk_found.clear();
+   
+   trk_pfjetTrk_deltaR.clear();
+   
+   trk_pfjetTrk_pt.clear();
+   trk_pfjetTrk_px.clear();
+   trk_pfjetTrk_py.clear();
+   trk_pfjetTrk_pz.clear();
+   trk_pfjetTrk_p.clear();
+   trk_pfjetTrk_eta.clear();
+   trk_pfjetTrk_phi.clear();
+   
+   trk_pfjetTrk_nTrackerLayers.clear();
+   trk_pfjetTrk_nPixelBarrelLayers.clear();
+   trk_pfjetTrk_nPixelEndcapLayers.clear();
+   trk_pfjetTrk_nStripLayers.clear();
+   
+   trk_pfjetTrk_nValid.clear();
+   trk_pfjetTrk_fValid.clear();
+   trk_pfjetTrk_nValidTracker.clear();
+   trk_pfjetTrk_nValidPixelBarrel.clear();
+   trk_pfjetTrk_nValidPixelEndcap.clear();
+   trk_pfjetTrk_nValidStrip.clear();
+   
+   trk_pfjetTrk_nMissed.clear();
+   trk_pfjetTrk_nMissedOut.clear();
+   trk_pfjetTrk_nMissedIn.clear();
+   trk_pfjetTrk_nMissedTrackerOut.clear();
+   trk_pfjetTrk_nMissedTrackerIn.clear();
+   trk_pfjetTrk_nMissedPixelBarrelOut.clear();
+   trk_pfjetTrk_nMissedPixelBarrelIn.clear();
+   trk_pfjetTrk_nMissedPixelEndcapOut.clear();
+   trk_pfjetTrk_nMissedPixelEndcapIn.clear();
+   
+   trk_pfjetTrk_hasPixelBarrelLayer1.clear();
+   trk_pfjetTrk_hasPixelEndcapLayer1.clear();
+   trk_pfjetTrk_hasPixelBarrelLayer2.clear();
+   trk_pfjetTrk_hasPixelEndcapLayer2.clear();
+   trk_pfjetTrk_hasPixelBarrelLayer3.clear();
+   trk_pfjetTrk_hasPixelEndcapLayer3.clear();
+   trk_pfjetTrk_hasPixelBarrelLayer4.clear();
+   trk_pfjetTrk_hasPixelEndcapLayer4.clear();
+   
+   trk_pfjetTrk_quality.clear();
+   trk_pfjetTrk_normalizedChi2.clear();
+   trk_pfjetTrk_ndof.clear();
+   trk_pfjetTrk_charge.clear();
+   trk_pfjetTrk_qoverp.clear();
+   trk_pfjetTrk_qoverpError.clear();
+   trk_pfjetTrk_theta.clear();
+   trk_pfjetTrk_thetaError.clear();
+   trk_pfjetTrk_lambda.clear();
+   trk_pfjetTrk_lambdaError.clear();
+   trk_pfjetTrk_ptError.clear();
+   trk_pfjetTrk_etaError.clear();
+   trk_pfjetTrk_phiError.clear();
+   
+   trk_pfjetTrk_d0.clear();
+   trk_pfjetTrk_dz.clear();
+   trk_pfjetTrk_d0_pv.clear();
+   trk_pfjetTrk_dz_pv.clear();
+   trk_pfjetTrk_d0_bs.clear();
+   trk_pfjetTrk_d0_bs_zpca.clear();
+   trk_pfjetTrk_d0_bs_zpv.clear();
+   trk_pfjetTrk_dz_bs.clear();
+   trk_pfjetTrk_d0Err.clear();
+   trk_pfjetTrk_dzErr.clear();
+   trk_pfjetTrk_d0_pv_NoRefit.clear();
+   trk_pfjetTrk_dz_pv_NoRefit.clear();   
 }
 
 void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
@@ -426,6 +513,12 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("pv_yError_p2", &pv_yError_p2, "pv_yError_p2/F", buff);
    tree->Branch("pv_zError_p2", &pv_zError_p2, "pv_zError_p2/F", buff);
    
+   tree->Branch("pfjet_n", &pfjet_n, "pfjet_n/I", buff);
+   tree->Branch("pfjet_pt", "std::vector<float>", &pfjet_pt, buff);
+   tree->Branch("pfjet_eta", "std::vector<float>", &pfjet_eta, buff);
+   tree->Branch("pfjet_phi", "std::vector<float>", &pfjet_phi, buff);
+   tree->Branch("pfjet_E", "std::vector<float>", &pfjet_E, buff);
+   
    tree->Branch("trk_pt", "std::vector<float>", &trk_pt, buff);
    tree->Branch("trk_px", "std::vector<float>", &trk_px, buff);
    tree->Branch("trk_py", "std::vector<float>", &trk_py, buff);
@@ -491,6 +584,8 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("trk_dzErr", "std::vector<float>", &trk_dzErr, buff);
    tree->Branch("trk_d0_pv_NoRefit", "std::vector<float>", &trk_d0_pv_NoRefit, buff);
    tree->Branch("trk_dz_pv_NoRefit", "std::vector<float>", &trk_dz_pv_NoRefit, buff);
+
+   // Tracks from TrackJets
    
    tree->Branch("trk_jet_found", "std::vector<bool>", &trk_jet_found, buff);
    
@@ -573,5 +668,82 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("trk_jetTrk_d0_pv_NoRefit", "std::vector<float>", &trk_jetTrk_d0_pv_NoRefit, buff);
    tree->Branch("trk_jetTrk_dz_pv_NoRefit", "std::vector<float>", &trk_jetTrk_dz_pv_NoRefit, buff);
 
-}
+   // Tracks from PFJets
+   
+   tree->Branch("trk_pfjet_found", "std::vector<bool>", &trk_pfjet_found, buff);
+   
+   tree->Branch("trk_pfjet_pt", "std::vector<float>", &trk_pfjet_pt, buff);
+   tree->Branch("trk_pfjet_eta", "std::vector<float>", &trk_pfjet_eta, buff);
+   tree->Branch("trk_pfjet_phi", "std::vector<float>", &trk_pfjet_phi, buff);
+   tree->Branch("trk_pfjet_nTracks", "std::vector<int>", &trk_pfjet_nTracks, buff);
 
+   tree->Branch("trk_pfjetTrk_found", "std::vector<bool>", &trk_pfjetTrk_found, buff);
+   
+   tree->Branch("trk_pfjetTrk_deltaR", "std::vector<float>", &trk_pfjetTrk_deltaR, buff);
+   
+   tree->Branch("trk_pfjetTrk_pt", "std::vector<float>", &trk_pfjetTrk_pt, buff);
+   tree->Branch("trk_pfjetTrk_px", "std::vector<float>", &trk_pfjetTrk_px, buff);
+   tree->Branch("trk_pfjetTrk_py", "std::vector<float>", &trk_pfjetTrk_py, buff);
+   tree->Branch("trk_pfjetTrk_pz", "std::vector<float>", &trk_pfjetTrk_pz, buff);
+   tree->Branch("trk_pfjetTrk_p", "std::vector<float>", &trk_pfjetTrk_p, buff);
+   tree->Branch("trk_pfjetTrk_eta", "std::vector<float>", &trk_pfjetTrk_eta, buff);
+   tree->Branch("trk_pfjetTrk_phi", "std::vector<float>", &trk_pfjetTrk_phi, buff);
+   
+   tree->Branch("trk_pfjetTrk_nTrackerLayers", "std::vector<int>", &trk_pfjetTrk_nTrackerLayers, buff);
+   tree->Branch("trk_pfjetTrk_nPixelBarrelLayers", "std::vector<int>", &trk_pfjetTrk_nPixelBarrelLayers, buff);
+   tree->Branch("trk_pfjetTrk_nPixelEndcapLayers", "std::vector<int>", &trk_pfjetTrk_nPixelEndcapLayers, buff);
+   tree->Branch("trk_pfjetTrk_nStripLayers", "std::vector<int>", &trk_pfjetTrk_nStripLayers, buff);
+   
+   tree->Branch("trk_pfjetTrk_nValid", "std::vector<int>", &trk_pfjetTrk_nValid, buff);
+   tree->Branch("trk_pfjetTrk_fValid", "std::vector<float>", &trk_pfjetTrk_fValid, buff);
+   tree->Branch("trk_pfjetTrk_nValidTracker", "std::vector<int>", &trk_pfjetTrk_nValidTracker, buff);
+   tree->Branch("trk_pfjetTrk_nValidPixelBarrel", "std::vector<int>", &trk_pfjetTrk_nValidPixelBarrel, buff);
+   tree->Branch("trk_pfjetTrk_nValidPixelEndcap", "std::vector<int>", &trk_pfjetTrk_nValidPixelEndcap, buff);
+   tree->Branch("trk_pfjetTrk_nValidStrip", "std::vector<int>", &trk_pfjetTrk_nValidStrip, buff);
+   
+   tree->Branch("trk_pfjetTrk_nMissed", "std::vector<int>", &trk_pfjetTrk_nMissed, buff);
+   tree->Branch("trk_pfjetTrk_nMissedOut", "std::vector<int>", &trk_pfjetTrk_nMissedOut, buff);
+   tree->Branch("trk_pfjetTrk_nMissedIn", "std::vector<int>", &trk_pfjetTrk_nMissedIn, buff);
+   tree->Branch("trk_pfjetTrk_nMissedTrackerOut", "std::vector<int>", &trk_pfjetTrk_nMissedTrackerOut, buff);
+   tree->Branch("trk_pfjetTrk_nMissedTrackerIn", "std::vector<int>", &trk_pfjetTrk_nMissedTrackerIn, buff);
+   tree->Branch("trk_pfjetTrknMissedPixelBarrelOut", "std::vector<int>", &trk_pfjetTrk_nMissedPixelBarrelOut, buff);
+   tree->Branch("trk_pfjetTrknMissedPixelBarrelIn", "std::vector<int>", &trk_pfjetTrk_nMissedPixelBarrelIn, buff);
+   tree->Branch("trk_pfjetTrknMissedPixelEndcapOut", "std::vector<int>", &trk_pfjetTrk_nMissedPixelEndcapOut, buff);
+   tree->Branch("trk_pfjetTrknMissedPixelEndcapIn", "std::vector<int>", &trk_pfjetTrk_nMissedPixelEndcapIn, buff);
+   
+   tree->Branch("trk_pfjetTrk_hasPixelBarrelLayer1", "std::vector<bool>", &trk_pfjetTrk_hasPixelBarrelLayer1, buff);
+   tree->Branch("trk_pfjetTrk_hasPixelEndcapLayer1", "std::vector<bool>", &trk_pfjetTrk_hasPixelEndcapLayer1, buff);
+   tree->Branch("trk_pfjetTrk_hasPixelBarrelLayer2", "std::vector<bool>", &trk_pfjetTrk_hasPixelBarrelLayer2, buff);
+   tree->Branch("trk_pfjetTrk_hasPixelEndcapLayer2", "std::vector<bool>", &trk_pfjetTrk_hasPixelEndcapLayer2, buff);
+   tree->Branch("trk_pfjetTrk_hasPixelBarrelLayer3", "std::vector<bool>", &trk_pfjetTrk_hasPixelBarrelLayer3, buff);
+   tree->Branch("trk_pfjetTrk_hasPixelEndcapLayer3", "std::vector<bool>", &trk_pfjetTrk_hasPixelEndcapLayer3, buff);
+   tree->Branch("trk_pfjetTrk_hasPixelBarrelLayer4", "std::vector<bool>", &trk_pfjetTrk_hasPixelBarrelLayer4, buff);
+   tree->Branch("trk_pfjetTrk_hasPixelEndcapLayer4", "std::vector<bool>", &trk_pfjetTrk_hasPixelEndcapLayer4, buff);
+   
+   tree->Branch("trk_pfjetTrk_quality", "std::vector<int>", &trk_pfjetTrk_quality, buff);
+   tree->Branch("trk_pfjetTrk_normalizedChi2", "std::vector<float>", &trk_pfjetTrk_normalizedChi2, buff);
+   tree->Branch("trk_pfjetTrk_ndof", "std::vector<int>", &trk_pfjetTrk_ndof, buff);
+   tree->Branch("trk_pfjetTrk_charge", "std::vector<int>", &trk_pfjetTrk_charge, buff);
+   tree->Branch("trk_pfjetTrk_qoverp", "std::vector<float>", &trk_pfjetTrk_qoverp, buff);
+   tree->Branch("trk_pfjetTrk_qoverpError", "std::vector<float>", &trk_pfjetTrk_qoverpError, buff);
+   tree->Branch("trk_pfjetTrk_theta", "std::vector<float>", &trk_pfjetTrk_theta, buff);
+   tree->Branch("trk_pfjetTrk_thetaError", "std::vector<float>", &trk_pfjetTrk_thetaError, buff);
+   tree->Branch("trk_pfjetTrk_lambda", "std::vector<float>", &trk_pfjetTrk_lambda, buff);
+   tree->Branch("trk_pfjetTrk_lambdaError", "std::vector<float>", &trk_pfjetTrk_lambdaError, buff);
+   tree->Branch("trk_pfjetTrk_ptError", "std::vector<float>", &trk_pfjetTrk_ptError, buff);
+   tree->Branch("trk_pfjetTrk_etaError", "std::vector<float>", &trk_pfjetTrk_etaError, buff);
+   tree->Branch("trk_pfjetTrk_phiError", "std::vector<float>", &trk_pfjetTrk_phiError, buff);
+   
+   tree->Branch("trk_pfjetTrk_d0", "std::vector<float>", &trk_pfjetTrk_d0, buff);
+   tree->Branch("trk_pfjetTrk_dz", "std::vector<float>", &trk_pfjetTrk_dz, buff);
+   tree->Branch("trk_pfjetTrk_d0_pv", "std::vector<float>", &trk_pfjetTrk_d0_pv, buff);
+   tree->Branch("trk_pfjetTrk_dz_pv", "std::vector<float>", &trk_pfjetTrk_dz_pv, buff);
+   tree->Branch("trk_pfjetTrk_d0_bs", "std::vector<float>", &trk_pfjetTrk_d0_bs, buff);
+   tree->Branch("trk_pfjetTrk_d0_bs_zpca", "std::vector<float>", &trk_pfjetTrk_d0_bs_zpca, buff);
+   tree->Branch("trk_pfjetTrk_d0_bs_zpv", "std::vector<float>", &trk_pfjetTrk_d0_bs_zpv, buff);
+   tree->Branch("trk_pfjetTrk_dz_bs", "std::vector<float>", &trk_pfjetTrk_dz_bs, buff);
+   tree->Branch("trk_pfjetTrk_d0Err", "std::vector<float>", &trk_pfjetTrk_d0Err, buff);
+   tree->Branch("trk_pfjetTrk_dzErr", "std::vector<float>", &trk_pfjetTrk_dzErr, buff);
+   tree->Branch("trk_pfjetTrk_d0_pv_NoRefit", "std::vector<float>", &trk_pfjetTrk_d0_pv_NoRefit, buff);
+   tree->Branch("trk_pfjetTrk_dz_pv_NoRefit", "std::vector<float>", &trk_pfjetTrk_dz_pv_NoRefit, buff);   
+}
