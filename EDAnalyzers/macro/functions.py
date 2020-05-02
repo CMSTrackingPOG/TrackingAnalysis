@@ -1,6 +1,7 @@
 import ROOT
 import numpy
 import math
+import sys
 from array import array
 
 def addbin(h):
@@ -183,4 +184,49 @@ def makeErrorBand(tot,plus,minus):
     error = ROOT.TGraphAsymmErrors(nbins, x, y, xerr, xerr, ym, yp)
         
     return error
-       
+
+class pileup():
+    
+    def __init__(self, dpath):
+        
+        fData = ROOT.TFile.Open(dpath+'puCentral.root','READ')
+        hData = fData.Get('pileup')
+        hData.Scale(1./hData.Integral())
+        
+        hMC = ROOT.TH1D('pileupMC', 'pileupMC', 100, 0, 100)
+        
+        sys.path.append(dpath)
+        from mix_2017_25ns_UltraLegacy_PoissonOOTPU_cfi import probValue
+        for i, value in enumerate(probValue): hMC.SetBinContent(i+1, value)
+        
+        hMC.Scale(1./hMC.Integral())
+        
+        ROOT.gROOT.cd()
+        self.pileupRW = hData.Clone('pileupRW')
+        self.pileupRW.Divide(hMC)
+        
+    def getWeight(self, nTrue):
+        
+        return self.pileupRW.GetBinContent(self.pileupRW.FindBin(nTrue))
+
+class reweight():
+    
+    def __init__(self, dpath, rwvar):
+        
+        frw = ROOT.TFile.Open(dpath+rwvar+'.root','READ')
+        
+        hData = frw.Get('h_data')
+        hData.Scale(1./hData.Integral())
+
+        hMC = frw.Get('h_mc')
+        hMC.Scale(1./hMC.Integral())
+        
+        ROOT.gROOT.cd()
+        self.rw = hData.Clone('varRW')
+        self.rw.Divide(hMC)
+        
+        frw.Close()
+        
+    def getWeight(self, var):
+        
+        return self.rw.GetBinContent(self.rw.FindBin(var))

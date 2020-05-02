@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys
+import ROOT
 
 from optparse import OptionParser
 
@@ -17,6 +18,9 @@ def main(argv = None):
     parser.add_option("--ipbs",action='store_true',help="Run IPBS measurement [default: %default]")
     parser.add_option("--withbs",action='store_true',help="Use WithBS samples [default: %default]")
     parser.add_option("--qcd",action='store_true',help="Use QCD events [default: %default]")
+    parser.add_option("--reweight",action='store_true',help="Produce the reweighting file [default: %default]")
+    parser.add_option("-j","--jobs",default="jobs/",help="Directory with input files [default: %default]")
+    parser.add_option("--clean",action='store_true',help="Clean merged files [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -26,7 +30,7 @@ if __name__ == '__main__':
     
     options = main()
 
-    jobDir = 'jobs/'
+    jobDir = options.jobs
 
     inputMC = ['SingleNeutrino_RunIISummer19UL17RECO']
     inputData = ['ZeroBias_Run2017B','ZeroBias_Run2017C',\
@@ -34,7 +38,7 @@ if __name__ == '__main__':
     if options.qcd:
         inputMC = ['QCDPt15to7000TuneCP5Flat13TeVpythia8_RunIISummer19UL17RECO']
         inputData = ['JetHT_Run2017B','JetHT_Run2017D',\
-        'JetHT_Run2017E']
+        'JetHT_Run2017E','JetHT_Run2017F']
         
     if options.withbs:
         inputMC = ['SingleNeutrino_RunIISummer19UL17RECOwithBS']
@@ -49,14 +53,36 @@ if __name__ == '__main__':
     fMC = jobDir+'mc.root'
     fData = jobDir+'data.root'
 
-    if not os.path.isfile(fMC):
+    if not os.path.isfile(fMC) or options.clean:
         filesMC = " ".join(inputMC)
         os.system('hadd -f '+fMC+' '+filesMC)
 
-    if not os.path.isfile(fData):    
+    if not os.path.isfile(fData) or options.clean:
         filesData = " ".join(inputData)
         os.system('hadd -f '+fData+' '+filesData)
 
+    if options.reweight:
+        
+        for r in ['jetPtMax','jetHT']:
+            
+            frw = ROOT.TFile.Open('data/reweight/'+r+'.root','RECREATE')
+            hname = 'h_'+r
+        
+            fmc = ROOT.TFile.Open(fMC,'READ')        
+            if (fmc.GetListOfKeys().Contains(hname)):
+                frw.cd()
+                h_mc = fmc.Get(hname).Clone('h_mc')
+                fmc.Close()
+                
+            fdata = ROOT.TFile.Open(fData,'READ')
+            if (fdata.GetListOfKeys().Contains(hname)):
+                frw.cd()
+                h_data = fdata.Get(hname).Clone('h_data')
+                fdata.Close()        
+                
+            frw.Write()
+            frw.Close()
+        
     picdir = 'pics'
     if os.path.isdir(picdir):
         os.system("rm -rf "+picdir)

@@ -27,6 +27,7 @@ def main(argv = None):
     parser.add_option("-o","--output",default="pics",help="output directory [default: %default]")
     parser.add_option("-t","--type",default="pv",help="type of the measurement [default: %default]")
     parser.add_option("--qcd",action='store_true',help="Use QCD events [default: %default]")
+    parser.add_option("--parampv",default="PVsumTrackPtSq",help="Parameterisation for PV resolution measurement [default: %default]")
 #    parser.add_option("-s","--switch",default="",help="use only mc or data [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
@@ -45,13 +46,23 @@ if __name__ == '__main__':
         os.system("mkdir "+options.output)
 
     ip = options.type
-        
+
+    evt = 'zb'
+    if options.qcd: evt = 'qcd'
+
+    parampv = c.PVnTracks[evt]
+    if options.parampv == 'PVsumTrackPt': parampv = c.PVsumTrackPt[evt]
+    elif options.parampv == 'PVsumTrackPtSq': parampv = c.PVsumTrackPtSq[evt]
+    elif options.parampv != 'PVnTracks':
+        print 'Unknown PV parameterisation requested:', options.parampv
+        sys.exit()        
+    
     fHistData = ROOT.TFile.Open(options.data,'read')
     fHistMC = ROOT.TFile.Open(options.mc,'read')
     
 #    ParamList = [c.IPpt,c.IPeta,c.IPphi,c.IPnpv,c.IPsz]
 #    ParamList = [c.IPpt,c.IPeta,c.IPphi,c.IPnpv,c.IPdr,c.IPsz]
-    ParamList = [c.IPeta]
+    ParamList = [c.IPpt]
 
     hIncl = [\
     'evNpv','ipPt','ipEta','ipPhi',\
@@ -96,10 +107,11 @@ if __name__ == '__main__':
         leg.AddEntry(hMC,"Simulation","f")
         leg.Draw()        
 
-        t1, t2, t3 = style.cmslabel(1,c.year)
+        t1, t2, t3, t4 = style.cmslabel(1, c.year, evt)
         t1.Draw()
         t2.Draw()
         t3.Draw()
+        t4.Draw()
 
         if h in ['ipPt','ipDrTrkJet']:
             hData.SetMinimum(10)
@@ -123,12 +135,13 @@ if __name__ == '__main__':
             for p in ParamList:
                 for k, v in p.iteritems():
                     rout['reso'][t][x][k] = {}
-                    for ktrk, vtrk in c.PVnTracks.iteritems():
+                    for ktrk, vtrk in parampv.iteritems():
                         if ip == 'bs' and ktrk != '': break
                         rout['reso'][t][x][k][ktrk] = {}
 
-    for ktrk, vtrk in c.PVnTracks.iteritems():
+    for ktrk, vtrk in parampv.iteritems():
 
+        if ip == 'pv' and ktrk == '': continue
         if ip == 'bs' and ktrk != '': break
         
 #        if ktrk != '_nTrks0to15': continue
@@ -137,6 +150,8 @@ if __name__ == '__main__':
         
             for k, v in param.iteritems():
     
+                if k == '': continue
+                
 #                if k != '_pt1p3to1p5': continue
                 
                 for x in c.IPmeas:                    
@@ -149,12 +164,13 @@ if __name__ == '__main__':
                     hResoMC = fHistMC.Get(hNameResoMC)
 #                    func.addbin(hResoMC)
                     
-                    if hResoData.GetEntries() < 1:
-                        print 'No stats in '+hResoData.GetName()
-                        sys.exit()
-                    if hResoMC.GetEntries() < 1:
-                        print 'No stats in '+hResoMC.GetName()
-                        sys.exit()
+                    hasStats = True
+                    if hResoData.Integral() == 0:
+                        hasStats = False
+                        print 'No stats in '+hResoData.GetName()+' (data)'                        
+                    if hResoMC.Integral() == 0:
+                        hasStats = False
+                        print 'No stats in '+hResoMC.GetName()+' (mc)'
 
                     for h in [hResoData]:
                         h.SetMarkerSize(0.7)
@@ -178,7 +194,8 @@ if __name__ == '__main__':
 #                            hResoMC = hResoMC.Rebin(5)
 #                            hResoData = hResoData.Rebin(5)
                     
-                    hResoMC.Scale(intResoData/intResoMC)        
+                    if hasStats:
+                        hResoMC.Scale(intResoData/intResoMC)        
             
                     maxResoData = hResoData.GetMaximum()
                     maxResoMC = hResoMC.GetMaximum()
@@ -193,8 +210,8 @@ if __name__ == '__main__':
                     if intResoData > 100 and intResoMC > 100:
 
                         ffit = ''
-#                        if x in ['dz']: 
-#                            ffit = '3g'
+                        if x in ['dz']: 
+                            ffit = '3g'
 #                            if lowstat: ffit = '1g'
                         
                         resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,x,k,c.mcfit,ffit)
@@ -282,10 +299,11 @@ if __name__ == '__main__':
                         leg.AddEntry(resResoMC,"Simulation (fit)","l")
                         leg.Draw()        
                 
-                        t1, t2, t3 = style.cmslabel(1,c.year)
+                        t1, t2, t3, t4 = style.cmslabel(1, c.year, evt)
                         t1.Draw()
                         t2.Draw()
                         t3.Draw()
+                        t4.Draw()
                 
                         c1.Print(options.output+'/ip'+ip+'Reso_'+x+ktrk+k+'.pdf')
                         c1.Clear()

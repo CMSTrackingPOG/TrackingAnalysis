@@ -4,8 +4,7 @@ import os
 
 inputjson=['data.json','mc.json']
 
-param='PVnTracks'
-#param='PVsumTrackPt'
+param='PVnTracks,PVsumTrackPtSq'
 
 outdir = 'jobs/'
 if os.path.isdir(outdir):

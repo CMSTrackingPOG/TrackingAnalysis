@@ -136,7 +136,7 @@ def doFit(name, hist, var, param, color=38, func=''):
                     tryMin = it
                     fMin = f
 
-                    if chi2 < 1: break
+                    if chi2 < 1.: break
     
     if tryMin >= 0:
         
