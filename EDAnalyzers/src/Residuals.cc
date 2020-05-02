@@ -1,3 +1,6 @@
+// add offline PFHT, double check what G uses for pileup reweighting
+// try to access tracks from PFJets
+
 // system include files
 #include <memory>
 
@@ -34,6 +37,7 @@
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 #include "DataFormats/JetReco/interface/TrackJet.h"
+#include "DataFormats/JetReco/interface/PFJet.h"
 
 #include <TrackingTools/TrajectoryState/interface/PerigeeConversions.h>
 #include <TrackingTools/TrajectoryState/interface/TrajectoryStateClosestToPoint.h>
@@ -92,6 +96,20 @@ class Residuals : public edm::EDAnalyzer
 	const edm::Ptr<reco::Track> & track_;
      };
 
+   class TrackEqualRef
+     {	
+      public:
+	TrackEqualRef( const reco::TrackRef & t) : track_( t ) {}
+
+	bool operator()( const reco::TrackRef & t ) const 
+	  {
+	     return t->pt()==track_->pt();
+	  }
+	
+      private:
+	const reco::TrackRef & track_;
+     };
+   
    class VertexEqual
      {	
       public:
@@ -113,6 +131,7 @@ class Residuals : public edm::EDAnalyzer
    edm::EDGetTokenT<reco::BeamSpot> theBeamspotToken_;
    edm::EDGetTokenT<double> theRhoToken_;
    edm::EDGetTokenT< vector<reco::TrackJet> > theTrackJetsToken_;
+   edm::EDGetTokenT< vector<reco::PFJet> > thePFJetsToken_;
    edm::EDGetTokenT<edm::TriggerResults> theTriggerBitsToken_;
    edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puInfoToken_;
 
@@ -165,11 +184,15 @@ Residuals::Residuals(const edm::ParameterSet& pset):
 
    edm::InputTag TrackJetsTag_ = pset.getParameter<edm::InputTag>("TrackJetsLabel");
    theTrackJetsToken_= consumes< vector<reco::TrackJet> >(TrackJetsTag_);
+
+   edm::InputTag PFJetsTag_ = pset.getParameter<edm::InputTag>("PFJetsLabel");
+   thePFJetsToken_= consumes< vector<reco::PFJet> >(PFJetsTag_);
    
    edm::InputTag TriggerBitsTag_ = pset.getParameter<edm::InputTag>("TriggerResultsLabel");
    theTriggerBitsToken_ = consumes<edm::TriggerResults>(TriggerBitsTag_);
    
-   puInfoToken_ = consumes<std::vector<PileupSummaryInfo> >(pset.getParameter<edm::InputTag>("puInfoInput"));
+   edm::InputTag PUInfoTag_ = pset.getParameter<edm::InputTag>("puInfoLabel");
+   puInfoToken_ = consumes<std::vector<PileupSummaryInfo> >(PUInfoTag_);
    
    beamSpotConfig = pset.getParameter<std::string>("BeamSpotConfig");
    
@@ -237,6 +260,9 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    Handle< vector<reco::TrackJet> > trackJets;
    iEvent.getByToken(theTrackJetsToken_, trackJets);
+
+   Handle< vector<reco::PFJet> > pfJets;
+   iEvent.getByToken(thePFJetsToken_, pfJets);
    
    VertexReProducer revertex(vtxH, iEvent, beamSpotConfig);
    
@@ -273,6 +299,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    for( unsigned int i=0;i<names.size();i++ )
      {
 	TString trigName = TString(names.triggerName(i));
+
 //	std::cout << i << " " << trigName << std::endl;
 	
 	bool pass = (triggerBits->accept(i) ? true : false);
@@ -306,7 +333,17 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	else if( trigName.Contains("HLT_AK4PFJet100_v") ) ftree->trig_AK4PFJet100_pass = pass;
 	else if( trigName.Contains("HLT_AK4PFJet120_v") ) ftree->trig_AK4PFJet120_pass = pass;
 	
-	// add HT triggers
+	else if( trigName.Contains("HLT_PFHT180_v") ) ftree->trig_PFHT180_pass = pass;
+	else if( trigName.Contains("HLT_PFHT250_v") ) ftree->trig_PFHT250_pass = pass;	
+	else if( trigName.Contains("HLT_PFHT370_v") ) ftree->trig_PFHT370_pass = pass;
+	else if( trigName.Contains("HLT_PFHT430_v") ) ftree->trig_PFHT430_pass = pass;
+	else if( trigName.Contains("HLT_PFHT510_v") ) ftree->trig_PFHT510_pass = pass;
+	else if( trigName.Contains("HLT_PFHT590_v") ) ftree->trig_PFHT590_pass = pass;
+	else if( trigName.Contains("HLT_PFHT680_v") ) ftree->trig_PFHT680_pass = pass;
+	else if( trigName.Contains("HLT_PFHT780_v") ) ftree->trig_PFHT780_pass = pass;
+	else if( trigName.Contains("HLT_PFHT890_v") ) ftree->trig_PFHT890_pass = pass;
+	else if( trigName.Contains("HLT_PFHT1050_v") ) ftree->trig_PFHT1050_pass = pass;
+	else if( trigName.Contains("HLT_PFHT350_v") ) ftree->trig_PFHT350_pass = pass;
 	  
 //	     std::cout << i << " " << trigName << " L1=" << L1prescale << " HLT=" << HLTprescale << std::endl;
      }
@@ -479,6 +516,21 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_zError_p2 = vtx2.zError()*micron;
      }
 
+   // PFJets
+   
+   unsigned int nFPJets = pfJets->size();
+   ftree->pfjet_n = nFPJets;
+
+   for( unsigned int ij=0;ij<nFPJets;ij++ )
+     {
+	reco::PFJet jet = pfJets->at(ij);
+
+	ftree->pfjet_pt.push_back( jet.pt() );
+	ftree->pfjet_eta.push_back( jet.eta() );
+	ftree->pfjet_phi.push_back( jet.phi() );
+	ftree->pfjet_E.push_back( jet.energy() );
+     }   
+   
    // Tracks
    float trackProb = 1./float(trackScale);
    int nTracks = tracks->size();
@@ -580,6 +632,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_d0_pv_NoRefit.push_back( itk->dxy(vtxH->front().position()) * micron );
 	ftree->trk_dz_pv_NoRefit.push_back( itk->dz(vtxH->front().position()) * micron );
 
+	// Tracks from TrackJets
+	
 	float drMin = 10E+10;
 	int iJet = -1;
 	int iTrackMin = -1;
@@ -789,6 +843,208 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     ftree->trk_jetTrk_dzErr.push_back( null );
 	     ftree->trk_jetTrk_d0_pv_NoRefit.push_back( null );
 	     ftree->trk_jetTrk_dz_pv_NoRefit.push_back( null );
+	  }
+
+	// Tracks from PFJets
+
+	float drMinPF = 10E+10;
+	int iJetPF = -1;
+	int iTrackMinPF = -1;
+	
+	for( unsigned int ij=0;ij<pfJets->size();ij++ )
+	  {
+	     reco::PFJet jet = pfJets->at(ij);
+	     reco::TrackRefVector trks = jet.getTrackRefs();
+	     const reco::TrackRef trkRef = reco::TrackRef(tracks, itk - tracks->begin());
+	     edm::RefVector<TrackCollection>::const_iterator itt = find_if(trks.begin(), trks.end(), TrackEqualRef(trkRef));
+	     if( itt != trks.end() )
+	       {
+		  size_t pos = itt - trks.begin();
+		  
+		  iJetPF = ij;
+		  
+		  for( unsigned int it=0;it<trks.size();it++ )
+		    {
+		       if( it == pos ) continue;
+		       
+		       float dr = getDeltaR(trks[pos]->eta(), trks[pos]->phi(), trks[it]->eta(), trks[it]->phi());
+		       if( dr < drMin )
+			 {
+			    drMinPF = dr;
+			    iTrackMinPF = it;
+			 }
+		    }
+		  
+		  break;
+	       }
+	  }
+
+	if( iJetPF >= 0 )
+	  {
+	     reco::PFJet jet = pfJets->at(iJetPF);
+	     
+	     ftree->trk_pfjet_found.push_back( true );
+	     
+	     ftree->trk_pfjet_pt.push_back( jet.pt() );
+	     ftree->trk_pfjet_eta.push_back( jet.eta() );
+	     ftree->trk_pfjet_phi.push_back( jet.phi() );
+	     ftree->trk_pfjet_nTracks.push_back( jet.getTrackRefs().size() );
+	  }
+	else
+	  {
+	     ftree->trk_pfjet_found.push_back( false );
+	     
+	     ftree->trk_pfjet_pt.push_back( null );
+	     ftree->trk_pfjet_eta.push_back( null );
+	     ftree->trk_pfjet_phi.push_back( null );
+	     ftree->trk_pfjet_nTracks.push_back( null );
+	  }	
+
+	if( iTrackMinPF >= 0 )
+	  {		  
+	     reco::TrackRef trkCl = pfJets->at(iJetPF).getTrackRefs().at(iTrackMinPF);
+	     
+	     ftree->trk_pfjetTrk_found.push_back( true );
+	     
+	     ftree->trk_pfjetTrk_deltaR.push_back( drMinPF );
+	     
+	     ftree->trk_pfjetTrk_pt.push_back( trkCl->pt() );
+	     ftree->trk_pfjetTrk_px.push_back( trkCl->px() );
+	     ftree->trk_pfjetTrk_py.push_back( trkCl->py() );
+	     ftree->trk_pfjetTrk_pz.push_back( trkCl->pz() );
+	     ftree->trk_pfjetTrk_p.push_back( trkCl->p() );
+	     ftree->trk_pfjetTrk_eta.push_back( trkCl->eta() );
+	     ftree->trk_pfjetTrk_phi.push_back( trkCl->phi() );
+	     
+	     ftree->trk_pfjetTrk_nTrackerLayers.push_back( trkCl->hitPattern().trackerLayersWithMeasurement() );
+	     ftree->trk_pfjetTrk_nPixelBarrelLayers.push_back( trkCl->hitPattern().pixelBarrelLayersWithMeasurement() );
+	     ftree->trk_pfjetTrk_nPixelEndcapLayers.push_back( trkCl->hitPattern().pixelEndcapLayersWithMeasurement() );
+	     ftree->trk_pfjetTrk_nStripLayers.push_back( trkCl->hitPattern().stripLayersWithMeasurement() );
+	     
+	     ftree->trk_pfjetTrk_nValid.push_back( trkCl->numberOfValidHits() );
+	     ftree->trk_pfjetTrk_fValid.push_back( trkCl->validFraction() );
+	     ftree->trk_pfjetTrk_nValidTracker.push_back( trkCl->hitPattern().numberOfValidTrackerHits() );
+	     ftree->trk_pfjetTrk_nValidPixelBarrel.push_back( trkCl->hitPattern().numberOfValidPixelBarrelHits() );
+	     ftree->trk_pfjetTrk_nValidPixelEndcap.push_back( trkCl->hitPattern().numberOfValidPixelEndcapHits() );
+	     ftree->trk_pfjetTrk_nValidStrip.push_back( trkCl->hitPattern().numberOfValidStripHits() );
+	     
+	     ftree->trk_pfjetTrk_nMissed.push_back( trkCl->numberOfLostHits() );
+	     ftree->trk_pfjetTrk_nMissedOut.push_back( trkCl->hitPattern().numberOfLostHits(HitPattern::MISSING_OUTER_HITS) );
+	     ftree->trk_pfjetTrk_nMissedIn.push_back( trkCl->hitPattern().numberOfLostHits(HitPattern::MISSING_INNER_HITS) );
+	     ftree->trk_pfjetTrk_nMissedTrackerOut.push_back( trkCl->hitPattern().numberOfLostTrackerHits(HitPattern::MISSING_OUTER_HITS) );
+	     ftree->trk_pfjetTrk_nMissedTrackerIn.push_back( trkCl->hitPattern().numberOfLostTrackerHits(HitPattern::MISSING_INNER_HITS) );
+	     ftree->trk_pfjetTrk_nMissedPixelBarrelOut.push_back( trkCl->hitPattern().numberOfLostPixelBarrelHits(HitPattern::MISSING_OUTER_HITS) );
+	     ftree->trk_pfjetTrk_nMissedPixelBarrelIn.push_back( trkCl->hitPattern().numberOfLostPixelBarrelHits(HitPattern::MISSING_INNER_HITS) );
+	     ftree->trk_pfjetTrk_nMissedPixelEndcapOut.push_back( trkCl->hitPattern().numberOfLostPixelEndcapHits(HitPattern::MISSING_OUTER_HITS) );
+	     ftree->trk_pfjetTrk_nMissedPixelEndcapIn.push_back( trkCl->hitPattern().numberOfLostPixelEndcapHits(HitPattern::MISSING_INNER_HITS) );
+	     
+	     ftree->trk_pfjetTrk_hasPixelBarrelLayer1.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 1) );
+	     ftree->trk_pfjetTrk_hasPixelEndcapLayer1.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 1) );
+	     ftree->trk_pfjetTrk_hasPixelBarrelLayer2.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 2) );
+	     ftree->trk_pfjetTrk_hasPixelEndcapLayer2.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 2) );
+	     ftree->trk_pfjetTrk_hasPixelBarrelLayer3.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 3) );
+	     ftree->trk_pfjetTrk_hasPixelEndcapLayer3.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 3) );
+	     ftree->trk_pfjetTrk_hasPixelBarrelLayer4.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 4) );
+	     ftree->trk_pfjetTrk_hasPixelEndcapLayer4.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 4) );
+	     
+	     ftree->trk_pfjetTrk_quality.push_back( trkCl->qualityMask() );
+	     ftree->trk_pfjetTrk_normalizedChi2.push_back( trkCl->normalizedChi2() );
+	     ftree->trk_pfjetTrk_ndof.push_back( trkCl->ndof() );
+	     ftree->trk_pfjetTrk_charge.push_back( trkCl->charge() );
+	     ftree->trk_pfjetTrk_qoverp.push_back( trkCl->qoverp() );
+	     ftree->trk_pfjetTrk_qoverpError.push_back( trkCl->qoverpError() );
+	     ftree->trk_pfjetTrk_theta.push_back( trkCl->theta() );
+	     ftree->trk_pfjetTrk_thetaError.push_back( trkCl->thetaError() );
+	     ftree->trk_pfjetTrk_lambda.push_back( trkCl->lambda() );
+	     ftree->trk_pfjetTrk_lambdaError.push_back( trkCl->lambdaError() );
+	     ftree->trk_pfjetTrk_ptError.push_back( trkCl->ptError() );
+	     ftree->trk_pfjetTrk_etaError.push_back( trkCl->etaError() );
+	     ftree->trk_pfjetTrk_phiError.push_back( trkCl->phiError() );
+	     
+	     ftree->trk_pfjetTrk_d0.push_back( trkCl->dxy() * micron );
+	     ftree->trk_pfjetTrk_dz.push_back( trkCl->dz() * micron );
+	     ftree->trk_pfjetTrk_d0_pv.push_back( trkCl->dxy(vtxPosition) * micron );
+	     ftree->trk_pfjetTrk_dz_pv.push_back( trkCl->dz(vtxPosition) * micron );
+	     ftree->trk_pfjetTrk_d0_bs.push_back( trkCl->dxy(pvbeamspot->position()) * micron );
+	     ftree->trk_pfjetTrk_d0_bs_zpca.push_back( trkCl->dxy(*pvbeamspot) * micron );
+	     ftree->trk_pfjetTrk_d0_bs_zpv.push_back( trkCl->dxy(pvbeamspot->position(vtx.z())) * micron );
+	     ftree->trk_pfjetTrk_dz_bs.push_back( trkCl->dz(pvbeamspot->position()) * micron );
+	     ftree->trk_pfjetTrk_d0Err.push_back( trkCl->d0Error() * micron );
+	     ftree->trk_pfjetTrk_dzErr.push_back( trkCl->dzError() * micron );
+	     ftree->trk_pfjetTrk_d0_pv_NoRefit.push_back( trkCl->dxy(vtxH->front().position()) * micron );
+	     ftree->trk_pfjetTrk_dz_pv_NoRefit.push_back( trkCl->dz(vtxH->front().position()) * micron );
+	  }
+	else
+	  {
+	     ftree->trk_pfjetTrk_found.push_back( false );
+	     
+	     ftree->trk_pfjetTrk_deltaR.push_back( null );
+	     
+	     ftree->trk_pfjetTrk_pt.push_back( null );
+	     ftree->trk_pfjetTrk_px.push_back( null );
+	     ftree->trk_pfjetTrk_py.push_back( null );
+	     ftree->trk_pfjetTrk_pz.push_back( null );
+	     ftree->trk_pfjetTrk_p.push_back( null );
+	     ftree->trk_pfjetTrk_eta.push_back( null );
+	     ftree->trk_pfjetTrk_phi.push_back( null );
+	     
+	     ftree->trk_pfjetTrk_nTrackerLayers.push_back( null );
+	     ftree->trk_pfjetTrk_nPixelBarrelLayers.push_back( null );
+	     ftree->trk_pfjetTrk_nPixelEndcapLayers.push_back( null );
+	     ftree->trk_pfjetTrk_nStripLayers.push_back( null );
+	     
+	     ftree->trk_pfjetTrk_nValid.push_back( null );
+	     ftree->trk_pfjetTrk_fValid.push_back( null );
+	     ftree->trk_pfjetTrk_nValidTracker.push_back( null );
+	     ftree->trk_pfjetTrk_nValidPixelBarrel.push_back( null );
+	     ftree->trk_pfjetTrk_nValidPixelEndcap.push_back( null );
+	     ftree->trk_pfjetTrk_nValidStrip.push_back( null );
+	     
+	     ftree->trk_pfjetTrk_nMissed.push_back( null );
+	     ftree->trk_pfjetTrk_nMissedOut.push_back( null );
+	     ftree->trk_pfjetTrk_nMissedIn.push_back( null );
+	     ftree->trk_pfjetTrk_nMissedTrackerOut.push_back( null );
+	     ftree->trk_pfjetTrk_nMissedTrackerIn.push_back( null );
+	     ftree->trk_pfjetTrk_nMissedPixelBarrelOut.push_back( null );
+	     ftree->trk_pfjetTrk_nMissedPixelBarrelIn.push_back( null );
+	     ftree->trk_pfjetTrk_nMissedPixelEndcapOut.push_back( null );
+	     ftree->trk_pfjetTrk_nMissedPixelEndcapIn.push_back( null );
+	     
+	     ftree->trk_pfjetTrk_hasPixelBarrelLayer1.push_back( false );
+	     ftree->trk_pfjetTrk_hasPixelEndcapLayer1.push_back( false );
+	     ftree->trk_pfjetTrk_hasPixelBarrelLayer2.push_back( false );
+	     ftree->trk_pfjetTrk_hasPixelEndcapLayer2.push_back( false );
+	     ftree->trk_pfjetTrk_hasPixelBarrelLayer3.push_back( false );
+	     ftree->trk_pfjetTrk_hasPixelEndcapLayer3.push_back( false );
+	     ftree->trk_pfjetTrk_hasPixelBarrelLayer4.push_back( false );
+	     ftree->trk_pfjetTrk_hasPixelEndcapLayer4.push_back( false );
+	     
+	     ftree->trk_pfjetTrk_quality.push_back( null );
+	     ftree->trk_pfjetTrk_normalizedChi2.push_back( null );
+	     ftree->trk_pfjetTrk_ndof.push_back( null );
+	     ftree->trk_pfjetTrk_charge.push_back( null );
+	     ftree->trk_pfjetTrk_qoverp.push_back( null );
+	     ftree->trk_pfjetTrk_qoverpError.push_back( null );
+	     ftree->trk_pfjetTrk_theta.push_back( null );
+	     ftree->trk_pfjetTrk_thetaError.push_back( null );
+	     ftree->trk_pfjetTrk_lambda.push_back( null );
+	     ftree->trk_pfjetTrk_lambdaError.push_back( null );
+	     ftree->trk_pfjetTrk_ptError.push_back( null );
+	     ftree->trk_pfjetTrk_etaError.push_back( null );
+	     ftree->trk_pfjetTrk_phiError.push_back( null );
+	     
+	     ftree->trk_pfjetTrk_d0.push_back( null );
+	     ftree->trk_pfjetTrk_dz.push_back( null );
+	     ftree->trk_pfjetTrk_d0_pv.push_back( null );
+	     ftree->trk_pfjetTrk_dz_pv.push_back( null );
+	     ftree->trk_pfjetTrk_d0_bs.push_back( null );
+	     ftree->trk_pfjetTrk_d0_bs_zpca.push_back( null );
+	     ftree->trk_pfjetTrk_d0_bs_zpv.push_back( null );
+	     ftree->trk_pfjetTrk_dz_bs.push_back( null );
+	     ftree->trk_pfjetTrk_d0Err.push_back( null );
+	     ftree->trk_pfjetTrk_dzErr.push_back( null );
+	     ftree->trk_pfjetTrk_d0_pv_NoRefit.push_back( null );
+	     ftree->trk_pfjetTrk_dz_pv_NoRefit.push_back( null );
 	  }	
      }
 

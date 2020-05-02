@@ -57,6 +57,18 @@ class ResTree
    bool trig_AK4PFJet100_pass;
    bool trig_AK4PFJet120_pass;
    
+   bool trig_PFHT180_pass;
+   bool trig_PFHT250_pass;
+   bool trig_PFHT370_pass;
+   bool trig_PFHT430_pass;
+   bool trig_PFHT510_pass;
+   bool trig_PFHT590_pass;
+   bool trig_PFHT680_pass;
+   bool trig_PFHT780_pass;
+   bool trig_PFHT890_pass;
+   bool trig_PFHT1050_pass;
+   bool trig_PFHT350_pass;
+   
    int mc_pu_intime_NumInt;
    int mc_pu_trueNumInt;
    int mc_pu_before_npu;
@@ -136,6 +148,12 @@ class ResTree
    float pv_yError_p2;
    float pv_zError_p2;
    
+   int pfjet_n;
+   std::vector<float> pfjet_pt;
+   std::vector<float> pfjet_eta;
+   std::vector<float> pfjet_phi;
+   std::vector<float> pfjet_E;
+
    std::vector<float> trk_pt;
    std::vector<float> trk_px;
    std::vector<float> trk_py;
@@ -201,6 +219,8 @@ class ResTree
    std::vector<float> trk_dzErr;
    std::vector<float> trk_d0_pv_NoRefit;
    std::vector<float> trk_dz_pv_NoRefit;
+
+   // Tracks from TrackJets
    
    std::vector<bool> trk_jet_found;
    
@@ -283,6 +303,84 @@ class ResTree
    std::vector<float> trk_jetTrk_d0_pv_NoRefit;
    std::vector<float> trk_jetTrk_dz_pv_NoRefit;
 
+   // Tracks from PFJets
+   
+   std::vector<bool> trk_pfjet_found;
+   
+   std::vector<float> trk_pfjet_pt;
+   std::vector<float> trk_pfjet_eta;
+   std::vector<float> trk_pfjet_phi;
+   std::vector<int> trk_pfjet_nTracks;
+
+   std::vector<bool> trk_pfjetTrk_found;
+   
+   std::vector<float> trk_pfjetTrk_deltaR;
+   
+   std::vector<float> trk_pfjetTrk_pt;
+   std::vector<float> trk_pfjetTrk_px;
+   std::vector<float> trk_pfjetTrk_py;
+   std::vector<float> trk_pfjetTrk_pz;
+   std::vector<float> trk_pfjetTrk_p;
+   std::vector<float> trk_pfjetTrk_eta;
+   std::vector<float> trk_pfjetTrk_phi;
+   
+   std::vector<int> trk_pfjetTrk_nTrackerLayers;
+   std::vector<int> trk_pfjetTrk_nPixelBarrelLayers;
+   std::vector<int> trk_pfjetTrk_nPixelEndcapLayers;
+   std::vector<int> trk_pfjetTrk_nStripLayers;
+   
+   std::vector<int> trk_pfjetTrk_nValid;
+   std::vector<float> trk_pfjetTrk_fValid;
+   std::vector<int> trk_pfjetTrk_nValidTracker;
+   std::vector<int> trk_pfjetTrk_nValidPixelBarrel;
+   std::vector<int> trk_pfjetTrk_nValidPixelEndcap;
+   std::vector<int> trk_pfjetTrk_nValidStrip;
+   
+   std::vector<int> trk_pfjetTrk_nMissed;
+   std::vector<int> trk_pfjetTrk_nMissedOut;
+   std::vector<int> trk_pfjetTrk_nMissedIn;
+   std::vector<int> trk_pfjetTrk_nMissedTrackerOut;
+   std::vector<int> trk_pfjetTrk_nMissedTrackerIn;
+   std::vector<int> trk_pfjetTrk_nMissedPixelBarrelOut;
+   std::vector<int> trk_pfjetTrk_nMissedPixelBarrelIn;
+   std::vector<int> trk_pfjetTrk_nMissedPixelEndcapOut;
+   std::vector<int> trk_pfjetTrk_nMissedPixelEndcapIn;
+   
+   std::vector<bool> trk_pfjetTrk_hasPixelBarrelLayer1;
+   std::vector<bool> trk_pfjetTrk_hasPixelEndcapLayer1;
+   std::vector<bool> trk_pfjetTrk_hasPixelBarrelLayer2;
+   std::vector<bool> trk_pfjetTrk_hasPixelEndcapLayer2;
+   std::vector<bool> trk_pfjetTrk_hasPixelBarrelLayer3;
+   std::vector<bool> trk_pfjetTrk_hasPixelEndcapLayer3;
+   std::vector<bool> trk_pfjetTrk_hasPixelBarrelLayer4;
+   std::vector<bool> trk_pfjetTrk_hasPixelEndcapLayer4;
+   
+   std::vector<int> trk_pfjetTrk_quality;
+   std::vector<float> trk_pfjetTrk_normalizedChi2;
+   std::vector<int> trk_pfjetTrk_ndof;
+   std::vector<int> trk_pfjetTrk_charge;
+   std::vector<float> trk_pfjetTrk_qoverp;
+   std::vector<float> trk_pfjetTrk_qoverpError;
+   std::vector<float> trk_pfjetTrk_theta;
+   std::vector<float> trk_pfjetTrk_thetaError;
+   std::vector<float> trk_pfjetTrk_lambda;
+   std::vector<float> trk_pfjetTrk_lambdaError;
+   std::vector<float> trk_pfjetTrk_ptError;
+   std::vector<float> trk_pfjetTrk_etaError;
+   std::vector<float> trk_pfjetTrk_phiError;
+   
+   std::vector<float> trk_pfjetTrk_d0;
+   std::vector<float> trk_pfjetTrk_dz;
+   std::vector<float> trk_pfjetTrk_d0_pv;
+   std::vector<float> trk_pfjetTrk_dz_pv;
+   std::vector<float> trk_pfjetTrk_d0_bs;
+   std::vector<float> trk_pfjetTrk_d0_bs_zpca;
+   std::vector<float> trk_pfjetTrk_d0_bs_zpv;
+   std::vector<float> trk_pfjetTrk_dz_bs;
+   std::vector<float> trk_pfjetTrk_d0Err;
+   std::vector<float> trk_pfjetTrk_dzErr;
+   std::vector<float> trk_pfjetTrk_d0_pv_NoRefit;
+   std::vector<float> trk_pfjetTrk_dz_pv_NoRefit;
 };
 
 #endif
