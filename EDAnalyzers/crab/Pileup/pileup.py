@@ -9,8 +9,8 @@ os.environ["PATH"] += os.pathsep + expanduser("~") + '/.local/bin'
 os.environ["PATH"] += os.pathsep + '/cvmfs/cms-bril.cern.ch/brilconda/bin'
 
 dlumi = 'processedLumi/'
-json = ['crab_JetHT_Run2017B__1', 'crab_JetHT_Run2017D__1', 'crab_JetHT_Run2017E__1', 'crab_JetHT_Run2017F__1', \
-'crab_ZeroBias_Run2017B__1', 'crab_ZeroBias_Run2017C__1', 'crab_ZeroBias_Run2017D__1', 'crab_ZeroBias_Run2017E__1', 'crab_ZeroBias_Run2017F__1']
+json = ['JetHT_Run2017B', 'JetHT_Run2017D', 'JetHT_Run2017E', 'JetHT_Run2017F', \
+'ZeroBias_Run2017B', 'ZeroBias_Run2017C', 'ZeroBias_Run2017D', 'ZeroBias_Run2017E', 'ZeroBias_Run2017F']
 
 xsec = '69200' # Run 2
 
