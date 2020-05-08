@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Run on lxplus
+# Run on lxplus under CMSSW_11_0_X
 
 import os, sys
 from os.path import expanduser
