@@ -6,9 +6,8 @@ import os, sys
 process = 'qcd'
 
 #mode = 'pv'
-mode = 'ippveta'
-#mode = 'ipbsdr'
-#mode = 'ipbsnpv'
+#mode = 'ippvdr'
+mode = 'ipbsdr'
 inputpv = 'results/pv_'+process+'.json'
 input = 'results/ip_'+process+'.json'
 

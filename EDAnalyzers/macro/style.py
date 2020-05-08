@@ -78,7 +78,7 @@ def PlotStyle(mode):
 
     return plotStyle
 
-def cmslabel(mode,year):
+def cmslabel(mode,year,proc,up=True):
     
     tex = ROOT.TLatex(0.66,0.906825,"CMS")
     tex.SetNDC()
@@ -112,8 +112,20 @@ def cmslabel(mode,year):
     lyear.SetTextFont(42)
     lyear.SetTextSize(0.04875)
     lyear.SetLineWidth(2)
-        
-    return tex, tex2, lyear
+
+    if proc == 'qcd': procName = 'QCD'
+    elif proc == 'zb': procName = 'ZeroBias'
+    else: procName = ''
+    
+    if up: lproc = ROOT.TLatex(0.70,0.70,procName)
+    elif procName != '': lproc = ROOT.TLatex(0.70,0.30,procName)
+    
+    lproc.SetNDC()
+    lproc.SetTextAlign(31)
+    lproc.SetTextFont(42)
+    lproc.SetTextSize(0.04875)
+    
+    return tex, tex2, lyear, lproc
 
 def channel(chan):
 

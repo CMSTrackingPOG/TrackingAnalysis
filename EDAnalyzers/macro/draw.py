@@ -28,6 +28,7 @@ def main(argv = None):
     parser.add_option("-o","--output",default="pics",help="output directory [default: %default]")
     parser.add_option("-m","--mode",default="pv",help="measurement mode [default: %default]")
     parser.add_option("-p","--process",default="zb",help="type of process [default: %default]")
+    parser.add_option("--parampv",default="PVsumTrackPtSq",help="Parameterisation for PV resolution measurement [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -51,12 +52,17 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
     hData.Draw('p same')
     
     if mode == 'pv':
-        if m == 'reso' and x != 'z': hMC.GetYaxis().SetRangeUser(0.,100.)
-        elif m == 'reso' and x == 'z': hMC.GetYaxis().SetRangeUser(0.,100.)
-        else: hMC.GetYaxis().SetRangeUser(0.,1.4)
+        if options.process == 'zb':
+            if m == 'reso' and x != 'z': hMC.GetYaxis().SetRangeUser(0.,200.)
+            elif m == 'reso' and x == 'z': hMC.GetYaxis().SetRangeUser(0.,200.)
+            else: hMC.GetYaxis().SetRangeUser(0.,1.4)
+        else:
+            if m == 'reso' and x != 'z': hMC.GetYaxis().SetRangeUser(0.,30.)
+            elif m == 'reso' and x == 'z': hMC.GetYaxis().SetRangeUser(0.,30.)
+            else: hMC.GetYaxis().SetRangeUser(0.,1.4)
     else:
         hMC.GetYaxis().SetRangeUser(0.,350.)
-        if 'eta' in mode and x == 'dz': hMC.GetYaxis().SetRangeUser(0.,1000.)
+        if 'eta' in mode and x == 'dz': hMC.GetYaxis().SetRangeUser(0.,2000.)
             
     leg = ROOT.TLegend(0.82,0.92,0.990,0.75)
     leg.SetFillColor(253)
@@ -65,10 +71,11 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
     leg.AddEntry(hMC,"Simulation","p")
     leg.Draw()        
     
-    t1, t2, t3 = style.cmslabel(1,c.year)
+    t1, t2, t3, t4 = style.cmslabel(1, c.year, evt, False)
     t1.Draw()
     t2.Draw()
     t3.Draw()
+    t4.Draw()
 
     if isDeconv == False:
         c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'_'+options.process+'.pdf')
@@ -107,7 +114,19 @@ if __name__ == '__main__':
     typ = ['reso','pull']
     if mode != 'pv': typ = ['reso']
 
-    addParam = c.PVnTracks if mode != 'pv' else {'':[]}
+    evt = options.process
+    
+    parampv = c.PVnTracks[evt]
+    parambinspv = c.PVnTracksBins[evt]
+    if options.parampv == 'PVsumTrackPt': 
+        parampv = c.PVsumTrackPt[evt]
+        parambinspv = c.PVsumTrackPtBins[evt]
+    elif options.parampv == 'PVsumTrackPtSq': 
+        parampv = c.PVsumTrackPtSq[evt]
+        parambinspv = c.PVsumTrackPtSqBins[evt]
+    elif options.parampv != 'PVnTracks':
+        print 'Unknown parameterisation requested:', options.parampv
+        sys.exit()        
     
     for m in typ:
         for x in meas:
@@ -117,8 +136,10 @@ if __name__ == '__main__':
                 hname = 'h_'+m+'_'+t+'_'+x
                 
                 if mode == 'pv':
-                    h[hname] = ROOT.TH1F(hname,hname,len(c.PVnTracksBins)-1,c.PVnTracksBins)
-                    h[hname].GetXaxis().SetTitle('Number of tracks')
+                    h[hname] = ROOT.TH1F(hname,hname,len(parambinspv)-1,parambinspv)
+                    if options.parampv == 'PVnTracks': h[hname].GetXaxis().SetTitle('Number of tracks')
+                    elif options.parampv == 'PVsumTrackPt': h[hname].GetXaxis().SetTitle('Sum of track p_{T} [GeV]')
+                    elif options.parampv == 'PVsumTrackPtSq': h[hname].GetXaxis().SetTitle('#sqrt{Sum of track p_{T}^{2}} [GeV]')
                     ytit = 'PV resolution in '+x+' [#mum]'
                     if m == 'pull': ytit = 'Primary vertex pull in '+x
                     h[hname].GetYaxis().SetTitle(ytit)
@@ -149,7 +170,7 @@ if __name__ == '__main__':
             hnameData = 'h_'+m+'_data_'+x
             hnameMC = 'h_'+m+'_mc_'+x
             
-            param = c.PVnTracks
+            param = parampv
             if 'pt' in mode: param = c.IPpt
             elif 'eta' in mode: param = c.IPeta
             elif 'phi' in mode: param = c.IPphi
@@ -160,9 +181,9 @@ if __name__ == '__main__':
             for kparam, vparam in param.iteritems():
 
                 if mode == 'pv':
-                        
-                    resData = data[m]['data'][x][kparam]
-                    resMC = data[m]['mc'][x][kparam]
+                    
+                    resData = datapv[m]['data'][x][kparam]
+                    resMC = datapv[m]['mc'][x][kparam]
                 
                     if bool(resData) and bool(resMC):
                     
@@ -187,8 +208,8 @@ if __name__ == '__main__':
                     vDataDeconv = 0; vMCDeconv = 0;
                     eDataDeconv = 0; eMCDeconv = 0;                        
                     wDataSum = 0; wMCSum = 0;
-                    
-                    for ktrk, vtrk in c.PVnTracks.iteritems():
+
+                    for ktrk, vtrk in parampv.iteritems():
                    
                         if 'ipbs' in mode and (ktrk != '' or kparam == ''): break
 
@@ -279,13 +300,13 @@ if __name__ == '__main__':
                     h[hnameMC+'_deconv'].SetBinError(bidx, eMCDeconv)
             
             hMC = h[hnameMC]; hData = h[hnameData]
-            pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_'+options.process+'_mc.pkl','wb'))
-            pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_'+options.process+'_data.pkl','wb'))
+            pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_'+evt+'_mc.pkl','wb'))
+            pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_'+evt+'_data.pkl','wb'))
             plot(c1, hData, hMC, mode, m, x)
             
             if mode != 'pv':
                 
                 hMC = h[hnameMC+'_deconv']; hData = h[hnameData+'_deconv']
-                pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_'+options.process+'_mc_deconv.pkl','wb'))
-                pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_'+options.process+'_data_deconv.pkl','wb'))
+                pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_'+evt+'_mc_deconv.pkl','wb'))
+                pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_'+evt+'_data_deconv.pkl','wb'))
                 plot(c1, hData, hMC, mode, m, x, True)

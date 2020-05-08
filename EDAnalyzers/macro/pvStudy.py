@@ -22,10 +22,11 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Analysis script to study PV and BS resolution"
     
     parser = OptionParser(usage)
-    parser.add_option("-d","--data",default="data.root",help="input data file name [default: %default]")
-    parser.add_option("-m","--mc",default="mc.root",help="input mc file name [default: %default]")
-    parser.add_option("-o","--output",default="pics",help="output directory [default: %default]")
+    parser.add_option("-d","--data",default="data.root",help="Input data file name [default: %default]")
+    parser.add_option("-m","--mc",default="mc.root",help="Input mc file name [default: %default]")
+    parser.add_option("-o","--output",default="pics",help="Output directory [default: %default]")
     parser.add_option("--qcd",action='store_true',help="Use QCD events [default: %default]")
+    parser.add_option("-p","--param",default="PVsumTrackPtSq",help="Parameterisation for PV resolution measurement [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -44,8 +45,20 @@ if __name__ == '__main__':
         
     fHistData = ROOT.TFile.Open(options.data,'read')
     fHistMC = ROOT.TFile.Open(options.mc,'read')
+    
+    evt = 'zb'
+    if options.qcd: evt = 'qcd'
 
-    hIncl = ['pvNTrks','pvSumTrackPt']
+    param = c.PVnTracks[evt]
+    if options.param == 'PVsumTrackPt': param = c.PVsumTrackPt[evt]
+    elif options.param == 'PVsumTrackPtSq': param = c.PVsumTrackPtSq[evt]
+    elif options.param != 'PVnTracks':
+        print 'Unknown parameterisation requested:', options.param
+        sys.exit()        
+    
+    hIncl = ['jetPtMax','jetHT','evNpv','pvNTrks','pvSumTrackPt','pvSumTrackPt2']
+
+    print 'Plot cumulative distributions'
     for h in hIncl:
         
         hData = fHistData.Get('h_'+h)
@@ -80,24 +93,27 @@ if __name__ == '__main__':
         leg.AddEntry(hMC,"Simulation","f")
         leg.Draw()        
 
-        t1, t2, t3 = style.cmslabel(1,c.year)
+        t1, t2, t3, t4 = style.cmslabel(1, c.year, evt)
         t1.Draw()
         t2.Draw()
         t3.Draw()
+        t4.Draw()
         
         c1.Print(options.output+'/'+h+'.pdf')
         c1.Clear()
     
     #### Basic distributions
 
+    print 'Plot PV and BS profiles'
+    
     #### PV
     
     pv_hXData = {}; pv_hYData = {}; pv_hZData = {}
     pv_hXMC = {}; pv_hYMC = {}; pv_hZMC = {}
     pv_hXYData = {}; pv_hXZData = {}; pv_hYZData = {}
     pv_hXYMC = {}; pv_hXZMC = {}; pv_hYZMC = {}
-    
-    for k, v in c.PVnTracks.iteritems():
+
+    for k, v in param.iteritems():
         
         pv_hXData[k] = fHistData.Get('h_pvx'+k)
         pv_hYData[k] = fHistData.Get('h_pvy'+k)
@@ -234,10 +250,11 @@ if __name__ == '__main__':
                     lbsrms2 = ROOT.TLatex(0.65,0.25,"y = %.1f" % (hbsplot.GetRMS(2)*math.pow(10,3))+" #mum"); lbsrms2.SetNDC(); lbsrms2.SetTextFont(43); lbsrms2.SetTextSize(20); lbsrms2.Draw()
                     lbsrms3 = ROOT.TLatex(0.65,0.2,"z = %.1f" % (hbsplot.GetRMS(1))+" mm"); lbsrms3.SetNDC(); lbsrms3.SetTextFont(43); lbsrms3.SetTextSize(20); lbsrms3.Draw()
 
-            t1, t2, t3 = style.cmslabel(1,c.year)
+            t1, t2, t3, t4 = style.cmslabel(1, c.year, evt)
             t1.Draw()
             t2.Draw()
             t3.Draw()
+            t4.Draw()
                 
             c1.Print(options.output+'/pv'+proj+k+'_'+samp+'.pdf')
             c1.Clear()
@@ -255,10 +272,11 @@ if __name__ == '__main__':
             samp = 'data'
             if idx > 2: samp = 'mc'
 
-            t1, t2, t3 = style.cmslabel(1,c.year)
+            t1, t2, t3, t4 = style.cmslabel(1, c.year, evt)
             t1.Draw()
             t2.Draw()
             t3.Draw()
+            t4.Draw()
             
             c1.Print(options.output+'/bs'+proj+k+'_'+samp+'.pdf')
             c1.Clear()
@@ -273,6 +291,8 @@ if __name__ == '__main__':
     
     #### Fits
     
+    print 'Run PV fits'
+    
     pstyle.SetOptFit(1111)
     
     rout = {}
@@ -281,10 +301,10 @@ if __name__ == '__main__':
         for l2 in ['reso','pull','widthx','widthy','sigmaz']: rout[l2][t] = {}
         for x in c.PVmeas:
             for l3 in ['reso','pull','widthx','widthy','sigmaz']: rout[l3][t][x] = {}
-            for k, v in c.PVnTracks.iteritems():
+            for k, v in param.iteritems():
                 for l4 in ['reso','pull','widthx','widthy','sigmaz']: rout[l4][t][x][k] = {}
                 
-    for k, v in c.PVnTracks.iteritems():
+    for k, v in param.iteritems():
     
         for x in c.PVmeas:
             
@@ -339,6 +359,15 @@ if __name__ == '__main__':
             hPullMC.SetMaximum(1.2*max(maxPullData,maxPullMC))
             hPullMC.SetMinimum(0.)
 
+            selName = 'N_{trk}'
+            units = ''
+            if options.param == 'PVsumTrackPt': 
+                selName = '#sump_{T}'
+                units = ' GeV'
+            elif options.param == 'PVsumTrackPtSq': 
+                selName = '#sqrt{#sump^{2}_{T}}'
+                units = ' GeV'
+            
             # Resolution
         
             c1 = ROOT.TCanvas()
@@ -346,10 +375,13 @@ if __name__ == '__main__':
             hResoMC.Draw('hist')
             hResoData.Draw('e1 sames')
         
-            resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,x,k,c.mcfit,'')
+            fitt = '2g'
+            if '0to2' in k and evt == 'zb': fitt = ''
+
+            resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit',hResoMC,x,k,c.mcfit,fitt)
             resResoMC.Draw("same")
             
-            resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,x,k,1,'')
+            resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit',hResoData,x,k,1,fitt)
             resResoData.Draw("same")
             resResoData.SetLineStyle(2)
             
@@ -382,8 +414,8 @@ if __name__ == '__main__':
 
             lMCReso = ROOT.TLatex(0.20,0.70,"#sigma^{Sim.}_{"+x+"} = %.1f #mum" % (resoMC))
             lMCReso.SetNDC(); lMCReso.SetTextFont(43); lMCReso.SetTextSize(20); lMCReso.Draw()
-
-            lSel = ROOT.TLatex(0.20,0.80,str(v['bins'][1])+' < N_{trk} < '+str(v['bins'][2]))
+            
+            lSel = ROOT.TLatex(0.20,0.80,str(v['bins'][1])+' < '+selName+' < '+str(v['bins'][2])+units)
             lSel.SetTextSize(0.035)
             lSel.SetNDC()
             lSel.Draw()
@@ -399,10 +431,11 @@ if __name__ == '__main__':
             leg.AddEntry(resResoMC,"Simulation (fit)","l")
             leg.Draw()        
             
-            t1, t2, t3 = style.cmslabel(1,c.year)
+            t1, t2, t3, t4 = style.cmslabel(1, c.year, evt)
             t1.Draw()
             t2.Draw()
             t3.Draw()
+            t4.Draw()
             
             c1.Print(options.output+'/pvReso_'+x+k+'.pdf')
             c1.Clear()
@@ -449,7 +482,7 @@ if __name__ == '__main__':
             lMCPull = ROOT.TLatex(0.20,0.70,"#sigma^{Sim.}_{"+x+"} = %.2f" % (pullMC))
             lMCPull.SetNDC(); lMCPull.SetTextFont(43); lMCPull.SetTextSize(20); lMCPull.Draw()
 
-            lSel = ROOT.TLatex(0.20,0.80,str(v['bins'][1])+' < N_{trk} < '+str(v['bins'][2]))
+            lSel = ROOT.TLatex(0.20,0.80,str(v['bins'][1])+' < '+selName+' < '+str(v['bins'][2])+units)
             lSel.SetTextSize(0.035)
             lSel.SetNDC()
             lSel.Draw()
@@ -465,10 +498,11 @@ if __name__ == '__main__':
             leg.AddEntry(resPullMC,"Simulation (fit)","l")
             leg.Draw()        
             
-            t1, t2, t3 = style.cmslabel(1,c.year)
+            t1, t2, t3, t4 = style.cmslabel(1, c.year, evt)
             t1.Draw()
             t2.Draw()
             t3.Draw()
+            t4.Draw()
             
             c1.Print(options.output+'/pvPull_'+x+k+'.pdf')
             c1.Clear()

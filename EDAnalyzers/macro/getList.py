@@ -4,7 +4,8 @@ import os
 import sys
 import json
 
-ntupleProd = 'v20200408'
+#ntupleProd = 'v20200408'
+ntupleProd = 'v20200423'
 
 sys.tracebacklimit = 0
 
@@ -39,7 +40,12 @@ if __name__ == '__main__':
             dss = dss.replace('/','')
             dss = dss.replace('-','')
             dss = dss.replace('_','')
-            print ds+'_'+dss
+ 
+            dname = ds+'_'+dss
+            print dname
+            
+            # do not run on samples with BS constraint
+            if 'withBS' in dname: continue
             
             files[ds+'_'+dss] = []
             
