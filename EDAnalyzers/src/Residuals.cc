@@ -43,6 +43,8 @@
 #include <TrackingTools/TrajectoryState/interface/TrajectoryStateClosestToPoint.h>
 #include <TrackingTools/PatternTools/interface/TSCPBuilderNoMaterial.h>
 
+#include "TrackingTools/IPTools/interface/IPTools.h"
+
 #include "TrackingAnalysis/EDAnalyzers/interface/VertexReProducer.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -183,10 +185,10 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    theRhoToken_ = consumes<double>(RhoTag_);
 
    edm::InputTag TrackJetsTag_ = pset.getParameter<edm::InputTag>("TrackJetsLabel");
-   theTrackJetsToken_= consumes< vector<reco::TrackJet> >(TrackJetsTag_);
+   theTrackJetsToken_ = consumes< vector<reco::TrackJet> >(TrackJetsTag_);
 
    edm::InputTag PFJetsTag_ = pset.getParameter<edm::InputTag>("PFJetsLabel");
-   thePFJetsToken_= consumes< vector<reco::PFJet> >(PFJetsTag_);
+   thePFJetsToken_ = consumes< vector<reco::PFJet> >(PFJetsTag_);
    
    edm::InputTag TriggerBitsTag_ = pset.getParameter<edm::InputTag>("TriggerResultsLabel");
    theTriggerBitsToken_ = consumes<edm::TriggerResults>(TriggerBitsTag_);
@@ -535,6 +537,11 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    float trackProb = 1./float(trackScale);
    int nTracks = tracks->size();
    
+   // new
+   edm::ESHandle<TransientTrackBuilder> theB;
+   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", theB);
+   // end new
+   
    std::cout << "Tracks = " << nTracks << ", use = " << int(float(nTracks)/float(trackScale)) << std::endl;
    
    for( TrackCollection::const_iterator itk = tracks->begin(); itk != tracks->end(); ++itk )
@@ -632,6 +639,40 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_d0_pv_NoRefit.push_back( itk->dxy(vtxH->front().position()) * micron );
 	ftree->trk_dz_pv_NoRefit.push_back( itk->dz(vtxH->front().position()) * micron );
 
+/*	reco::TransientTrack tranitk = (*theB).build(*itk);
+
+	GlobalPoint pvPos(vtx.position().x(), vtx.position().y(), vtx.position().z());
+	GlobalPoint bsPos(pvbeamspot->position().x(), pvbeamspot->position().y(), pvbeamspot->position().z());
+	GlobalVector dir(itk->px(), itk->py(), itk->pz());
+	
+	reco::Vertex bspv(pvbeamspot->position(), pvbeamspot->rotatedCovariance3D());
+	
+	float d0_perigee_pv = -tranitk.trajectoryStateClosestToPoint(pvPos).perigeeParameters().transverseImpactParameter() * micron;
+	float d0_perigee_bs = -tranitk.trajectoryStateClosestToPoint(bsPos).perigeeParameters().transverseImpactParameter() * micron;
+	float dz_perigee_pv = tranitk.trajectoryStateClosestToPoint(pvPos).perigeeParameters().longitudinalImpactParameter() * micron;
+	float dz_perigee_bs = tranitk.trajectoryStateClosestToPoint(bsPos).perigeeParameters().longitudinalImpactParameter() * micron;
+	
+	float d0_IPTools_pv = IPTools::signedTransverseImpactParameter(tranitk,dir,vtx).second.value() * micron;
+	float d0Err_IPTools_pv = IPTools::signedTransverseImpactParameter(tranitk,dir,vtx).second.error() * micron;
+	float d0Sign_IPTools_pv = IPTools::signedTransverseImpactParameter(tranitk,dir,vtx).second.significance();
+	float d0_IPTools_bs = IPTools::signedTransverseImpactParameter(tranitk,dir,bspv).second.value() * micron;
+	float d0Err_IPTools_bs = IPTools::signedTransverseImpactParameter(tranitk,dir,bspv).second.error() * micron;
+	float d0Sign_IPTools_bs = IPTools::signedTransverseImpactParameter(tranitk,dir,bspv).second.significance();
+	
+	float ip3d_IPTools_pv = IPTools::signedImpactParameter3D(tranitk,dir,vtx).second.value() * micron;
+	float ip3dErr_IPTools_pv = IPTools::signedImpactParameter3D(tranitk,dir,vtx).second.error() * micron;
+	float ip3dSign_IPTools_pv = IPTools::signedImpactParameter3D(tranitk,dir,vtx).second.significance();
+	float ip3d_IPTools_bs = IPTools::signedImpactParameter3D(tranitk,dir,bspv).second.value() * micron;
+	float ip3dErr_IPTools_bs = IPTools::signedImpactParameter3D(tranitk,dir,bspv).second.error() * micron;
+	float ip3dSign_IPTools_bs = IPTools::signedImpactParameter3D(tranitk,dir,bspv).second.significance();
+	
+	float ip3dl_IPTools_pv = IPTools::linearizedSignedImpactParameter3D(tranitk,dir,vtx).second.value() * micron;
+	float ip3dlErr_IPTools_pv = IPTools::linearizedSignedImpactParameter3D(tranitk,dir,vtx).second.error() * micron;
+	float ip3dlSign_IPTools_pv = IPTools::linearizedSignedImpactParameter3D(tranitk,dir,vtx).second.significance();
+	float ip3dl_IPTools_bs = IPTools::linearizedSignedImpactParameter3D(tranitk,dir,bspv).second.value() * micron;
+	float ip3dlErr_IPTools_bs = IPTools::linearizedSignedImpactParameter3D(tranitk,dir,bspv).second.error() * micron;
+	float ip3dlSign_IPTools_bs = IPTools::linearizedSignedImpactParameter3D(tranitk,dir,bspv).second.significance();*/
+	
 	// Tracks from TrackJets
 	
 	float drMin = 10E+10;
