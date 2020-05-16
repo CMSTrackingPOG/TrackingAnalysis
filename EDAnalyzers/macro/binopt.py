@@ -1,7 +1,6 @@
 #!/bin/env python
 
 from concurrent.futures import ThreadPoolExecutor
-from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import os, sys
@@ -20,14 +19,17 @@ def main(argv = None):
     
     parser = OptionParser(usage)
     
-    parser.add_option("--method",default='v',help="Method for optimisation (variable or constant) [default: %default]")
-    parser.add_option("--nmin",default=1000,help="Minimum number of events per bin in the first-level parameterisation [default: %default]")
+    parser.add_option("--method",default='v',help="Method for optimisation (variable or constant bin width) [default: %default]")
+    parser.add_option("--input",default='jobs/JetHT.root',help="Input file name [default: %default]")
+    parser.add_option("--output",default='data/bins/output.json',help="Output file name [default: %default]")
+    parser.add_option("--tree",default='trackTree',help="Input tree name [default: %default]")
+    parser.add_option("--nmin",default=10000,help="Minimum number of events per bin in the first-level parameterisation [default: %default]")
     parser.add_option("--nbins",default=100,help="Maximum number of bins [default: %default]")
     parser.add_option("--threads",default=8,help="Number of threads [default: %default]")
-    parser.add_option("--crop",default=0.01,help="Crop factor [default: %default]")
-    parser.add_option("--meas",default='pv',help="Measurement type [default: %default]")
+    parser.add_option("--crop",default=0.1,help="Crop factor [default: %default]")
+    parser.add_option("--meas",default='bs',help="Measurement type (bs, pv, or 1d) [default: %default]")
     parser.add_option("--pv",default='sumTrackPtSq',help="PV parameterisation [default: %default]")
-    parser.add_option("--param",default='pt,eta,phi',help="List of track parameterisations [default: %default]")
+    parser.add_option("--param",default='pt,eta,phi,npv,dr',help="List of track parameterisations [default: %default]")
 
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -53,8 +55,8 @@ def optimise(data, nbins, nmin):
         bl = []
         bh = []
         
-        if options.method == 'c': splt = pd.cut(data, nbinsc)
-        else: splt = pd.qcut(data, nbinsc)
+        if options.method == 'c': splt = pd.cut(data, nbinsc, duplicates='drop')
+        else: splt = pd.qcut(data, nbinsc, duplicates='drop')
         bins = splt.value_counts(sort=False)
         nb = len(zip(bins))
             
@@ -126,8 +128,7 @@ def save(res):
     
         d[p]['allbins'] = pd.Series(d[p]['allbins']).to_json(orient='values')
 
-    foutput = 'data/bins/'+options.meas+'.json'
-    with open(foutput, 'w') as write_file:
+    with open(options.output, 'w') as write_file:
         json.dump(d, write_file, indent=2)
     
 if __name__ == '__main__':
@@ -148,10 +149,9 @@ if __name__ == '__main__':
     else: print 'Method: Variable bin width'
 
     flush('Open file: ')
-    fname = 'jobs/data.root'
-    trk = uproot.open(fname)["trackTree"]
-    f = ROOT.TFile(fname, "READ")
-    nev = f.Get("trackTree").GetEntries()
+    trk = uproot.open(options.input)[options.tree]
+    f = ROOT.TFile(options.input, "READ")
+    nev = f.Get(options.tree).GetEntries()
     f.Close()
     ROOT.gROOT.Reset()
     
@@ -171,7 +171,7 @@ if __name__ == '__main__':
     dfc, qup, qcutup, qdown, qcutdown = {}, {}, {}, {}, {}
 
     for p in param:
-
+        
         if p == pvparam: df = pd.Series(dtrk[p])
         else: df = pd.Series(np.concatenate(dtrk[p]))
 
