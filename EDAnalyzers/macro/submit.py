@@ -15,8 +15,11 @@ def main(argv = None):
     parser = OptionParser(usage)
     parser.add_option("-j","--json",default="list.json",help="input file list [default: %default]")
     parser.add_option("-o","--output",default="jobs",help="output directory [default: %default]")
-    parser.add_option("-s","--split",type=int,default=30,help="number of files per job [default: %default]")
-    parser.add_option("-p","--param",default="PVnTracks,PVsumTrackPt,PVsumTrackPtSq",help="parameterisation for PV resolution measurement [default: %default]")
+    parser.add_option("--splitdata",type=int,default=40,help="number of files per job [default: %default]")
+    parser.add_option("--splitmc",type=int,default=10,help="number of files per job [default: %default]")
+#    parser.add_option("-p","--param",default="nTracks,sumTrackPt,sumTrackPtSq",help="parameterisation for PV resolution measurement [default: %default]")
+    parser.add_option("-p","--param",default="sumTrackPtSq",help="parameterisation for PV resolution measurement [default: %default]")
+    parser.add_option("--data",action='store_true',help="Only run on data [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -60,12 +63,18 @@ if __name__ == '__main__':
         os.system("rm -rf "+outdir)
     os.system("mkdir "+outdir)
 
-    lsz = options.split
+    lszdata = options.splitdata
+    lszmc = options.splitmc
 
     with open(options.json, "r") as read_file:
         flist = json.load(read_file)
     
-    for k,v in flist.items():
+    for k, v in flist.items():
+        
+        if options.data and 'Run20' not in k: continue
+        
+        lsz = lszdata if 'Run20' in k else lszmc
+        
         njob = 0
         datasplit = []
         for i in range(len(v)):
