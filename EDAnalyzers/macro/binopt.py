@@ -20,14 +20,14 @@ def main(argv = None):
     parser = OptionParser(usage)
     
     parser.add_option("--method",default='v',help="Method for optimisation (variable or constant bin width) [default: %default]")
-    parser.add_option("--input",default='ZeroBias.root',help="Input file name [default: %default]")
-    parser.add_option("--output",default='data/bins/output.json',help="Output file name [default: %default]")
+    parser.add_option("--input",default='JetHT.root',help="Input file name [default: %default]")
+    parser.add_option("--output",default='data/bins/qcd_pv.json',help="Output file name [default: %default]")
     parser.add_option("--tree",default='trackTree',help="Input tree name [default: %default]")
     parser.add_option("--nmin",default=10000,help="Minimum number of events per bin in the first-level parameterisation [default: %default]")
     parser.add_option("--nbins",default=100,help="Maximum number of bins [default: %default]")
     parser.add_option("--threads",default=8,help="Number of threads [default: %default]")
     parser.add_option("--crop",default=0.1,help="Crop factor [default: %default]")
-    parser.add_option("--meas",default='bs',help="Measurement type (bs, pv, or 1d) [default: %default]")
+    parser.add_option("--meas",default='pv',help="Measurement type (bs, pv, or 1d) [default: %default]")
     parser.add_option("--pv",default='sumTrackPtSq',help="PV parameterisation [default: %default]")
     parser.add_option("--param",default='pt,eta,phi,npv,dr',help="List of track parameterisations [default: %default]")
 
