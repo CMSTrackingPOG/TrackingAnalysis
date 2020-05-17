@@ -73,8 +73,8 @@ def main(argv = None):
     
     parser = OptionParser(usage)
     
-    parser.add_option("--input",default='jobs/JetHT.root',help="Input file name [default: %default]")
-    parser.add_option("--output",default='data/bins/qcd_bsw.json',help="Output file name [default: %default]")
+    parser.add_option("--input",default='ZeroBias.root',help="Input file name [default: %default]")
+    parser.add_option("--output",default='data/bins/zb_bsw.json',help="Output file name [default: %default]")
     parser.add_option("--tree",default='trackTree',help="Input tree name [default: %default]")
     parser.add_option("--lumi",default='../crab/lumi.csv',help="Luminosity data file name [default: %default]")
     parser.add_option("--threads",default=8,help="Number of threads [default: %default]")
@@ -82,6 +82,7 @@ def main(argv = None):
     parser.add_option("--cut",action='store_true',help="Apply selection [default: %default]")
     parser.add_option("--weight",action='store_true',help="Apply lumi weights [default: %default]")
     parser.add_option("--qcd",action='store_true',help="Use QCD events [default: %default]")
+    parser.add_option("--draw",action='store_true',help="Draw bin regions [default: %default]")
 
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -230,8 +231,9 @@ if __name__ == '__main__':
         plots[v].set_xlabel(r'Time [Arbitrary units]')
         plots[v].set_ylabel(tit[i])
         if v in ylim: plots[v].set_ylim(ylim[v][0], ylim[v][1])
-        for r in roi:
-            plots[v].axvline(x=r-0.5, ymin=ylim[v][0], ymax=ylim[v][1], linestyle='--', color='gray', linewidth=2.0)
+        if options.draw:
+            for r in roi:
+                plots[v].axvline(x=r-0.5, ymin=ylim[v][0], ymax=ylim[v][1], linestyle='--', color='gray', linewidth=2.0)
         fig = plots[v].get_figure()
         fig.savefig('pics/'+v+'.png')
 
@@ -272,7 +274,8 @@ if __name__ == '__main__':
                     ax.plot(xsel, yf, 'r', color=fcols[j], linewidth=3)
                     ytext = 2. if v == 'beamWidthX' else 4.
                     vname = 'x' if v == 'beamWidthX' else 'y'
-                    ax.text((xsel[0]+xsel[-1])/2.-100., ytext, r''+vname+' = '+format(par[1], '.2f')+' $\mu m$', fontsize=12, color=fcols[j])
+                    if options.draw:
+                        ax.text((xsel[0]+xsel[-1])/2.-100., ytext, r''+vname+' = '+format(par[1], '.2f')+' $\mu m$', fontsize=12, color=fcols[j])
                     
                     istart = roi[r]
                     iend =  roi[r+1]-1
@@ -289,8 +292,9 @@ if __name__ == '__main__':
         ax.set_xlabel(r'Time [Arbitrary units]')
         ax.set_ylabel(tit[i])
         if v in ylim: ax.set_ylim(ylim[v][0], ylim[v][1])
-        for r in roi:
-            ax.axvline(x=r-0.5, ymin=ylim[v][0], ymax=ylim[v][1], linestyle='--', color='gray', linewidth=2.0)
+        if options.draw:
+            for r in roi:
+                ax.axvline(x=r-0.5, ymin=ylim[v][0], ymax=ylim[v][1], linestyle='--', color='gray', linewidth=2.0)
         ax.legend(loc='upper center', prop={'size': 14})
         fig.savefig('pics/'+name[i]+'.png')
     
