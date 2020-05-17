@@ -139,6 +139,7 @@ if __name__ == '__main__':
     bvar = ['beamWidthX', 'beamWidthY', 'beamWidthXError', 'beamWidthYError']
     dbs[bvar] = dbs[bvar].apply(lambda x: x*10000, axis=1)
     
+#    if options.cut: dbs = dbs[(dbs.beamWidthXError < 0.1) & (dbs.beamWidthYError < 0.1) & (dbs.beamSigmaZError < 0.1)]
     if options.cut: dbs = dbs[dbs.beamWidthXError < 0.1]
     
     # remove lb dependence for the final parameterisation
