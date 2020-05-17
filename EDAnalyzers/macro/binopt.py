@@ -20,7 +20,7 @@ def main(argv = None):
     parser = OptionParser(usage)
     
     parser.add_option("--method",default='v',help="Method for optimisation (variable or constant bin width) [default: %default]")
-    parser.add_option("--input",default='jobs/JetHT.root',help="Input file name [default: %default]")
+    parser.add_option("--input",default='ZeroBias.root',help="Input file name [default: %default]")
     parser.add_option("--output",default='data/bins/output.json',help="Output file name [default: %default]")
     parser.add_option("--tree",default='trackTree',help="Input tree name [default: %default]")
     parser.add_option("--nmin",default=10000,help="Minimum number of events per bin in the first-level parameterisation [default: %default]")
@@ -104,12 +104,17 @@ def save(res):
             bname = '_'+p+str(bl[i]).replace('.','p').replace('-','m')+'to'+str(bh[i]).replace('.','p').replace('-','m')
             d[p][bname] = {}
             d[p][bname]['bins'] = [i+1, bl[i], bh[i]]
-            d[p][bname]['pullx'] = [200, -5.0, 5.0]
-            d[p][bname]['pully'] = [200, -5.0, 5.0]
-            d[p][bname]['pullz'] = [200, -5.0, 5.0]
-            d[p][bname]['resox'] = [200, -300.0, 300.0]
-            d[p][bname]['resoy'] = [200, -300.0, 300.0]
-            d[p][bname]['resoz'] = [200, -500.0, 500.0]
+            
+            if p in [options.pv]:
+                d[p][bname]['pullx'] = [200, -5.0, 5.0]
+                d[p][bname]['pully'] = [200, -5.0, 5.0]
+                d[p][bname]['pullz'] = [200, -5.0, 5.0]
+                d[p][bname]['resox'] = [200, -300.0, 300.0]
+                d[p][bname]['resoy'] = [200, -300.0, 300.0]
+                d[p][bname]['resoz'] = [200, -500.0, 500.0]
+            else:
+                d[p][bname]['d0'] = [200, -1800.0, 1800.0]
+                d[p][bname]['dz'] = [200, -3000.0, 3000.0]
     
             d[p]['allbins'] = np.append(d[p]['allbins'], bl[i])
             
@@ -117,13 +122,18 @@ def save(res):
         
                 d[p][''] = {}
                 d[p]['']['bins'] = [0, bl[0], bh[nb-1]]
-                d[p]['']['pullx'] = [200, -5.0, 5.0]
-                d[p]['']['pully'] = [200, -5.0, 5.0]
-                d[p]['']['pullz'] = [200, -5.0, 5.0]
-                d[p]['']['resox'] = [200, -300.0, 300.0]
-                d[p]['']['resoy'] = [200, -300.0, 300.0]
-                d[p]['']['resoz'] = [200, -500.0, 500.0]
-        
+                
+                if p in [options.pv]:
+                    d[p]['']['pullx'] = [200, -5.0, 5.0]
+                    d[p]['']['pully'] = [200, -5.0, 5.0]
+                    d[p]['']['pullz'] = [200, -5.0, 5.0]
+                    d[p]['']['resox'] = [200, -300.0, 300.0]
+                    d[p]['']['resoy'] = [200, -300.0, 300.0]
+                    d[p]['']['resoz'] = [200, -500.0, 500.0]
+                else:
+                    d[p]['']['d0'] = [200, -1800.0, 1800.0]
+                    d[p]['']['dz'] = [200, -3000.0, 3000.0]
+                    
                 d[p]['allbins'] = np.append(d[p]['allbins'], bh[i])
     
         d[p]['allbins'] = pd.Series(d[p]['allbins']).to_json(orient='values')

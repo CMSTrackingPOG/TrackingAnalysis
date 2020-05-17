@@ -2,6 +2,7 @@ import ROOT
 import numpy
 import math
 import sys
+import json
 from array import array
 
 def addbin(h):
@@ -187,9 +188,14 @@ def makeErrorBand(tot,plus,minus):
 
 class pileup():
     
-    def __init__(self, dpath):
+    def __init__(self, dpath, evt):
         
-        fData = ROOT.TFile.Open(dpath+'puCentral.root','READ')
+        fName = dpath+'puCentral.root'
+        
+        if evt == 'zb': fName = dpath+'ZeroBias_puCentral.root'
+        else: fName = dpath+'JetHT_puCentral.root'
+        
+        fData = ROOT.TFile.Open(fName,'READ')
         hData = fData.Get('pileup')
         hData.Scale(1./hData.Integral())
         
@@ -230,3 +236,21 @@ class reweight():
     def getWeight(self, var):
         
         return self.rw.GetBinContent(self.rw.FindBin(var))
+
+class param():
+    
+    def __init__(self, fname):
+
+        with open(fname, "r") as read_file:
+            self.data = json.load(read_file)
+
+    def get(self, pname):
+        
+        if pname not in self.data:
+            print 'Parametrisation '+pname+' not found'
+            sys.exit()
+        
+        p = self.data[pname]
+        
+        return p
+    

@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     options = main()
     
-    storeHist = False
+    storeHist = True
     storeTree = True
 
     ROOT.gROOT.SetBatch()
@@ -69,15 +69,30 @@ if __name__ == '__main__':
     
     evt = 'zb' if (isDataZeroBias or isMCZeroBias) else 'qcd'
 
-    etaParam = c.IPeta
-    if options.etamax == 2.5: etaParam = c.IPeta25
-    ParamList = [c.IPpt[evt],etaParam,c.IPphi,c.IPnpv,c.IPdr]
+    ppath = '/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/bins/'
+    param = {}
+    param['bs'] = fun.param(ppath+'zb_bs.json') if evt == 'zb' else fun.param(ppath+'qcd_bs.json')
+    param['bsw'] = fun.param(ppath+'zb_bsw.json') if evt == 'zb' else fun.param(ppath+'qcd_bsw.json')
+    param['pv'] = fun.param(ppath+'zb_pv.json') if evt == 'zb' else fun.param(ppath+'qcd_pv.json')
+    
+    pvParamList = options.param.split(',')
+    ipParamList = ['pt', 'eta', 'phi', 'npv', 'dr']
+    
+    ParamList = {}
+    for t in ['bs', 'pv']:
+        ParamList[t] = {}
+        for p in pvParamList+ipParamList:
+            ParamList[t][p] = param[t].get(p)
+    for t in ['bsw']:
+        ParamList[t] = {}
+        for p in ['runstart', 'runend', 'lumistart', 'lumiend', 'beamwidthx', 'beamwidthy']:
+            ParamList[t][p] = param[t].get(p)
     
     if options.pileup != '' and isMC:
         pu = fun.pileup(options.pileup, evt)
 
     if options.reweight != '' and isMC:
-        rw = fun.reweight(options.reweight,'jetHT')
+        rw = fun.reweight(options.reweight, 'jetHT')
         
     nEvents = tr.GetEntries()
     print 'Run on ' + ('Data' if isData else 'MC')
@@ -136,68 +151,73 @@ if __name__ == '__main__':
         hd['ipbszpcaSD0'] = {'xtit':'Track d_{xy}(BS,z=PCA) significance [mm]','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
         hd['ipbszpvD0'] = {'xtit':'Track d_{xy}(BS,z=PV) [mm]','nb':100,'xmin':-1.5,'xmax':1.5,'ytit':'Events'}
         hd['ipbszpvSD0'] = {'xtit':'Track d_{xy}(BS,z=PV) significance [mm]','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
-
-        PVparamList = {}
-        PVparamOpt = options.param.split(',')
-        if len(PVparamOpt) == 0:
-            print 'Please specify the PV parameterisation'
-            sys.exit()
-        else:
-            for p in PVparamOpt:
-                if 'PVnTracks' == p: PVparamList[p] = c.PVnTracks[evt]
-                elif 'PVsumTrackPt' == p: PVparamList[p] = c.PVsumTrackPt[evt]
-                elif 'PVsumTrackPtSq' == p: PVparamList[p] = c.PVsumTrackPtSq[evt]
-                else:
-                    print 'Unknown parameterisation found:', p
-                    sys.exit()
-
-        for p in ParamList:
-            
-            for kk, vv in p.iteritems():
-                
-                IP = p[kk]
-                
-                for kpv, vpv in PVparamList.iteritems():
-                    
-                    for k, v in vpv.iteritems():
-
-                        hd['ippvd0'+k+kk] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                        hd['ippvdz'+k+kk] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
-                
-                        hd['ipd0Err'+k+kk] = {'xtit':'#sigma(d_{xy}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
-                        hd['ipdzErr'+k+kk] = {'xtit':'#sigma(d_{z}) [#mum]','nb':100,'xmin':0.,'xmax':1000.,'ytit':'Events'}
-                
-                        hd['ippvd0NoRefit'+k+kk] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                        hd['ippvdzNoRefit'+k+kk] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
-                        
-                hd['ipbsd0'+kk] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                hd['ipbsd0zpv'+kk] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                hd['ipbsdz'+kk] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
         
-        for kpv, vpv in PVparamList.iteritems():
+        for p in ipParamList:
+            
+            bins = ParamList['pv'][p]
+            
+            for kk, vv in bins.iteritems():
                 
-            for k, v in vpv.iteritems():
+                if kk == 'allbins': continue
+                
+                IP = bins[kk]
+                
+                for pvp in pvParamList:
+                    
+                    pvbins = ParamList['pv'][pvp]
+                    
+                    for kpv, vpv in pvbins.iteritems():
+                        
+                        if kpv == 'allbins': continue
 
-                if isData:
-                    PV = c.hPVData
-                    hd['pvx'+k] = {'xtit':'x [mm]','nb':PV['x'][0],'xmin':PV['x'][1],'xmax':PV['x'][2],'ytit':'Events'}
-                    hd['pvy'+k] = {'xtit':'y [mm]','nb':PV['y'][0],'xmin':PV['y'][1],'xmax':PV['y'][2],'ytit':'Events'}
-                    hd['pvz'+k] = {'xtit':'z [cm]','nb':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'ytit':'Events'}
-                    
-                    h2d['pvx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':PV['x'][0],'xmin':PV['x'][1],'xmax':PV['x'][2],'nby':PV['y'][0],'ymin':PV['y'][1],'ymax':PV['y'][2]}
-                    h2d['pvx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'nby':PV['x'][0],'ymin':PV['x'][1],'ymax':PV['x'][2]}
-                    h2d['pvy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'nby':PV['y'][0],'ymin':PV['y'][1],'ymax':PV['y'][2]}
-                    
-                else:
-                    PV = c.hPVMC
-                    hd['pvx'+k] = {'xtit':'x [mm]','nb':PV['x'][0],'xmin':PV['x'][1],'xmax':PV['x'][2],'ytit':'Events'}
-                    hd['pvy'+k] = {'xtit':'y [mm]','nb':PV['y'][0],'xmin':PV['y'][1],'xmax':PV['y'][2],'ytit':'Events'}
-                    hd['pvz'+k] = {'xtit':'z [cm]','nb':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'ytit':'Events'}
-                    
-                    h2d['pvx_y'+k] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':PV['x'][0],'xmin':PV['x'][1],'xmax':PV['x'][2],'nby':PV['y'][0],'ymin':PV['y'][1],'ymax':PV['y'][2]}
-                    h2d['pvx_z'+k] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'nby':PV['x'][0],'ymin':PV['x'][1],'ymax':PV['x'][2]}
-                    h2d['pvy_z'+k] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'nby':PV['y'][0],'ymin':PV['y'][1],'ymax':PV['y'][2]}
-                    
+                        hd['ippvd0'+kpv+kk] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                        hd['ippvdz'+kpv+kk] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
+
+            bins = ParamList['bs'][p]
+            
+            for kk, vv in bins.iteritems():
+                
+                if kk == 'allbins': continue
+                
+                IP = bins[kk]
+
+                bsbins = ParamList['bsw']['beamwidthx']
+                
+                for ibs in range(len(bsbins)):
+                        
+                    hd['ipbsd0'+kk+'_'+str(ibs)] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                    hd['ipbsd0zpv'+kk+'_'+str(ibs)] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                    hd['ipbsdz'+kk+'_'+str(ibs)] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
+
+
+        if isData:
+            PV = c.hPVData
+            hd['pvx'] = {'xtit':'x [mm]','nb':PV['x'][0],'xmin':PV['x'][1],'xmax':PV['x'][2],'ytit':'Events'}
+            hd['pvy'] = {'xtit':'y [mm]','nb':PV['y'][0],'xmin':PV['y'][1],'xmax':PV['y'][2],'ytit':'Events'}
+            hd['pvz'] = {'xtit':'z [cm]','nb':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'ytit':'Events'}
+            
+            h2d['pvx_y'] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':PV['x'][0],'xmin':PV['x'][1],'xmax':PV['x'][2],'nby':PV['y'][0],'ymin':PV['y'][1],'ymax':PV['y'][2]}
+            h2d['pvx_z'] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'nby':PV['x'][0],'ymin':PV['x'][1],'ymax':PV['x'][2]}
+            h2d['pvy_z'] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'nby':PV['y'][0],'ymin':PV['y'][1],'ymax':PV['y'][2]}
+            
+        else:
+            PV = c.hPVMC
+            hd['pvx'] = {'xtit':'x [mm]','nb':PV['x'][0],'xmin':PV['x'][1],'xmax':PV['x'][2],'ytit':'Events'}
+            hd['pvy'] = {'xtit':'y [mm]','nb':PV['y'][0],'xmin':PV['y'][1],'xmax':PV['y'][2],'ytit':'Events'}
+            hd['pvz'] = {'xtit':'z [cm]','nb':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'ytit':'Events'}
+            
+            h2d['pvx_y'] = {'xtit':'x [mm]','ytit':'y [mm]','nbx':PV['x'][0],'xmin':PV['x'][1],'xmax':PV['x'][2],'nby':PV['y'][0],'ymin':PV['y'][1],'ymax':PV['y'][2]}
+            h2d['pvx_z'] = {'xtit':'z [cm]','ytit':'x [mm]','nbx':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'nby':PV['x'][0],'ymin':PV['x'][1],'ymax':PV['x'][2]}
+            h2d['pvy_z'] = {'xtit':'z [cm]','ytit':'y [mm]','nbx':PV['z'][0],'xmin':PV['z'][1],'xmax':PV['z'][2],'nby':PV['y'][0],'ymin':PV['y'][1],'ymax':PV['y'][2]}
+            
+        for pvp in pvParamList:
+            
+            pvbins = ParamList['pv'][pvp]
+            
+            for k, v in pvbins.iteritems():
+                
+                if k == 'allbins': continue
+            
                 hd['pvdx12'+k] = {'xtit':'Primary vertex resolution in x [#mum]','nb':v['resox'][0],'xmin':v['resox'][1],'xmax':v['resox'][2],'ytit':'Events'}
                 hd['pvdy12'+k] = {'xtit':'Primary vertex resolution in y [#mum]','nb':v['resoy'][0],'xmin':v['resoy'][1],'xmax':v['resoy'][2],'ytit':'Events'}
                 hd['pvdz12'+k] = {'xtit':'Primary vertex resolution in z [#mum]','nb':v['resoz'][0],'xmin':v['resoz'][1],'xmax':v['resoz'][2],'ytit':'Events'}
@@ -252,10 +272,10 @@ if __name__ == '__main__':
         
     outFile = ROOT.TFile.Open(options.output,"RECREATE")
     
-    outFile.SetCompressionAlgorithm(ROOT.ROOT.kLZ4)
-    outFile.SetCompressionLevel(3)
-    
-    if storeTree: trkTree = tree.trackTree()
+    if storeTree: 
+        outFile.SetCompressionAlgorithm(ROOT.ROOT.kLZ4)
+        outFile.SetCompressionLevel(3)
+        trkTree = tree.trackTree()
 
     if storeHist:
         
@@ -312,11 +332,11 @@ if __name__ == '__main__':
             
         if not isValid or isFake: continue
 
-        PVnTracks = tr.pv_NTracks
-        PVsumTrackPt = tr.pv_SumTrackPt
-        PVsumTrackPtSq = math.sqrt(tr.pv_SumTrackPt2)
+        nTracks = tr.pv_NTracks
+        sumTrackPt = tr.pv_SumTrackPt
+        sumTrackPtSq = math.sqrt(tr.pv_SumTrackPt2)
         
-        if PVnTracks < 3: continue
+        if nTracks < 3: continue
         
         npv = tr.ev_nPV
         
@@ -342,6 +362,12 @@ if __name__ == '__main__':
         bs_beamWidthX = tr.bs_BeamWidthX
         bs_beamWidthY = tr.bs_BeamWidthY
         bs_sigmaZ = tr.bs_sigmaZ*10 # mm
+        bs_beamWidthXError = tr.bs_BeamWidthXError
+        bs_beamWidthYError = tr.bs_BeamWidthYError
+        bs_sigmaZError = tr.bs_sigmaZ0Error*10 # mm
+        bs_emittanceX = tr.bs_emittanceX
+        bs_emittanceY = tr.bs_emittanceY
+        bs_betaStar = tr.bs_betaStar
 
         pv_x = tr.pv_x
         pv_y = tr.pv_y
@@ -380,6 +406,8 @@ if __name__ == '__main__':
         bs_cm = 1.
         bs_mm = 10.
         bs_micron = 10000.
+        
+        if bs_beamWidthXError*bs_micron > 0.1: continue
 
         if storeHist:
             
@@ -387,9 +415,9 @@ if __name__ == '__main__':
             h['h_jetPtMax'].Fill(jetPtMax, we)
             h['h_jetHT'].Fill(jetHT, we)
             
-            h['h_pvNTrks'].Fill(PVnTracks, we)
-            h['h_pvSumTrackPt'].Fill(PVsumTrackPt, we)
-            h['h_pvSumTrackPt2'].Fill(PVsumTrackPtSq, we)
+            h['h_pvNTrks'].Fill(nTracks, we)
+            h['h_pvSumTrackPt'].Fill(sumTrackPt, we)
+            h['h_pvSumTrackPt2'].Fill(sumTrackPtSq, we)
             
             h['h_pvXError'].Fill(pv_xError, we)
             h['h_pvYError'].Fill(pv_yError, we)
@@ -421,25 +449,28 @@ if __name__ == '__main__':
             h['h_bsBeamWidthX'].Fill(bs_beamWidthX*bs_micron, we)
             h['h_bsBeamWidthY'].Fill(bs_beamWidthY*bs_micron, we)
             h['h_bsSigmaZ'].Fill(bs_sigmaZ*bs_cm, we)
-        
-            for kpv, vpv in PVparamList.iteritems():
+
+            h['h_pvx'].Fill(pv_x*pv_mm, we)
+            h['h_pvy'].Fill(pv_y*pv_mm, we)
+            h['h_pvz'].Fill(pv_z*pv_cm, we)
+            
+            h2['h2_pvx_y'].Fill(pv_x*pv_mm, pv_y*pv_mm, we)
+            h2['h2_pvx_z'].Fill(pv_z*pv_cm, pv_x*pv_mm, we)
+            h2['h2_pvy_z'].Fill(pv_z*pv_cm, pv_y*pv_mm, we)
+            
+            for pvp in pvParamList:
                 
-                param = eval(kpv)
+                param = eval(pvp)
+                pvbins = ParamList['pv'][pvp]
                 
-                for k, v in vpv.iteritems():
+                for k, v in pvbins.iteritems():
+                    
+                    if k == 'allbins': continue
                     
                     paramMin = v['bins'][1]
                     paramMax = v['bins'][2]
                     
                     if param >= paramMin and param < paramMax:
-                    
-                        h['h_pvx'+k].Fill(pv_x*pv_mm, we)
-                        h['h_pvy'+k].Fill(pv_y*pv_mm, we)
-                        h['h_pvz'+k].Fill(pv_z*pv_cm, we)
-                        
-                        h2['h2_pvx_y'+k].Fill(pv_x*pv_mm, pv_y*pv_mm, we)
-                        h2['h2_pvx_z'+k].Fill(pv_z*pv_cm, pv_x*pv_mm, we)
-                        h2['h2_pvy_z'+k].Fill(pv_z*pv_cm, pv_y*pv_mm, we)
                         
                         h['h_pvdx12'+k].Fill(pv_dx12, we)
                         h['h_pvdy12'+k].Fill(pv_dy12, we)
@@ -448,17 +479,23 @@ if __name__ == '__main__':
                         h['h_pvdxPull12'+k].Fill(pv_dxPull12, we)
                         h['h_pvdyPull12'+k].Fill(pv_dyPull12, we)
                         h['h_pvdzPull12'+k].Fill(pv_dzPull12, we)
-                    
+
         if storeTree:
             
             trkTree.clear()
             
             trkTree.run[0] = run
             trkTree.lumi[0] = lumi
-            trkTree.npv[0] = npv
             trkTree.beamWidthX[0] = bs_beamWidthX
             trkTree.beamWidthY[0] = bs_beamWidthY
-            trkTree.sumTrackPtSq[0] = PVsumTrackPtSq
+            trkTree.beamSigmaZ[0] = bs_sigmaZ
+            trkTree.sumTrackPtSq[0] = sumTrackPtSq
+            trkTree.beamWidthXError[0] = bs_beamWidthXError
+            trkTree.beamWidthYError[0] = bs_beamWidthYError
+            trkTree.beamSigmaZError[0] = bs_sigmaZError
+            trkTree.beamEmittanceX[0] = bs_emittanceX
+            trkTree.beamEmittanceY[0] = bs_emittanceY
+            trkTree.beamBetaStar[0] = bs_betaStar
         
         # IP study
         
@@ -537,6 +574,8 @@ if __name__ == '__main__':
                 trkTree.pt.push_back(pt)
                 trkTree.eta.push_back(eta)
                 trkTree.phi.push_back(phi)
+                trkTree.npv.push_back(npv)
+                if isJet: trkTree.dr.push_back(drTrkJet)
             
             if storeHist:
                 
@@ -559,51 +598,57 @@ if __name__ == '__main__':
                 h['h_ipbszpcaD0'].Fill(d0_bs_zpca*mm, we)
                 h['h_ipbszpvSD0'].Fill(sd0_bs_zpv, we)
                 h['h_ipbszpcaSD0'].Fill(sd0_bs_zpca, we)
-
-                for pi, p in enumerate(ParamList):
                 
-                    for kp, vp in p.iteritems():
+                for p in ipParamList:
+                    
+                    bins = ParamList['pv'][p]
+            
+                    for kp, vp in bins.iteritems():
+                
+                        if kp == 'allbins': continue
+                
+                        IP = bins[kp]
                         
-                        pMin = vp['bins'][1]
-                        pMax = vp['bins'][2]
+                        pMin = IP['bins'][1]
+                        pMax = IP['bins'][2]
                         
                         varp = pt
-                        if pi == 1: varp = eta
-                        elif pi == 2: varp = phi
-                        elif pi == 3: varp = npv
-                        elif pi == 4:
+                        if p == 'eta': varp = eta
+                        elif p == 'phi': varp = phi
+                        elif p == 'npv': varp = npv
+                        elif p == 'dr':
                             if not isJet: continue
                             else: varp = drTrkJet
-                        elif pi == 5: varp = bs_sigmaZ
                         
                         if not (varp >= pMin and varp < pMax): continue
 
-                        h['h_ipbsd0zpv'+kp].Fill(d0_bs_zpv, we)
-                        h['h_ipbsd0'+kp].Fill(d0_bs, we)
-                        h['h_ipbsdz'+kp].Fill(dz_bs, we)
-
-                        for kpv, vpv in PVparamList.iteritems():
-
-                            param = eval(kpv)
-                        
-                            for kparam, vparam in vpv.iteritems():
+                        bsbins = ParamList['bsw']['beamwidthx']
                 
-                                paramMin = vparam['bins'][1]
-                                paramMax = vparam['bins'][2]
+                        for ibs in range(len(bsbins)):
+                        
+                            h['h_ipbsd0zpv'+kp+'_'+str(ibs)].Fill(d0_bs_zpv, we)
+                            h['h_ipbsd0'+kp+'_'+str(ibs)].Fill(d0_bs, we)
+                            h['h_ipbsdz'+kp+'_'+str(ibs)].Fill(dz_bs, we)
+
+                        for pvp in pvParamList:
+                    
+                            param = eval(pvp)
+                            pvbins = ParamList['pv'][pvp]
+                            
+                            for kpv, vpv in pvbins.iteritems():
+                                
+                                if kpv == 'allbins': continue
+                
+                                paramMin = vpv['bins'][1]
+                                paramMax = vpv['bins'][2]
                 
                                 if not (param >= paramMin and param < paramMax): continue
                         
-                                h['h_ippvd0'+kparam+kp].Fill(d0_pv, we)
-                                h['h_ippvdz'+kparam+kp].Fill(dz_pv, we)
-                                
-                                h['h_ipd0Err'+kparam+kp].Fill(d0Err, we)
-                                h['h_ipdzErr'+kparam+kp].Fill(dzErr, we)
-                                
-                                h['h_ippvd0NoRefit'+kparam+kp].Fill(d0NoRefit, we)
-                                h['h_ippvdzNoRefit'+kparam+kp].Fill(dzNoRefit, we)
+                                h['h_ippvd0'+kpv+kp].Fill(d0_pv, we)
+                                h['h_ippvdz'+kpv+kp].Fill(dz_pv, we)
 
         if storeTree: trkTree.fill()
-            
+
     print '\033[1;32mdone\033[1;m'
 
     outFile.Write()

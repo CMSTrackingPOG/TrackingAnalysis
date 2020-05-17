@@ -73,7 +73,7 @@ def main(argv = None):
     
     parser = OptionParser(usage)
     
-    parser.add_option("--input",default='jobs/ZeroBias.root',help="Input file name [default: %default]")
+    parser.add_option("--input",default='jobs/JetHT.root',help="Input file name [default: %default]")
     parser.add_option("--output",default='data/bins/qcd_bsw.json',help="Output file name [default: %default]")
     parser.add_option("--tree",default='trackTree',help="Input tree name [default: %default]")
     parser.add_option("--lumi",default='../crab/lumi.csv',help="Luminosity data file name [default: %default]")
