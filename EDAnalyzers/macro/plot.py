@@ -181,14 +181,18 @@ if __name__ == '__main__':
                 
                 IP = bins[kk]
 
-                bsbins = ParamList['bsw']['beamwidthx']
+                if isData:
+                    bsbins = ParamList['bsw']['beamwidthx']
                 
-                for ibs in range(len(bsbins)):
+                    for ibs in range(len(bsbins)):
                         
-                    hd['ipbsd0'+kk+'_'+str(ibs)] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                    hd['ipbsd0zpv'+kk+'_'+str(ibs)] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                    hd['ipbsdz'+kk+'_'+str(ibs)] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
-
+                        hd['ipbsd0'+kk+'_'+str(ibs)] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                        hd['ipbsd0zpv'+kk+'_'+str(ibs)] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                        hd['ipbsdz'+kk+'_'+str(ibs)] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
+                else:
+                        hd['ipbsd0'+kk] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                        hd['ipbsd0zpv'+kk] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                        hd['ipbsdz'+kk] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
 
         if isData:
             PV = c.hPVData
@@ -622,14 +626,29 @@ if __name__ == '__main__':
                         
                         if not (varp >= pMin and varp < pMax): continue
 
-                        bsbins = ParamList['bsw']['beamwidthx']
-                
-                        for ibs in range(len(bsbins)):
-                        
-                            h['h_ipbsd0zpv'+kp+'_'+str(ibs)].Fill(d0_bs_zpv, we)
-                            h['h_ipbsd0'+kp+'_'+str(ibs)].Fill(d0_bs, we)
-                            h['h_ipbsdz'+kp+'_'+str(ibs)].Fill(dz_bs, we)
-
+                        if isData:
+                            
+                            bsbins = ParamList['bsw']
+                            
+                            for ibs in range(len(bsbins['runstart'])):
+                                
+                                runMin = bsbins['runstart'][ibs]
+                                runMax = bsbins['runend'][ibs]
+                                lumiMin = bsbins['lumistart'][ibs]
+                                lumiMax = bsbins['lumiend'][ibs]
+                                
+                                if not (run >= runMin and run < runMax): continue
+                                if not (lumi >= lumiMin and lumi < lumiMax): continue
+                                
+                                h['h_ipbsd0zpv'+kp+'_'+str(ibs)].Fill(d0_bs_zpv, we)
+                                h['h_ipbsd0'+kp+'_'+str(ibs)].Fill(d0_bs, we)
+                                h['h_ipbsdz'+kp+'_'+str(ibs)].Fill(dz_bs, we)
+                        else:
+                            
+                            h['h_ipbsd0zpv'+kp].Fill(d0_bs_zpv, we)
+                            h['h_ipbsd0'+kp].Fill(d0_bs, we)
+                            h['h_ipbsdz'+kp].Fill(dz_bs, we)
+                            
                         for pvp in pvParamList:
                     
                             param = eval(pvp)
