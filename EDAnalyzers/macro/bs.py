@@ -73,8 +73,8 @@ def main(argv = None):
     
     parser = OptionParser(usage)
     
-    parser.add_option("--input",default='ZeroBias.root',help="Input file name [default: %default]")
-    parser.add_option("--output",default='data/bins/zb_bsw.json',help="Output file name [default: %default]")
+    parser.add_option("--input",default='JetHT.root',help="Input file name [default: %default]")
+    parser.add_option("--output",default='data/bins/qcd_bsw.json',help="Output file name [default: %default]")
     parser.add_option("--tree",default='trackTree',help="Input tree name [default: %default]")
     parser.add_option("--lumi",default='../crab/lumi.csv',help="Luminosity data file name [default: %default]")
     parser.add_option("--threads",default=8,help="Number of threads [default: %default]")
@@ -220,7 +220,7 @@ if __name__ == '__main__':
 
     # final binning
     if options.qcd:
-        roi = [0, 250, 710, 1340, dbspl['bin'].iloc[-1]+1]
+        roi = [0, 150, 385, 920, dbspl['bin'].iloc[-1]+1]
     else:
         roi = [0, 250, 1150, 1750, dbspl['bin'].iloc[-1]+1]
 
@@ -284,6 +284,11 @@ if __name__ == '__main__':
                     istart = roi[r]
                     iend =  roi[r+1]-1
                     
+                    if iend > len(dbspl.index):
+                        print ''
+                        print 'Requested bin edge exceeds the derived parametrisation'
+                        sys.exit()
+
                     if v == 'beamWidthX':
                         param['runstart'].append(dbspl[dbspl['bin'] == istart].run.values.tolist()[0])
                         param['runend'].append(dbspl[dbspl['bin'] == iend].run.values.tolist()[0])
