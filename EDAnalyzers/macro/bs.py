@@ -133,12 +133,13 @@ if __name__ == '__main__':
     titl = ['run', 'lumi', r'Beam width in x [$\mu m$]', r'Beam width in y [$\mu m$]', r'Beam $\sigma_{z}$ [mm]', \
     r'Beam width error in x [$\mu m$]', r'Beam width error in y [$\mu m$]', r'Beam $\sigma_{z}$ error [mm]']
 
-    dbs = tbs.pandas.df(var, executor=executor, entrystop=nev*float(options.crop))    
+    dbs = tbs.pandas.df(var, executor=executor, entrystop=nev*float(options.crop))
     dbs = dbs.drop_duplicates().sort_values(['run', 'lumi'], ascending = (True, True))
-    if options.cut: dbs = dbs[dbs.beamWidthXError < 0.1]
     
     bvar = ['beamWidthX', 'beamWidthY', 'beamWidthXError', 'beamWidthYError']
     dbs[bvar] = dbs[bvar].apply(lambda x: x*10000, axis=1)
+    
+    if options.cut: dbs = dbs[dbs.beamWidthXError < 0.1]
     
     # remove lb dependence for the final parameterisation
     dbspl = dbs.drop_duplicates(subset=['run', 'beamWidthX']).sort_values(['run', 'lumi'], ascending = (True, True)).reset_index(drop=True)
