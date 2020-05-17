@@ -130,7 +130,7 @@ if __name__ == '__main__':
     flush('read '+str(nev)+' .. ')
 
     var = ['run', 'lumi', 'beamWidthX', 'beamWidthY', 'beamSigmaZ', 'beamWidthXError', 'beamWidthYError', 'beamSigmaZError']
-    tit = ['run', 'lumi', r'Beam width in x [$\mu m$]', r'Beam width in y [$\mu m$]', r'Beam $\sigma_{z}$ [mm]', \
+    titl = ['run', 'lumi', r'Beam width in x [$\mu m$]', r'Beam width in y [$\mu m$]', r'Beam $\sigma_{z}$ [mm]', \
     r'Beam width error in x [$\mu m$]', r'Beam width error in y [$\mu m$]', r'Beam $\sigma_{z}$ error [mm]']
 
     dbs = tbs.pandas.df(var, executor=executor, entrystop=nev*float(options.crop))    
@@ -211,7 +211,7 @@ if __name__ == '__main__':
     
     flush('Produce plots .. ')
 
-    figsize = [15.0, 5.0]
+    figsize = [15.0, 7.0]
     ylim = {'beamWidth':[0., 35.], 'beamWidthX':[0., 35.], 'beamWidthY':[0., 35.], \
     'beamWidthError':[0., 2.0], 'beamWidthXError':[0., 2.0], 'beamWidthYError':[0., 2.0], \
     'beamSigmaZ':[30., 50.], 'beamSigmaZError':[0., 1.]}
@@ -224,24 +224,26 @@ if __name__ == '__main__':
 
     plots = {}
 
-    for x in ['run', 'lumi']: var.remove(x)
+    for ix, x in enumerate(['run', 'lumi']):
+        var.remove(x)
+        titl.remove(x)
     
     for i, v in enumerate(var):
         plots[v] = dbspl.plot(kind='scatter', x='bin', y=v, color='black', figsize=figsize)
         plots[v].set_xlabel(r'Time [Arbitrary units]')
-        plots[v].set_ylabel(tit[i])
+        plots[v].set_ylabel(titl[i])
         if v in ylim: plots[v].set_ylim(ylim[v][0], ylim[v][1])
         if options.draw:
             for r in roi:
                 plots[v].axvline(x=r-0.5, ymin=ylim[v][0], ymax=ylim[v][1], linestyle='--', color='gray', linewidth=2.0)
         fig = plots[v].get_figure()
-        fig.savefig('pics/'+v+'.png')
+        fig.savefig('pics/'+v+'.pdf')
 
     cols = ['lightskyblue', 'salmon']
     fcols = ['blue', 'red']
     labs = ['x', 'y']
     name = ['beamWidth', 'beamWidthError']
-    tit =  [r'Beam width [$\mu m$]', r'Beam width error [$\mu m$]']
+    titl =  [r'Beam width [$\mu m$]', r'Beam width error [$\mu m$]']
     same = [['beamWidthX', 'beamWidthY'], ['beamWidthXError', 'beamWidthYError']]
     
     param = {}
@@ -290,13 +292,13 @@ if __name__ == '__main__':
                         param['beamwidthy'].append(par[1])
                     
         ax.set_xlabel(r'Time [Arbitrary units]')
-        ax.set_ylabel(tit[i])
+        ax.set_ylabel(titl[i])
         if v in ylim: ax.set_ylim(ylim[v][0], ylim[v][1])
         if options.draw:
             for r in roi:
                 ax.axvline(x=r-0.5, ymin=ylim[v][0], ymax=ylim[v][1], linestyle='--', color='gray', linewidth=2.0)
         ax.legend(loc='upper center', prop={'size': 14})
-        fig.savefig('pics/'+name[i]+'.png')
+        fig.savefig('pics/'+name[i]+'.pdf')
     
     done()
 
