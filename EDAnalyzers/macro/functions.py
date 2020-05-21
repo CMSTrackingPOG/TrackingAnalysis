@@ -1,9 +1,15 @@
 import ROOT
 import numpy
 import math
-import sys
+import os, sys
 import json
+import glob
+import time
+from os.path import expanduser
+from PIL import Image
 from array import array
+import multiprocessing
+import common
 
 def addbin(h):
     
@@ -252,5 +258,139 @@ class param():
         
         p = self.data[pname]
         
-        return p
+        return p    
+
+def copy(finput, foutput):
+
+    for f in finput:
+        os.system('cp '+f+' '+foutput)
+
+def convert(finput, foutput):
+    
+    size = (400,400)
+    
+    im = Image.open(finput)
+    im.thumbnail(size)
+    im.save(foutput)
+    
+    return foutput
+    
+def generateThumbs(files, fdir, img):
+    
+    pool = multiprocessing.Pool(common.ncores)
+    
+    jobs = []
+    output = []
+    
+    for image in files:
+        
+        finput = fdir+'/'+image+'.'+img
+        foutput = fdir+'/'+image+'_thumb.png'
+        
+        jobs.append( pool.apply_async(convert, (finput, foutput)) )
+        
+    output += [job.get() for job in jobs]
+    
+    pool.close()
+        
+    return output
+
+def createPage():
+    
+    pool = multiprocessing.Pool(common.ncores)
+    
+    home = expanduser("~")
+    webpath = home+'/public_html/tracking/'
+    
+    figs = {}
+    cat = ['pvPull_x', 'pvPull_y', 'pvPull_z', \
+    'pvReso_x', 'pvReso_y', 'pvReso_z', \
+    'bs', 'Others']
+    
+    os.system('rm -rf '+webpath)
+    os.system('mkdir '+webpath)
+    os.system('mkdir '+webpath+'pics/')
+    
+    page = '<html>\n'
+    
+    page += '<body>\n'    
+    
+    files = {}
+    filesAll = glob.glob('pics/*thumb*')
+    
+    jobs = []
+    
+    for c in cat:
+        
+        files[c] = glob.glob('pics/'+c+'*thumb*')
+        
+        if len(files[c]) == 0: continue
+        
+        filesLeft = list(set(filesAll)^set(files[c]))
+        filesAll = filesLeft
+    
+        page += '<section><h2>'+c+'</h2>\n'
+        
+        for f in files[c]:
+        
+#            os.system('cp '+f+' '+webpath+'pics/')
+#            os.system('cp '+f.replace('_thumb','').replace('.png','.eps')+' '+webpath+'pics/')
+            finput = [f, f.replace('_thumb','').replace('.png','.eps')]
+            foutput = webpath+'pics/'
+            
+            jobs.append( pool.apply_async(copy, (finput, foutput)) )
+            
+            page += '<a href="'+f.replace('_thumb','').replace('.png','.eps')+'">'+'<img src="'+f+'" height="100"/>'+'</a>\n'
+
+        page += '</section>\n'
+
+    if len(filesAll) > 0:
+        
+        page += '<section><h2>Others</h2>\n'
+        
+        for f in filesAll:
+            
+#            os.system('cp '+f+' '+webpath+'pics/')
+#            os.system('cp '+f.replace('_thumb','').replace('.png','.eps')+' '+webpath+'pics/')
+            finput = [f, f.replace('_thumb','').replace('.png','.eps')]
+            foutput = webpath+'pics/'
+            
+            jobs.append( pool.apply_async(copy, (finput, foutput)) )
+            
+            page += '<a href="'+f.replace('_thumb','').replace('.png','.eps')+'">'+'<img src="'+f+'" height="100"/>'+'</a>\n'
+            
+        page += '</section>\n'
+        
+    page += '</body>\n'
+    page += '</html>'
+
+    for job in jobs: job.get()
+    
+    pool.close()
+    
+    wfile = open(webpath+'index.html', 'w')
+    wfile.write(page)
+    wfile.close()
+
+def adjust(h1, h2):
+    
+    rmax = 5.
+    rms = max(h1.GetRMS(), h2.GetRMS())
+    for h in [h1, h2]: h.GetXaxis().SetRangeUser(-rmax*rms,rmax*rms)
+
+def isbadfit(r1, r2):
+    
+    tex = ROOT.TLatex(0.3,0.4,'')
+    
+    rmax = 10.
+    
+    if (r1 > rmax) or (r2 > rmax):
+        tex = ROOT.TLatex(0.3,0.4,'BAD')
+        tex.SetNDC()
+        tex.SetTextSize(0.2)
+        
+    if r1 > rmax:
+        tex.SetTextColor(common.mcfit)
+        
+    return tex
     

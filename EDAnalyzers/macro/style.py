@@ -1,17 +1,19 @@
 import ROOT
 import common as c
 
-def SetPlotStyle(mode):
+def SetPlotStyle(mode, name=''):
 
-    plotStyle = PlotStyle(mode);
-    ROOT.gROOT.SetStyle("PLOT")
+    if name == '': name = 'PLOT'
+    
+    plotStyle = PlotStyle(mode, name);
+    ROOT.gROOT.SetStyle(name)
     ROOT.gROOT.ForceStyle()
     
     return plotStyle
 
-def PlotStyle(mode):
+def PlotStyle(mode, name):
 
-    plotStyle = ROOT.TStyle("PLOT","Plot style")
+    plotStyle = ROOT.TStyle(name, 'Plot style')
     
     plotStyle.SetErrorX(0.0001)
 
@@ -78,7 +80,7 @@ def PlotStyle(mode):
 
     return plotStyle
 
-def cmslabel(mode,year,proc,up=True):
+def cmslabel(mode, year, proc, up=True):
     
     tex = ROOT.TLatex(0.66,0.906825,"CMS")
     tex.SetNDC()

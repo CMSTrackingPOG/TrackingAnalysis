@@ -2,8 +2,12 @@ import numpy as np
 
 datapath = '../test/'
 year = '2017'
+
 mccol = 45
 mcfit = 2
+datamrk = 20
+
+ncores = 8
 
 PVmeas = ['x','y','z']
 IPmeas = ['d0','dz']

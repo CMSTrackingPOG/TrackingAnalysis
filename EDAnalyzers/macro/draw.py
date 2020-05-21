@@ -5,7 +5,8 @@ import subprocess
 import common as c
 from subprocess import call
 import style
-import functions as func
+import functions as fun
+import numpy as np
 import pickle
 import json
 import ROOT
@@ -25,10 +26,10 @@ def main(argv = None):
     parser = OptionParser(usage)
     parser.add_option("--input",default="results/ip.json",help="input file name for IP [default: %default]")
     parser.add_option("--inputpv",default="results/pv.json",help="input file name for PV [default: %default]")
-    parser.add_option("-o","--output",default="pics",help="output directory [default: %default]")
-    parser.add_option("-m","--mode",default="pv",help="measurement mode [default: %default]")
-    parser.add_option("-p","--process",default="zb",help="type of process [default: %default]")
-    parser.add_option("--parampv",default="PVsumTrackPtSq",help="Parameterisation for PV resolution measurement [default: %default]")
+    parser.add_option("--output",default="pics",help="output directory [default: %default]")
+    parser.add_option("--mode",default="pv",help="measurement mode [default: %default]")
+    parser.add_option("--process",default="zb",help="type of process [default: %default]")
+    parser.add_option("--parampv",default="sumTrackPtSq",help="Parameterisation for PV resolution measurement [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -43,23 +44,17 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
     
     hMC.SetMarkerStyle(22)
     hMC.SetMarkerSize(1.0)
-    hMC.SetMarkerColor(c.mccol)
-    hMC.SetLineColor(c.mccol)
+    hMC.SetMarkerColor(c.mcfit)
+    hMC.SetLineColor(c.mcfit)
 
     hMC.Draw('')
-    hMC.Draw('p same')
+    hMC.Draw('pe1 same')
     hData.Draw('same')
-    hData.Draw('p same')
+    hData.Draw('pe1 same')
     
     if mode == 'pv':
-        if options.process == 'zb':
-            if m == 'reso' and x != 'z': hMC.GetYaxis().SetRangeUser(0.,200.)
-            elif m == 'reso' and x == 'z': hMC.GetYaxis().SetRangeUser(0.,200.)
-            else: hMC.GetYaxis().SetRangeUser(0.,1.4)
-        else:
-            if m == 'reso' and x != 'z': hMC.GetYaxis().SetRangeUser(0.,30.)
-            elif m == 'reso' and x == 'z': hMC.GetYaxis().SetRangeUser(0.,30.)
-            else: hMC.GetYaxis().SetRangeUser(0.,1.4)
+        if m == 'reso': hMC.GetYaxis().SetRangeUser(0.,70.)
+        else: hMC.GetYaxis().SetRangeUser(0.,1.7)
     else:
         hMC.GetYaxis().SetRangeUser(0.,350.)
         if 'eta' in mode and x == 'dz': hMC.GetYaxis().SetRangeUser(0.,2000.)
@@ -71,7 +66,7 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
     leg.AddEntry(hMC,"Simulation","p")
     leg.Draw()        
     
-    t1, t2, t3, t4 = style.cmslabel(1, c.year, evt, False)
+    t1, t2, t3, t4 = style.cmslabel(1, c.year, evt, True)
     t1.Draw()
     t2.Draw()
     t3.Draw()
@@ -92,10 +87,11 @@ if __name__ == '__main__':
     ROOT.gROOT.SetBatch()
 
     pstyle = style.SetPlotStyle(1)
-    pstyle.SetErrorX(0.5)
+#    pstyle.SetErrorX(0.5)
 
 #    if os.path.isdir(options.output):
-#        os.system("rm -rf "+options.output)                
+#        os.system("rm -rf "+options.output)
+
 #    os.system("mkdir "+options.output)
 
     with open(options.input, "r") as read_file:
@@ -116,17 +112,10 @@ if __name__ == '__main__':
 
     evt = options.process
     
-    parampv = c.PVnTracks[evt]
-    parambinspv = c.PVnTracksBins[evt]
-    if options.parampv == 'PVsumTrackPt': 
-        parampv = c.PVsumTrackPt[evt]
-        parambinspv = c.PVsumTrackPtBins[evt]
-    elif options.parampv == 'PVsumTrackPtSq': 
-        parampv = c.PVsumTrackPtSq[evt]
-        parambinspv = c.PVsumTrackPtSqBins[evt]
-    elif options.parampv != 'PVnTracks':
-        print 'Unknown parameterisation requested:', options.parampv
-        sys.exit()        
+    ppath = 'data/bins/'
+    fparampv = fun.param(ppath+evt+'_pv.json')
+    parampv = fparampv.get(options.parampv)
+    parambinspv = np.array(list(parampv['allbins'].replace('[','').replace(']','').split(',')), dtype='float64')
     
     for m in typ:
         for x in meas:
@@ -136,10 +125,10 @@ if __name__ == '__main__':
                 hname = 'h_'+m+'_'+t+'_'+x
                 
                 if mode == 'pv':
-                    h[hname] = ROOT.TH1F(hname,hname,len(parambinspv)-1,parambinspv)
-                    if options.parampv == 'PVnTracks': h[hname].GetXaxis().SetTitle('Number of tracks')
-                    elif options.parampv == 'PVsumTrackPt': h[hname].GetXaxis().SetTitle('Sum of track p_{T} [GeV]')
-                    elif options.parampv == 'PVsumTrackPtSq': h[hname].GetXaxis().SetTitle('#sqrt{Sum of track p_{T}^{2}} [GeV]')
+                    h[hname] = ROOT.TH1F(hname, hname, len(parambinspv)-1, parambinspv)
+                    if options.parampv == 'nTracks': h[hname].GetXaxis().SetTitle('Number of tracks')
+                    elif options.parampv == 'sumTrackPt': h[hname].GetXaxis().SetTitle('#sum p_{T} [GeV]')
+                    elif options.parampv == 'sumTrackPtSq': h[hname].GetXaxis().SetTitle('#sqrt{#sum p_{T}^{2}} [GeV]')
                     ytit = 'PV resolution in '+x+' [#mum]'
                     if m == 'pull': ytit = 'Primary vertex pull in '+x
                     h[hname].GetYaxis().SetTitle(ytit)
@@ -147,7 +136,7 @@ if __name__ == '__main__':
                 else:                        
                     for hn in [hname,hname+'_deconv']:
                         if 'pt' in mode:
-                            h[hn] = ROOT.TH1F(hn,hn,len(c.IPptBins)-1,c.IPptBins)
+                            h[hn] = ROOT.TH1F(hn,hn,len(c.IPptBins[evt])-1,c.IPptBins[evt])
                             h[hn].GetXaxis().SetTitle('Track p_{T} [GeV]')
                         elif 'eta' in mode:
                             h[hn] = ROOT.TH1F(hn,hn,len(c.IPetaBins)-1,c.IPetaBins)
@@ -171,7 +160,7 @@ if __name__ == '__main__':
             hnameMC = 'h_'+m+'_mc_'+x
             
             param = parampv
-            if 'pt' in mode: param = c.IPpt
+            if 'pt' in mode: param = c.IPpt[evt]
             elif 'eta' in mode: param = c.IPeta
             elif 'phi' in mode: param = c.IPphi
             elif 'npv' in mode: param = c.IPnpv
@@ -179,6 +168,8 @@ if __name__ == '__main__':
             elif 'sz' in mode: param = c.IPsz
             
             for kparam, vparam in param.iteritems():
+                
+                if kparam in ['allbins']: continue
 
                 if mode == 'pv':
                     
@@ -210,6 +201,8 @@ if __name__ == '__main__':
                     wDataSum = 0; wMCSum = 0;
 
                     for ktrk, vtrk in parampv.iteritems():
+                        
+                        if ktrk in ['allbins']: continue
                    
                         if 'ipbs' in mode and (ktrk != '' or kparam == ''): break
 
