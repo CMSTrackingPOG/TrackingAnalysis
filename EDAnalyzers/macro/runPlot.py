@@ -2,9 +2,9 @@
 
 import os
 
-inputjson=['data.json','mc.json']
+inputjson = ['data.json', 'mc.json']
 
-param='PVnTracks,PVsumTrackPtSq'
+param = 'sumTrackPtSq'
 
 outdir = 'jobs/'
 if os.path.isdir(outdir):
@@ -13,4 +13,5 @@ os.system("mkdir "+outdir)
 
 for j in inputjson:
     outfile = 'jobs/'+j.replace('.json','.root')
+#    os.system('python plot.py --input='+j+' --output='+outfile+' --param='+param+' --time')
     os.system('python plot.py --input='+j+' --output='+outfile+' --param='+param)

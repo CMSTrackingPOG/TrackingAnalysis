@@ -5,6 +5,7 @@ import common as c
 import functions as fun
 import utils
 import tree
+import datetime as dt
 from subprocess import call
 import xml.etree.ElementTree as ET
 from array import array
@@ -23,17 +24,18 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Analysis script to create histograms"
 
     parser = OptionParser(usage)
-    parser.add_option("-i","--input",default="list.json",help="input file list [default: %default]")
-    parser.add_option("-o","--output",default="output.root",help="output file name [default: %default]")
-    parser.add_option("-p","--param",default="PVnTracks",help="list of parameterisations for PV resolution measurement [default: %default]")
-    parser.add_option("-n","--nmax",type=int,default=-1,help="number of events per job [default: %default]")
-    parser.add_option("--etamax",type=float,default=3.0,help="max track eta [default: %default]")
-    parser.add_option("--ptmin",type=float,default=0.1,help="min track pT in GeV [default: %default]")
-#    parser.add_option("--pileup",default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/pileup/",help="path to pileup data files [default: %default]")
-    parser.add_option("--pileup",default="",help="path to pileup data files [default: %default]")
-#    parser.add_option("--reweight",default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/",help="path to reweight data files [default: %default]")
-    parser.add_option("--reweight",default="",help="path to reweight data files [default: %default]")
-    parser.add_option("--reweightvar",default="jetHT",help="variable to reweight [default: %default]")
+    parser.add_option("--input", default="list.json", help="input file list [default: %default]")
+    parser.add_option("--output", default="output.root", help="output file name [default: %default]")
+    parser.add_option("--param", default="nTracks", help="list of parameterisations for PV resolution measurement [default: %default]")
+    parser.add_option("--nmax", type=int,default=-1, help="number of events per job [default: %default]")
+    parser.add_option("--etamax", type=float,default=3.0, help="max track eta [default: %default]")
+    parser.add_option("--ptmin", type=float,default=0.1, help="min track pT in GeV [default: %default]")
+#    parser.add_option("--pileup", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/pileup/", help="path to pileup data files [default: %default]")
+    parser.add_option("--pileup", default="", help="path to pileup data files [default: %default]")
+#    parser.add_option("--reweight", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/", help="path to reweight data files [default: %default]")
+    parser.add_option("--reweight", default="", help="path to reweight data files [default: %default]")
+    parser.add_option("--reweightvar", default="jetHT", help="variable to reweight [default: %default]")
+    parser.add_option("--time", action='store_true', help="Print out run time information [default: %default]")
 
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -44,9 +46,13 @@ if __name__ == '__main__':
     options = main()
     
     storeHist = True
-    storeTree = True
+    storeTree = False
 
     ROOT.gROOT.SetBatch()
+
+    ts = {}
+    
+    if options.time: ts['init'] = dt.datetime.now()
     
     tr = ROOT.TChain('residuals/tree')
 
@@ -79,10 +85,13 @@ if __name__ == '__main__':
     ipParamList = ['pt', 'eta', 'phi', 'npv', 'dr']
     
     ParamList = {}
+    
     for t in ['bs', 'pv']:
-        ParamList[t] = {}
+        ParamList[t] = {}        
         for p in pvParamList+ipParamList:
             ParamList[t][p] = param[t].get(p)
+            del ParamList[t][p]['allbins']
+
     for t in ['bsw']:
         ParamList[t] = {}
         for p in ['runstart', 'runend', 'lumistart', 'lumiend', 'beamwidthx', 'beamwidthy']:
@@ -158,8 +167,6 @@ if __name__ == '__main__':
             
             for kk, vv in bins.iteritems():
                 
-                if kk == 'allbins': continue
-                
                 IP = bins[kk]
                 
                 for pvp in pvParamList:
@@ -167,8 +174,6 @@ if __name__ == '__main__':
                     pvbins = ParamList['pv'][pvp]
                     
                     for kpv, vpv in pvbins.iteritems():
-                        
-                        if kpv == 'allbins': continue
 
                         hd['ippvd0'+kpv+kk] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
                         hd['ippvdz'+kpv+kk] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
@@ -176,8 +181,6 @@ if __name__ == '__main__':
             bins = ParamList['bs'][p]
             
             for kk, vv in bins.iteritems():
-                
-                if kk == 'allbins': continue
                 
                 IP = bins[kk]
 
@@ -219,8 +222,6 @@ if __name__ == '__main__':
             pvbins = ParamList['pv'][pvp]
             
             for k, v in pvbins.iteritems():
-                
-                if k == 'allbins': continue
             
                 hd['pvdx12'+k] = {'xtit':'Primary vertex resolution in x [#mum]','nb':v['resox'][0],'xmin':v['resox'][1],'xmax':v['resox'][2],'ytit':'Events'}
                 hd['pvdy12'+k] = {'xtit':'Primary vertex resolution in y [#mum]','nb':v['resoy'][0],'xmin':v['resoy'][1],'xmax':v['resoy'][2],'ytit':'Events'}
@@ -273,7 +274,9 @@ if __name__ == '__main__':
             hd['bsBeamWidthX'] = {'xtit':'Beam width (x) [#mum]','nb':BS['bwx'][0],'xmin':BS['bwx'][1],'xmax':BS['bwx'][2],'ytit':'Events'}
             hd['bsBeamWidthY'] = {'xtit':'Beam width (y) [#mum]','nb':BS['bwy'][0],'xmin':BS['bwy'][1],'xmax':BS['bwy'][2],'ytit':'Events'}
             hd['bsSigmaZ'] = {'xtit':'Beam sigma z [mm]','nb':BS['bwz'][0],'xmin':BS['bwz'][1],'xmax':BS['bwz'][2],'ytit':'Events'}
-        
+
+    if options.time: ts['hist'] = dt.datetime.now()
+    
     outFile = ROOT.TFile.Open(options.output,"RECREATE")
     
     if storeTree: 
@@ -301,12 +304,21 @@ if __name__ == '__main__':
                 h2[hname].GetYaxis().SetTitle(v['ytit'])
                 h2[hname].Sumw2()
 
+    if options.time: 
+        ts['main'] = dt.datetime.now()
+                
     # Fill histograms
     for i in range(nEvents):
         
+        ts['main_checkpoints'] = []
+        
         if i > options.nmax and options.nmax >= 0: break
+
+        if options.time: ts['main_checkpoints'].append(dt.datetime.now())
         
         tr.GetEntry(i)
+        
+        if options.time: ts['main_checkpoints'].append(dt.datetime.now())
 
         # Event selection
         
@@ -341,6 +353,10 @@ if __name__ == '__main__':
         sumTrackPtSq = math.sqrt(tr.pv_SumTrackPt2)
         
         if nTracks < 3: continue
+
+        pvParamListVal = []
+        for pvp in pvParamList:
+            pvParamListVal.append(eval(pvp))
         
         npv = tr.ev_nPV
         
@@ -354,6 +370,8 @@ if __name__ == '__main__':
         run = tr.ev_run
         lumi = tr.ev_lumi
 
+        if options.time: ts['main_checkpoints'].append(dt.datetime.now())
+        
         # PV/BS study
         
         bs_x0 = tr.bs_x0
@@ -469,8 +487,6 @@ if __name__ == '__main__':
                 
                 for k, v in pvbins.iteritems():
                     
-                    if k == 'allbins': continue
-                    
                     paramMin = v['bins'][1]
                     paramMax = v['bins'][2]
                     
@@ -500,56 +516,88 @@ if __name__ == '__main__':
             trkTree.beamEmittanceX[0] = bs_emittanceX
             trkTree.beamEmittanceY[0] = bs_emittanceY
             trkTree.beamBetaStar[0] = bs_betaStar
+
+        if options.time: ts['main_checkpoints'].append(dt.datetime.now())
         
         # IP study
         
-        nTracks = tr.trk_pt.size()
-
-        for t in range(nTracks):
+        # Fast access to vector branches
         
-            hasPXL1 = (tr.trk_hasPixelBarrelLayer1[t] or tr.trk_hasPixelEndcapLayer1[t])
-            hasPXL2 = (tr.trk_hasPixelBarrelLayer2[t] or tr.trk_hasPixelEndcapLayer2[t])
-            hasPXL3 = (tr.trk_hasPixelBarrelLayer3[t] or tr.trk_hasPixelEndcapLayer3[t])
-            hasPXL4 = (tr.trk_hasPixelBarrelLayer4[t] or tr.trk_hasPixelEndcapLayer4[t])
+        trk_pt = tr.trk_pt
+        trk_eta = tr.trk_eta
+        trk_phi = tr.trk_phi
+        
+        trk_hasPixelBarrelLayer1 = tr.trk_hasPixelBarrelLayer1
+        trk_hasPixelEndcapLayer1 = tr.trk_hasPixelEndcapLayer1
+        trk_hasPixelBarrelLayer2 = tr.trk_hasPixelBarrelLayer2
+        trk_hasPixelEndcapLayer2 = tr.trk_hasPixelEndcapLayer2
+        trk_hasPixelBarrelLayer3 = tr.trk_hasPixelBarrelLayer3
+        trk_hasPixelEndcapLayer3 = tr.trk_hasPixelEndcapLayer3
+        trk_hasPixelBarrelLayer4 = tr.trk_hasPixelBarrelLayer4
+        trk_hasPixelEndcapLayer4 = tr.trk_hasPixelEndcapLayer4
+        
+        trk_jet_found = tr.trk_jet_found
+        trk_jet_eta = tr.trk_jet_eta
+        trk_jet_phi = tr.trk_jet_phi
+        trk_jet_nTracks = tr.trk_jet_nTracks
+        
+        trk_d0 = tr.trk_d0
+        trk_dz = tr.trk_dz
+        
+        trk_d0_pv = tr.trk_d0_pv
+        trk_dz_pv = tr.trk_dz_pv
+        trk_d0_bs = tr.trk_d0_bs
+        trk_dz_bs = tr.trk_dz_bs
+        
+        trk_d0_bs_zpv = tr.trk_d0_bs_zpv
+        trk_d0_bs_zpca = tr.trk_d0_bs_zpca
+        
+        trk_d0Err = tr.trk_d0Err
+        trk_dzErr = tr.trk_dzErr
+        
+        nTracks = trk_pt.size()
+
+        if options.time: print 'nTracks =', nTracks
+        
+        for t in range(nTracks):
+
+            pt = trk_pt[t]
+            eta = trk_eta[t]
+            phi = trk_phi[t]
+            
+            hasPXL1 = (trk_hasPixelBarrelLayer1[t] or trk_hasPixelEndcapLayer1[t])
+            hasPXL2 = (trk_hasPixelBarrelLayer2[t] or trk_hasPixelEndcapLayer2[t])
+            hasPXL3 = (trk_hasPixelBarrelLayer3[t] or trk_hasPixelEndcapLayer3[t])
+            hasPXL4 = (trk_hasPixelBarrelLayer4[t] or trk_hasPixelEndcapLayer4[t])
             
             trkSelPXL1 = bool(hasPXL1)
             trkSelPXL2 = bool(hasPXL1 and hasPXL2)
             trkSelPXL3 = bool(hasPXL1 and hasPXL2 and hasPXL3)
             trkSelPXL4 = bool(hasPXL1 and hasPXL2 and hasPXL3 and hasPXL4)
             
-            quality = tr.trk_quality[t]
-            
-            pt = tr.trk_pt[t]
-            eta = tr.trk_eta[t]
-            phi = tr.trk_phi[t]
-            
-#            if pt > 10.: continue
-#            if pt < 1.: continue
+##            if pt > 10.: continue
+##            if pt < 1.: continue
 
-            isJet = tr.trk_jet_found[t]
-            jetEta = tr.trk_jet_eta[t]
-            jetPhi = tr.trk_jet_phi[t]
-            nTrkJet = tr.trk_jet_nTracks[t]
+            isJet = trk_jet_found[t]
+            jetEta = trk_jet_eta[t]
+            jetPhi = trk_jet_phi[t]
+            nTrkJet = trk_jet_nTracks[t]
 
             if isJet:
-                drTrkJet = utils.deltaR2(eta,phi,jetEta,jetPhi)
+                drTrkJet = utils.deltaR2(eta, phi, jetEta, jetPhi)
             
-            d0 = tr.trk_d0[t]
-            dz = tr.trk_dz[t]
+            d0 = trk_d0[t]
+            dz = trk_dz[t]
 
-            d0_pv = tr.trk_d0_pv[t]
-            dz_pv = tr.trk_dz_pv[t]
-            d0_bs = tr.trk_d0_bs[t]
-            dz_bs = tr.trk_dz_bs[t]
-
-            d0_bs_zpv = tr.trk_d0_bs_zpv[t]
-            d0_bs_zpca = tr.trk_d0_bs_zpca[t]
+            d0_pv = trk_d0_pv[t]
+            dz_pv = trk_dz_pv[t]
+            d0_bs = trk_d0_bs[t]
+            dz_bs = trk_dz_bs[t]
+            d0_bs_zpv = trk_d0_bs_zpv[t]
+            d0_bs_zpca = trk_d0_bs_zpca[t]
             
-            d0Err = tr.trk_d0Err[t]
-            dzErr = tr.trk_dzErr[t]
-
-            d0NoRefit = tr.trk_d0_pv_NoRefit[t]
-            dzNoRefit = tr.trk_dz_pv_NoRefit[t]
+            d0Err = trk_d0Err[t]
+            dzErr = trk_dzErr[t]
 
             if pt < options.ptmin: continue
             if math.fabs(eta) > options.etamax: continue
@@ -606,23 +654,21 @@ if __name__ == '__main__':
                 for p in ipParamList:
                     
                     bins = ParamList['pv'][p]
-            
+
+                    varp = pt
+                    if p == 'eta': varp = eta
+                    elif p == 'phi': varp = phi
+                    elif p == 'npv': varp = npv
+                    elif p == 'dr':
+                        if not isJet: continue
+                        else: varp = drTrkJet
+                    
                     for kp, vp in bins.iteritems():
-                
-                        if kp == 'allbins': continue
-                
-                        IP = bins[kp]
-                        
-                        pMin = IP['bins'][1]
-                        pMax = IP['bins'][2]
-                        
-                        varp = pt
-                        if p == 'eta': varp = eta
-                        elif p == 'phi': varp = phi
-                        elif p == 'npv': varp = npv
-                        elif p == 'dr':
-                            if not isJet: continue
-                            else: varp = drTrkJet
+
+                        IP = bins[kp]['bins']
+
+                        pMin = IP[1]
+                        pMax = IP[2]
                         
                         if not (varp >= pMin and varp < pMax): continue
 
@@ -649,17 +695,17 @@ if __name__ == '__main__':
                             h['h_ipbsd0'+kp].Fill(d0_bs, we)
                             h['h_ipbsdz'+kp].Fill(dz_bs, we)
                             
-                        for pvp in pvParamList:
-                    
-                            param = eval(pvp)
+                        for ipvp, pvp in enumerate(pvParamList):
+ 
+                            param = pvParamListVal[ipvp]
                             pvbins = ParamList['pv'][pvp]
                             
                             for kpv, vpv in pvbins.iteritems():
+
+                                paramEdge = vpv['bins']
                                 
-                                if kpv == 'allbins': continue
-                
-                                paramMin = vpv['bins'][1]
-                                paramMax = vpv['bins'][2]
+                                paramMin = paramEdge[1]
+                                paramMax = paramEdge[2]
                 
                                 if not (param >= paramMin and param < paramMax): continue
                         
@@ -667,7 +713,26 @@ if __name__ == '__main__':
                                 h['h_ippvdz'+kpv+kp].Fill(dz_pv, we)
 
         if storeTree: trkTree.fill()
+        
+        if options.time: ts['main_checkpoints'].append(dt.datetime.now())
 
+        if options.time: print '     -> ', \
+        'total: ', (ts['main_checkpoints'][-1]-ts['main_checkpoints'][0]).total_seconds(), 's', \
+        'read: ', (ts['main_checkpoints'][1]-ts['main_checkpoints'][0]).total_seconds(), 's', \
+        'selection: ', (ts['main_checkpoints'][2]-ts['main_checkpoints'][1]).total_seconds(), 's', \
+        'pv: ', (ts['main_checkpoints'][3]-ts['main_checkpoints'][2]).total_seconds(), 's', \
+        'ip: ', (ts['main_checkpoints'][4]-ts['main_checkpoints'][3]).total_seconds(), 's'
+
+    if options.time: ts['end'] = dt.datetime.now()
+    
+    if options.time:
+        
+        print '----> Runtime stats ----------->'
+        print 'Initialisation     =', (ts['hist']-ts['init']).total_seconds(), 's'
+        print 'Histogram booking  =', (ts['main']-ts['hist']).total_seconds(), 's'
+        print 'Event loop         =', (ts['end']-ts['main']).total_seconds(), 's'
+        print '---->-------------------------->'
+    
     print '\033[1;32mdone\033[1;m'
 
     outFile.Write()
