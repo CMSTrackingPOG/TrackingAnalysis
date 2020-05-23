@@ -3,6 +3,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import os, sys
 import json
 import uproot
@@ -19,17 +20,20 @@ def main(argv = None):
     
     parser = OptionParser(usage)
     
-    parser.add_option("--method",default='v',help="Method for optimisation (variable or constant bin width) [default: %default]")
-    parser.add_option("--input",default='JetHT.root',help="Input file name [default: %default]")
-    parser.add_option("--output",default='data/bins/qcd_pv.json',help="Output file name [default: %default]")
-    parser.add_option("--tree",default='trackTree',help="Input tree name [default: %default]")
-    parser.add_option("--nmin",default=10000,help="Minimum number of events per bin in the first-level parameterisation [default: %default]")
-    parser.add_option("--nbins",default=100,help="Maximum number of bins [default: %default]")
-    parser.add_option("--threads",default=8,help="Number of threads [default: %default]")
-    parser.add_option("--crop",default=0.1,help="Crop factor [default: %default]")
-    parser.add_option("--meas",default='pv',help="Measurement type (bs, pv, or 1d) [default: %default]")
-    parser.add_option("--pv",default='sumTrackPtSq',help="PV parameterisation [default: %default]")
-    parser.add_option("--param",default='pt,eta,phi,npv,dr',help="List of track parameterisations [default: %default]")
+    parser.add_option("--method", default='v', help="Method for optimisation (variable or constant) [default: %default]")
+    parser.add_option("--input", default='JetHT.root', help="Input file name [default: %default]")
+    parser.add_option("--output", default='data/bins/qcd_bs.json', help="Output file name [default: %default]")
+    parser.add_option("--tree", default='trackTree', help="Input tree name [default: %default]")
+    parser.add_option("--nmin", type=int, default=10000, help="Minimum number of events per bin in the first-level parameterisation [default: %default]")
+    parser.add_option("--nbins", type=int, default=50, help="Maximum number of bins [default: %default]")
+    parser.add_option("--threads", default=8, help="Number of threads [default: %default]")
+    parser.add_option("--crop", type=float, default=0.1, help="Crop factor [default: %default]")
+    parser.add_option("--quantile", type=float, default=0.01, help="Fraction of events to cut from the sides [default: %default]")
+    parser.add_option("--meas", default='bs', help="Measurement type (bs, pv, or 1d) [default: %default]")
+    parser.add_option("--pv", default='sumTrackPtSq', help="PV parameterisation [default: %default]")
+    parser.add_option("--param", default='pt,eta,phi,npv,dr', help="List of track parameterisations [default: %default]")
+    parser.add_option("--plot", action='store_true', help="Draw validation plots [default: %default]")
+    parser.add_option("--validation", action='store_true', help="Fill validation histograms for multidimensional binning [default: %default]")
 
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -43,7 +47,127 @@ def flush(s, flush=True):
 
     sys.stdout.write(s)
     if flush: sys.stdout.flush()
+    
+def plot(x, bins, p, pref=''):
 
+    pdir = 'pics/'
+    
+    if not os.path.isdir(pdir):
+        os.system("mkdir "+pdir)
+    
+    fig = plt.hist(x, bins, facecolor='royalblue', alpha=0.5)
+    
+    for b in bins:
+        plt.axvline(x=b, color='r', linestyle='dashed', linewidth=1)            
+        
+    plt.xlabel(p)
+    plt.ylabel('Events')
+    
+    if 'pt' in p.lower(): plt.yscale('log')
+
+    plt.savefig('pics/'+p+pref+'.eps')
+    plt.close()
+
+def lastbin(data, nbins, nmin, increase = True, rebin = False):
+
+    nbinmax = 10000
+
+    opt = False
+    
+    res, bl, bh, bli, bhi = [], [], [], [], []
+    
+    x = np.array(data.values.tolist())
+    
+    fig, hbins, hpatches = plt.hist(x, nbinmax)
+    
+    lbin, ibin = 0, -1
+    
+    for ib in reversed(range(len(hbins)-1)):
+        
+        lbin += fig[ib]
+        ibin = ib
+        
+        dltlb = len(hbins)-ibin-1
+        nw = len(hbins)/dltlb
+        
+        if (lbin > nmin) and (nw <= nbins):
+            
+            dltlbmod = dltlb
+            ibinlb = ibin
+            
+            mergelb = False
+            while True:
+                
+                r = float(len(hbins)-dltlbmod) % float(dltlb)
+                if r == 0:
+                    if ibin > ibinlb+dltlb/2:
+                        mergelb = True
+                    break
+                else:
+                    dltlbmod -= 1
+                    ibin += 1
+            
+            nbinsmain = (len(hbins)-dltlbmod)/dltlb
+
+            for ibb in range(nbinsmain):
+                
+                bl.append(hbins[ibb*dltlb])
+                bli.append(ibb*dltlb)
+                if ibb == nbinsmain-1 and mergelb: break
+                bh.append(hbins[(ibb+1)*dltlb])
+                bhi.append((ibb+1)*dltlb)
+
+            if not mergelb:
+                bl.append(hbins[ibin])
+                bli.append(ibin)
+            bh.append(hbins[-1])
+            bhi.append(nbinmax)
+            
+            break
+
+    lbsum = 0
+    for ib in range(bli[-1], bhi[-1]): lbsum += fig[ib]
+    lpsum = 0
+    for ib in range(bli[-2], bhi[-2]): lpsum += fig[ib]
+
+    blf = bl
+    bhf = bh
+
+    if rebin:
+        
+        if lpsum < lbsum:
+        
+            blf, bhf = [], []
+        
+            for ib in range(len(bl)):
+                r = ib % 2
+                if r == 0:
+                    blf.append(bl[ib])
+                else:
+                    bhf.append(bh[ib])
+                if ib == len(bl)-1:
+                    bhf.append(bh[ib])
+                
+#    for i in range(len(blf)):
+#        print '[', blf[i], bhf[i], ']', 'size=', bhf[i]-blf[i]
+        
+    if (ibin < nbins) or (lbin < nmin):
+        print ''
+        print 'Requested number of bins or last bin stats is too big'
+        sys.exit()
+
+    opt = True
+    res = [blf, bhf]
+            
+    if not opt:
+        print ''
+        print 'Optimisation failed'
+        sys.exit()
+
+    plt.close()
+        
+    return opt, res
+    
 def optimise(data, nbins, nmin):
     
     nbinsc = nbins
@@ -58,6 +182,7 @@ def optimise(data, nbins, nmin):
         if options.method == 'c': splt = pd.cut(data, nbinsc, duplicates='drop')
         else: splt = pd.qcut(data, nbinsc, duplicates='drop')
         bins = splt.value_counts(sort=False)
+#        print bins
         nb = len(zip(bins))
             
         goodstats = True
@@ -84,11 +209,11 @@ def optimise(data, nbins, nmin):
         sys.exit()
             
     return opt, res
-    
-def save(res):
+
+def save(res, dfc, dfcpv = None):
     
     d = {}
-    
+        
     for p, r in res.iteritems():
         
         bl = r[0]
@@ -106,15 +231,22 @@ def save(res):
             d[p][bname]['bins'] = [i+1, bl[i], bh[i]]
             
             if p in [options.pv]:
-                d[p][bname]['pullx'] = [200, -5.0, 5.0]
-                d[p][bname]['pully'] = [200, -5.0, 5.0]
-                d[p][bname]['pullz'] = [200, -5.0, 5.0]
-                d[p][bname]['resox'] = [200, -300.0, 300.0]
-                d[p][bname]['resoy'] = [200, -300.0, 300.0]
-                d[p][bname]['resoz'] = [200, -500.0, 500.0]
+                
+                d[p][bname]['pullx'] = [400, -5.0, 5.0]
+                d[p][bname]['pully'] = [400, -5.0, 5.0]
+                d[p][bname]['pullz'] = [400, -5.0, 5.0]
+                d[p][bname]['resox'] = [400, -300.0, 300.0]
+                d[p][bname]['resoy'] = [400, -300.0, 300.0]
+                d[p][bname]['resoz'] = [400, -500.0, 500.0]
+                
             else:
-                d[p][bname]['d0'] = [200, -1800.0, 1800.0]
-                d[p][bname]['dz'] = [200, -3000.0, 3000.0]
+                
+                d[p][bname]['d0'] = [400, -1800.0, 1800.0]
+                
+                if p in ['eta'] and abs(bl[i]) < 1.5 and abs(bh[i]) < 1.5:
+                    d[p][bname]['dz'] = [400, -1500.0, 1500.0]
+                else:
+                    d[p][bname]['dz'] = [400, -3000.0, 3000.0]
     
             d[p]['allbins'] = np.append(d[p]['allbins'], bl[i])
             
@@ -124,19 +256,42 @@ def save(res):
                 d[p]['']['bins'] = [0, bl[0], bh[nb-1]]
                 
                 if p in [options.pv]:
-                    d[p]['']['pullx'] = [200, -5.0, 5.0]
-                    d[p]['']['pully'] = [200, -5.0, 5.0]
-                    d[p]['']['pullz'] = [200, -5.0, 5.0]
-                    d[p]['']['resox'] = [200, -300.0, 300.0]
-                    d[p]['']['resoy'] = [200, -300.0, 300.0]
-                    d[p]['']['resoz'] = [200, -500.0, 500.0]
+                    
+                    d[p]['']['pullx'] = [400, -5.0, 5.0]
+                    d[p]['']['pully'] = [400, -5.0, 5.0]
+                    d[p]['']['pullz'] = [400, -5.0, 5.0]
+                    d[p]['']['resox'] = [400, -300.0, 300.0]
+                    d[p]['']['resoy'] = [400, -300.0, 300.0]
+                    d[p]['']['resoz'] = [400, -500.0, 500.0]
+                    
                 else:
-                    d[p]['']['d0'] = [200, -1800.0, 1800.0]
-                    d[p]['']['dz'] = [200, -3000.0, 3000.0]
+                    
+                    d[p][bname]['d0'] = [400, -1800.0, 1800.0]
+                
+                    if p in ['eta'] and abs(bl[i]) < 1.5 and abs(bh[i]) < 1.5:
+                        d[p][bname]['dz'] = [400, -1500.0, 1500.0]
+                    else:
+                        d[p][bname]['dz'] = [400, -3000.0, 3000.0]
+
                     
                 d[p]['allbins'] = np.append(d[p]['allbins'], bh[i])
-    
+                
+        bins = d[p]['allbins']
         d[p]['allbins'] = pd.Series(d[p]['allbins']).to_json(orient='values')
+
+        if dfc != None:
+            
+            if options.plot and options.meas == 'bs':
+                x = np.array(dfc[p].values.tolist())
+                plot(x, bins, p)
+            elif options.plot and options.meas == 'pv':
+                if p not in options.pv:
+                    for k, v in dfc[p].iteritems():
+                        x = np.array(v.values.tolist())
+                        plot(x, bins, p, str(k))
+                else:
+                    x = np.array(dfcpv[p].values.tolist())
+                    plot(x, bins, p)
 
     with open(options.output, 'w') as write_file:
         json.dump(d, write_file, indent=2)
@@ -170,7 +325,7 @@ if __name__ == '__main__':
     nmin = float(options.nmin)
     nminsc = nmin*float(options.crop)
     
-    flush('read '+str(crop)+' events (crop factor = '+str(options.crop)+') .. ')
+    flush('use '+str(crop)+' events (crop factor = '+str(options.crop)+') .. ')
 
     dtrk = trk.arrays(param, executor=executor, entrystop=crop)
 
@@ -191,7 +346,9 @@ if __name__ == '__main__':
                 nminopt = nminsc*float(nbins)
         
         total = df.count()
-        qt = nminopt/total
+        qt = nminopt/(total*float(options.crop))
+        if 'pt' in p.lower(): qt = max(qt, options.quantile)
+        
         qup[p] = 1.-qt
         qdown[p] = qt
 
@@ -205,7 +362,7 @@ if __name__ == '__main__':
  
         dfc[p] = df[(df < qcutup[p]) & (df > qcutdown[p])]
         
-        del df
+#        del df
 
     done()
     
@@ -226,8 +383,12 @@ if __name__ == '__main__':
         if options.meas == 'pv':
             if p == pvparam:
                 nminopt = nminsc*float(nbins)
-        
-        opt[p], res[p] = optimise(dfc[p], nbins, nminopt)
+
+        if (options.method in ['c', 'v']) and ('pt' not in p.lower()):
+            opt[p], res[p] = optimise(dfc[p], nbins, nminopt)
+        else:
+            opt[p], res[p] = lastbin(dfc[p], nbins, nminopt)
+
         bl[p] = res[p][0]
         bh[p] = res[p][1]
                 
@@ -244,82 +405,61 @@ if __name__ == '__main__':
     if options.meas == 'bs':
         
         flush('Save bins to file .. ')
-        save(res)
+        save(res, dfc)
         done()
         
     else:
             
         nbpv = len(bl[pvparam])
         
-        param.remove(pvparam) 
+        param.remove(pvparam)
+        
+        dftrk = None
+        
+        if options.validation:
 
-        flush('Split track data on primary vertex bins .. ')
+            flush('Split track data on primary vertex bins .. ')
         
-        trk = {}
-        for p in param:
-            trk[p] = {}
-            for i in range(nbpv):
-                trk[p][i] = []
+            trk = {}
+            for p in param:
+                trk[p] = {}
+                for i in range(nbpv):
+                    trk[p][i] = []
         
-        for iev, pv in enumerate(dtrk[pvparam]):
-            for i in range(nbpv):
-                if pv >= bl[pvparam][i] and pv < bh[pvparam][i]:
-                    for p in param:
-                        for t in dtrk[p][iev]:
-                            trk[p][i].append(t)
-                            
-        del dtrk
+            for iev, pv in enumerate(dtrk[pvparam]):
+                for i in range(nbpv):
+                    if pv >= bl[pvparam][i] and pv < bh[pvparam][i]:
+                        for p in param:
+                            for t in dtrk[p][iev]:
+                                trk[p][i].append(t)
+                                
+            del dtrk
         
-        done()
+            done()
+        
+            flush('Create data sets with tracks using final binning: ')
+        
+            opttrk, restrk, bltrk, bhtrk = (dict.fromkeys(param,{}) for _ in range(4))
+        
+            for k, r in opttrk.iteritems():
+                for i in range(nbpv):
+                    r[i] = False
 
-        flush('Optimise binning for tracks: ')
-        
-        opttrk, restrk, bltrk, bhtrk = (dict.fromkeys(param,{}) for _ in range(4))
-        
-        for k, r in opttrk.iteritems():
-            for i in range(nbpv):
-                r[i] = False
-
-        for p in param:
+            dftrk = {}
+            for p in param:
             
-            flush(p+' ')
+                flush(p+' ')
             
-            restrk[p], bltrk[p], bhtrk[p] = ({} for _ in range(3))
+                restrk[p], bltrk[p], bhtrk[p] = ({} for _ in range(3))
             
-            for i in range(nbpv):
+                dftrk[p] = {}
+                for i in range(nbpv):
                 
-                dftrk = pd.Series(trk[p][i])
-                
-                opttrk[p][i], restrk[p][i] = optimise(dftrk, nbins, nminsc)
-                bltrk[p][i] = restrk[p][i][0]
-                bhtrk[p][i] = restrk[p][i][1]
-                
-                del dftrk
+                    dftrk[p][i] = pd.Series(trk[p][i])
 
-        done()
-        
-        minbin = {}
-        for p in param:
-            
-            min = nbins
-            for i in range(nbpv):
-            
-                nbinsc = len(bltrk[p][i])
-                if nbinsc <= min:
-                    min = nbinsc
-                    minbin[p] = i
-                    
-        for p in param:
-
-            for i in range(nbpv):
-        
-                if not opttrk[p][i]:
-                    print '\033[1m'+p+'\033[0m: bin optimisation failed due to insufficient stats'
-                    sys.exit()
-                    
-            print '->   \033[1m'+p+'\033[0m: pvmin=['+str(bl[pvparam][minbin[p]])+','+str(bh[pvparam][minbin[p]])+']: nbins='+str(len(bltrk[p][minbin[p]]))
+            done()
         
         flush('Save bins to file .. ')
-        save(res)        
+        save(res, dftrk, dfc)
         done()
         
