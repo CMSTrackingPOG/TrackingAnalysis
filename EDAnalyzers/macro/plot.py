@@ -27,13 +27,13 @@ def main(argv = None):
     parser.add_option("--input", default="list.json", help="input file list [default: %default]")
     parser.add_option("--output", default="output.root", help="output file name [default: %default]")
     parser.add_option("--param", default="nTracks", help="list of parameterisations for PV resolution measurement [default: %default]")
-    parser.add_option("--nmax", type=int,default=-1, help="number of events per job [default: %default]")
-    parser.add_option("--etamax", type=float,default=3.0, help="max track eta [default: %default]")
-    parser.add_option("--ptmin", type=float,default=0.1, help="min track pT in GeV [default: %default]")
-#    parser.add_option("--pileup", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/pileup/", help="path to pileup data files [default: %default]")
-    parser.add_option("--pileup", default="", help="path to pileup data files [default: %default]")
-#    parser.add_option("--reweight", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/", help="path to reweight data files [default: %default]")
-    parser.add_option("--reweight", default="", help="path to reweight data files [default: %default]")
+    parser.add_option("--nmax", type=int, default=-1, help="number of events per job [default: %default]")
+    parser.add_option("--etamax", type=float, default=3.0, help="max track eta [default: %default]")
+    parser.add_option("--ptmin", type=float, default=0.1, help="min track pT in GeV [default: %default]")
+    parser.add_option("--pileup", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/pileup/", help="path to pileup data files [default: %default]")
+#    parser.add_option("--pileup", default="", help="path to pileup data files [default: %default]")
+    parser.add_option("--reweight", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/", help="path to reweight data files [default: %default]")
+#    parser.add_option("--reweight", default="", help="path to reweight data files [default: %default]")
     parser.add_option("--reweightvar", default="jetHT", help="variable to reweight [default: %default]")
     parser.add_option("--time", action='store_true', help="Print out run time information [default: %default]")
 
@@ -166,6 +166,8 @@ if __name__ == '__main__':
             bins = ParamList['pv'][p]
             
             for kk, vv in bins.iteritems():
+
+                if kk in ['']: continue
                 
                 IP = bins[kk]
                 
@@ -181,6 +183,8 @@ if __name__ == '__main__':
             bins = ParamList['bs'][p]
             
             for kk, vv in bins.iteritems():
+
+                if kk in ['']: continue
                 
                 IP = bins[kk]
 
@@ -652,8 +656,6 @@ if __name__ == '__main__':
                 h['h_ipbszpcaSD0'].Fill(sd0_bs_zpca, we)
                 
                 for p in ipParamList:
-                    
-                    bins = ParamList['pv'][p]
 
                     varp = pt
                     if p == 'eta': varp = eta
@@ -662,10 +664,46 @@ if __name__ == '__main__':
                     elif p == 'dr':
                         if not isJet: continue
                         else: varp = drTrkJet
+                        
+                    blistpv = ParamList['pv'][p]
                     
-                    for kp, vp in bins.iteritems():
+                    for kp, vp in blistpv.iteritems():
 
-                        IP = bins[kp]['bins']
+                        if kp in ['']: continue
+                        
+                        IP = blistpv[kp]['bins']
+
+                        pMin = IP[1]
+                        pMax = IP[2]
+                        
+                        if not (varp >= pMin and varp < pMax): continue
+
+                        for ipvp, pvp in enumerate(pvParamList):
+ 
+                            param = pvParamListVal[ipvp]
+                            pvbins = ParamList['pv'][pvp]
+                            
+                            for kpv, vpv in pvbins.iteritems():
+
+                                if kpv in ['']: continue
+                                
+                                paramEdge = vpv['bins']
+                                
+                                paramMin = paramEdge[1]
+                                paramMax = paramEdge[2]
+                
+                                if not (param >= paramMin and param < paramMax): continue
+                        
+                                h['h_ippvd0'+kpv+kp].Fill(d0_pv, we)
+                                h['h_ippvdz'+kpv+kp].Fill(dz_pv, we)
+
+                    blistbs = ParamList['bs'][p]
+                                
+                    for kp, vp in blistbs.iteritems():
+
+                        if kp in ['']: continue
+                        
+                        IP = blistbs[kp]['bins']
 
                         pMin = IP[1]
                         pMax = IP[2]
@@ -694,24 +732,7 @@ if __name__ == '__main__':
                             h['h_ipbsd0zpv'+kp].Fill(d0_bs_zpv, we)
                             h['h_ipbsd0'+kp].Fill(d0_bs, we)
                             h['h_ipbsdz'+kp].Fill(dz_bs, we)
-                            
-                        for ipvp, pvp in enumerate(pvParamList):
- 
-                            param = pvParamListVal[ipvp]
-                            pvbins = ParamList['pv'][pvp]
-                            
-                            for kpv, vpv in pvbins.iteritems():
-
-                                paramEdge = vpv['bins']
                                 
-                                paramMin = paramEdge[1]
-                                paramMax = paramEdge[2]
-                
-                                if not (param >= paramMin and param < paramMax): continue
-                        
-                                h['h_ippvd0'+kpv+kp].Fill(d0_pv, we)
-                                h['h_ippvdz'+kpv+kp].Fill(dz_pv, we)
-
         if storeTree: trkTree.fill()
         
         if options.time: ts['main_checkpoints'].append(dt.datetime.now())
