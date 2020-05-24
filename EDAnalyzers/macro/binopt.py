@@ -29,7 +29,7 @@ def main(argv = None):
     parser.add_option("--threads", default=8, help="Number of threads [default: %default]")
     parser.add_option("--crop", type=float, default=0.1, help="Crop factor [default: %default]")
     parser.add_option("--quantile", type=float, default=0.01, help="Fraction of events to cut from the sides [default: %default]")
-    parser.add_option("--meas", default='bs', help="Measurement type (bs, pv, or 1d) [default: %default]")
+    parser.add_option("--meas", default='bs', help="Measurement type (bs or pv) [default: %default]")
     parser.add_option("--pv", default='sumTrackPtSq', help="PV parameterisation [default: %default]")
     parser.add_option("--param", default='pt,eta,phi,npv,dr', help="List of track parameterisations [default: %default]")
     parser.add_option("--plot", action='store_true', help="Draw validation plots [default: %default]")
@@ -361,8 +361,6 @@ if __name__ == '__main__':
         qcutdown[p] = df.quantile(qdown[p])
  
         dfc[p] = df[(df < qcutup[p]) & (df > qcutdown[p])]
-        
-#        del df
 
     done()
     
