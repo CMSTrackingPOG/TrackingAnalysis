@@ -11,6 +11,29 @@ import ROOT
 
 from optparse import OptionParser
 
+def cmsstyle():
+    
+    plt.rcParams['mathtext.default'] = 'regular'
+    plt.rcParams['axes.labelsize'] = 17.0
+    plt.rcParams['axes.unicode_minus'] = False
+    plt.rcParams['axes.labelpad'] = 10.0
+    plt.rcParams['xtick.labelsize'] = 16.0
+    plt.rcParams['ytick.labelsize'] = 16.0
+    plt.rcParams['legend.fontsize'] = 'small'
+    plt.rcParams['legend.handlelength'] = 1.5
+    plt.rcParams['legend.borderpad'] = 0.5
+    plt.rcParams['legend.frameon'] = True
+    plt.rcParams['xtick.direction'] = 'in'
+    plt.rcParams['ytick.direction'] = 'in'
+    plt.rcParams['grid.alpha'] = 0.8
+    plt.rcParams['grid.linestyle'] = ':'
+    plt.rcParams['axes.linewidth'] = 1
+    plt.rcParams['savefig.transparent'] = False
+    plt.rcParams['figure.subplot.left'] = 0.25
+    plt.rcParams['figure.subplot.bottom'] = 0.2
+    plt.rcParams['figure.subplot.right'] = 0.96
+    plt.rcParams['figure.subplot.top'] = 0.95
+
 def main(argv = None):
     
     if argv == None:
@@ -63,7 +86,9 @@ def plot(x, bins, p, pref=''):
     plt.xlabel(p)
     plt.ylabel('Events')
     
-    if 'pt' in p.lower(): plt.yscale('log')
+#    if 'pt' in p.lower() or 'dr' in p.lower(): plt.yscale('log')
+#    if 'pt' in p.lower(): plt.yscale('log')
+    if 'pt' in p: plt.yscale('log')
 
     plt.savefig('pics/'+p+pref+'.eps')
     plt.close()
@@ -168,7 +193,7 @@ def lastbin(data, nbins, nmin, increase = True, rebin = False):
         
     return opt, res
     
-def optimise(data, nbins, nmin):
+def optimise(data, nbins, nmin, var = ''):
     
     nbinsc = nbins
     
@@ -299,6 +324,8 @@ def save(res, dfc, dfcpv = None):
 if __name__ == '__main__':
 
     options = main()
+    
+    cmsstyle()
 
     executor = ThreadPoolExecutor(options.threads)
 
@@ -347,7 +374,9 @@ if __name__ == '__main__':
         
         total = df.count()
         qt = nminopt/(total*float(options.crop))
-        if 'pt' in p.lower(): qt = max(qt, options.quantile)
+#        if 'pt' in p.lower() or 'dr' in p.lower(): qt = max(qt, options.quantile)
+#        if 'pt' in p.lower(): qt = max(qt, options.quantile)
+        if 'pt' in p: qt = max(qt, options.quantile)
         
         qup[p] = 1.-qt
         qdown[p] = qt
@@ -382,8 +411,10 @@ if __name__ == '__main__':
             if p == pvparam:
                 nminopt = nminsc*float(nbins)
 
-        if (options.method in ['c', 'v']) and ('pt' not in p.lower()):
-            opt[p], res[p] = optimise(dfc[p], nbins, nminopt)
+#        if (options.method in ['c', 'v']) and ('pt' not in p.lower() and 'dr' not in p.lower()):
+#        if (options.method in ['c', 'v']) and ('pt' not in p.lower()):
+        if (options.method in ['c', 'v']) and ('pt' not in p):
+            opt[p], res[p] = optimise(dfc[p], nbins, nminopt, p)
         else:
             opt[p], res[p] = lastbin(dfc[p], nbins, nminopt)
 
@@ -402,7 +433,7 @@ if __name__ == '__main__':
         
     if options.meas == 'bs':
         
-        flush('Save bins to file .. ')
+        flush('Save results .. ')
         save(res, dfc)
         done()
         
@@ -454,10 +485,11 @@ if __name__ == '__main__':
                 for i in range(nbpv):
                 
                     dftrk[p][i] = pd.Series(trk[p][i])
+                    if p in ['dr']: dftrk[p][i] = dftrk[p][i].drop_duplicates()
 
             done()
         
-        flush('Save bins to file .. ')
+        flush('Save results .. ')
         save(res, dftrk, dfc)
         done()
         
