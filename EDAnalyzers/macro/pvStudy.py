@@ -23,12 +23,12 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Analysis script to study PV and BS resolution"
     
     parser = OptionParser(usage)
-    parser.add_option("--data",default="data.root",help="Input data file name [default: %default]")
-    parser.add_option("--mc",default="mc.root",help="Input mc file name [default: %default]")
-    parser.add_option("--output",default="pics",help="Output directory [default: %default]")
-    parser.add_option("--qcd",action='store_true',help="Use QCD events [default: %default]")
-    parser.add_option("--param",default="sumTrackPtSq",help="Parameterisation for PV resolution measurement [default: %default]")
-    parser.add_option("--image",default="eps",help="Image format [default: %default]")
+    parser.add_option("--data", default="data.root", help="Input data file name [default: %default]")
+    parser.add_option("--mc", default="mc.root", help="Input mc file name [default: %default]")
+    parser.add_option("--output", default="pics", help="Output directory [default: %default]")
+    parser.add_option("--qcd", action='store_true', help="Use QCD events [default: %default]")
+    parser.add_option("--param", default="sumTrackPtSq", help="Parameterisation for PV resolution measurement [default: %default]")
+    parser.add_option("--image", default="eps", help="Image format [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -96,17 +96,20 @@ def runFit(evt, v, x, kstr, img, hResoData, hResoMC, hPullData, hPullMC):
         
     c1 = ROOT.TCanvas()
         
-    fun.adjust(hResoMC, hResoData)
+    fun.adjust(hResoMC, hResoData, nsig=5)
             
     hResoMC.Draw('hist')
     hResoData.Draw('e1 sames')
 
-    resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit_reso', hResoMC, x, kstr, c.mcfit, '2g')
+    resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit_reso', hResoMC, x, kstr, c.mcfit, '2g', nsig=4, nTries=3)
     resResoMC.Draw("same")
             
-    resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit_reso', hResoData, x, kstr, 1, '2g')
+    resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit_reso', hResoData, x, kstr, 1, '2g', nsig=4, nTries=3)
     resResoData.Draw("same")
     resResoData.SetLineStyle(2)
+    
+    sysResoData = hResoData.GetXaxis().GetBinWidth(2)
+    sysResoMC = hResoMC.GetXaxis().GetBinWidth(2)
             
     c1.Update()
             
@@ -170,17 +173,20 @@ def runFit(evt, v, x, kstr, img, hResoData, hResoMC, hPullData, hPullMC):
 
     # Pull
             
-    fun.adjust(hPullMC, hPullData)
+    fun.adjust(hPullMC, hPullData, nsig=5)
         
     hPullMC.Draw('hist')
     hPullData.Draw('e1 sames')
     
-    resPullMC, pullMC, pullErrMC, pullChi2MC = fit.doFit('mcfit_pull', hPullMC, x, kstr, c.mcfit, '1g')
+    resPullMC, pullMC, pullErrMC, pullChi2MC = fit.doFit('mcfit_pull', hPullMC, x, kstr, c.mcfit, '1g', nsig=4, nTries=3)
     resPullMC.Draw("same")
     
-    resPullData, pullData, pullErrData, pullChi2Data = fit.doFit('datafit_pull', hPullData, x, kstr, 1, '1g')
+    resPullData, pullData, pullErrData, pullChi2Data = fit.doFit('datafit_pull', hPullData, x, kstr, 1, '1g', nsig=4, nTries=3)
     resPullData.Draw("same")
     resPullData.SetLineStyle(2)
+
+    sysPullData = hPullData.GetXaxis().GetBinWidth(2)
+    sysPullMC = hPullMC.GetXaxis().GetBinWidth(2)
     
     c1.Update()
             
@@ -242,7 +248,7 @@ def runFit(evt, v, x, kstr, img, hResoData, hResoMC, hPullData, hPullMC):
     c1.Print(options.output+'/'+foutput+'.'+img)
     c1.Clear()
 
-    return figs, x, kstr, resoData, resoErrData, resoMC, resoErrMC, pullData, pullErrData, pullMC, pullErrMC
+    return figs, x, kstr, resoData, resoErrData, resoMC, resoErrMC, pullData, pullErrData, pullMC, pullErrMC, sysResoData, sysResoMC, sysPullData, sysPullMC
 
 if __name__ == '__main__':
     
@@ -564,11 +570,15 @@ if __name__ == '__main__':
         pullErrData = result[8]
         pullMC = result[9]
         pullErrMC = result[10]
+        resoSysData = result[11]
+        resoSysMC = result[12]
+        pullSysData = result[13]
+        pullSysMC = result[14]
         
-        rout['reso']['data'][x][kstr].update([('value',resoData), ('error',resoErrData)])
-        rout['reso']['mc'][x][kstr].update([('value',resoMC), ('error',resoErrMC)])
-        rout['pull']['data'][x][kstr].update([('value',pullData), ('error',pullErrData)])
-        rout['pull']['mc'][x][kstr].update([('value',pullMC), ('error',pullErrMC)])
+        rout['reso']['data'][x][kstr].update([('value',resoData), ('error',resoErrData), ('sys',resoSysData)])
+        rout['reso']['mc'][x][kstr].update([('value',resoMC), ('error',resoErrMC), ('sys',resoSysMC)])
+        rout['pull']['data'][x][kstr].update([('value',pullData), ('error',pullErrData), ('sys',pullSysData)])
+        rout['pull']['mc'][x][kstr].update([('value',pullMC), ('error',pullErrMC), ('sys',pullSysMC)])
         
     pool.close()
 
@@ -583,4 +593,4 @@ if __name__ == '__main__':
     print 'Generate thumbnails'
     fun.generateThumbs(figs, options.output, img)
     print 'Put plots on a web page'
-    fun.createPage()
+    fun.createPage('pv')

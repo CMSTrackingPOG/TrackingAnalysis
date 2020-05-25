@@ -24,7 +24,7 @@ class fitFunction():
         self.chi2 = chi2
         self.ndof = ndof
         
-def doFit(name, hist, var, param, color=38, func=''):
+def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
     
     rand = ROOT.TRandom3()
     
@@ -33,15 +33,32 @@ def doFit(name, hist, var, param, color=38, func=''):
     xminHist = hist.GetXaxis().GetBinLowEdge(2)
     xmaxHist = hist.GetXaxis().GetBinUpEdge(hist.GetXaxis().GetNbins()-1)
     
-    xmin = -rms*4
-    xmax = rms*4
+    xmin = -rms*nsig
+    xmax = rms*nsig
     
     if xmin <= xminHist: xmin = xminHist
     if xmax >= xmaxHist: xmax = xmaxHist
     
     a = float(hist.GetMaximum())
 
-    nTries = 3
+    bmin = hist.GetXaxis().FindBin(xmin)
+    bmax = hist.GetXaxis().FindBin(xmax)
+    nbfit = bmax-bmin
+
+    nbfitmin = 10
+    while nbfit < nbfitmin:
+        nsig += 0.1
+        xmin = -rms*nsig
+        xmax = rms*nsig
+
+        if xmin <= xminHist or xmax >= xmaxHist:
+            print 'Please extend the initial x axis range in the displayed histogram'
+            sys.exit()
+        
+        bmin = hist.GetXaxis().FindBin(xmin)
+        bmax = hist.GetXaxis().FindBin(xmax)
+        nbfit = bmax-bmin
+
     chi2Min = 10E+10
     fMin = []
     
@@ -149,8 +166,10 @@ def doFit(name, hist, var, param, color=38, func=''):
                 if chi2Min < 1.: break
 
     if len(fMin) == 0:
-        print 'Failed to find a suitable fit function'
-        sys.exit()
+        
+#        print 'Failed to find a suitable fit function'
+        
+        return None, -1, -1, 10e+10
  
     fMin.sort(key=lambda x: x.chi2/x.ndof, reverse=False)
 
@@ -196,3 +215,108 @@ def doFitIP(name, gr, color=38):
     res.SetLineColor(color)
     
     return res, p0, p1, chi2
+
+def fwhm(h, ffit = None):
+    
+    nev = float(h.GetEntries())
+
+    bscanmin = h.GetXaxis().FindBin(h.GetXaxis().GetXmin())
+    bscanmax = h.GetXaxis().FindBin(h.GetXaxis().GetXmax())
+    
+    if ffit is None:
+        
+        max = h.GetMaximum()/2.
+    
+        b1, b2 = -1, -1
+    
+        for b in range(bscanmin, bscanmax+1):
+            if h.GetBinContent(b) > max:
+                b1 = b
+                for bb in range(b1+1, bscanmax+1):
+                    if h.GetBinContent(bb) < max:
+                        b2 = bb
+                        break
+            if b2 >= 0: break
+    
+            #    b1 = h.FindFirstBinAbove(h.GetMaximum()/2.)
+            #    b2 = h.FindLastBinAbove(h.GetMaximum()/2.)
+
+        if (b1 < 0) or (b2 < 0) or (b1 == b2):
+            print 'FWHM: Use finer binning and more stats, bins =', h.GetXaxis().GetNbins(), ' max =', max
+            b1 = h.GetMaximumBin()-1
+            b2 = h.GetMaximumBin()+1
+                
+        reso = (h.GetBinCenter(b2) - h.GetBinCenter(b1))/2.    
+        resoErr = reso/math.sqrt(2.*nev)
+        sys = ax.GetBinWidth(2)
+
+        return reso, resoErr, sys
+    
+    else:
+        
+        ax = h.GetXaxis()
+        
+        xmin = ax.GetXmin()
+        xmax = ax.GetXmax()
+        xmaxfpos = ffit.GetMaximumX(xmin, xmax)
+        xmaxf = ffit.GetMaximum(xmin, xmax)/2.
+        bmax = ax.FindBin(xmaxfpos)
+
+        lmax = -1
+        for ib in range(bscanmin, bmax):
+            if h.GetBinContent(ib) > xmaxf:
+                lmax = ib
+                break
+
+        rmax = -1
+        for ib in range(bmax+1, bscanmax+1):
+            if h.GetBinContent(ib) < xmaxf:
+                rmax = ib-1
+                break
+            
+        if lmax >= 0 and rmax >= 0:
+
+            lmaxdist = h.GetBinCenter(lmax)
+            rmaxdist = h.GetBinCenter(rmax)
+            
+            reso = (rmaxdist-lmaxdist)/2.            
+            resoErr = reso/math.sqrt(2.*nev)
+            sys = ax.GetBinWidth(bmax)
+            
+        else:
+            
+            print 'Can not find FWHM from the fit'
+            return 0., 0., 0.
+            
+        return reso, resoErr, sys
+
+def rebin(h, nmin, nbinmin):
+
+    hcl = h.Clone('reb')
+    
+    nbins = hcl.GetXaxis().GetNbins()
+    hcl.GetXaxis().SetRange(1, nbins)
+    max = hcl.GetMaximum()
+    
+    fac = 1
+    
+    while (max < nmin) and (nbins > nbinmin):
+        
+        facc = -1
+        for f in [2, 3, 5]:
+            r = nbins % f
+            if r == 0:
+                facc = f
+                break
+
+        if facc < 0: return fac
+        else: fac *= facc
+        
+        hcl = hcl.Rebin(facc)
+        nbins = hcl.GetXaxis().GetNbins()
+        hcl.GetXaxis().SetRange(1, nbins)
+        max = hcl.GetMaximum()
+        
+    return fac
+    
+    

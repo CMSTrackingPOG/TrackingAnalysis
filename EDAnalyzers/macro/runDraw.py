@@ -2,12 +2,12 @@
 
 import os, sys
 
-#process = 'zb'
-process = 'qcd'
+process = 'zb'
+#process = 'qcd'
 
 #mode = 'pv'
-#mode = 'ippvdr'
-mode = 'ipbsdr'
+mode = 'ippveta'
+#mode = 'ipbsdr'
 inputpv = 'results/pv_'+process+'.json'
 input = 'results/ip_'+process+'.json'
 

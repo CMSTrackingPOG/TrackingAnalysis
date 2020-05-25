@@ -295,7 +295,7 @@ def generateThumbs(files, fdir, img):
         
     return output
 
-def createPage():
+def createPage(typ):
     
     pool = multiprocessing.Pool(common.ncores)
     
@@ -303,16 +303,20 @@ def createPage():
     webpath = home+'/public_html/tracking/'
     
     figs = {}
-    cat = ['pvPull_x', 'pvPull_y', 'pvPull_z', \
-    'pvReso_x', 'pvReso_y', 'pvReso_z', \
-    'bs', 'Others']
+    
+    if typ == 'pv':
+        cat = ['pvPull_x', 'pvPull_y', 'pvPull_z', \
+        'pvReso_x', 'pvReso_y', 'pvReso_z', \
+        'bs', 'Others']
+    else:
+        cat = [typ+'Reso_d0', typ+'Reso_dz', \
+        'Others']
     
     os.system('rm -rf '+webpath)
     os.system('mkdir '+webpath)
     os.system('mkdir '+webpath+'pics/')
     
-    page = '<html>\n'
-    
+    page = '<html>\n'    
     page += '<body>\n'    
     
     files = {}
@@ -329,37 +333,55 @@ def createPage():
         filesLeft = list(set(filesAll)^set(files[c]))
         filesAll = filesLeft
     
-        page += '<section><h2>'+c+'</h2>\n'
+#        page += '<section><h2>'+c+'</h2>\n'
+        page += '<a href="'+c+'.html">'+c+'</a>\n'
+        
+        subpage = '<html>\n'
+        subpage += '<body>\n'
         
         for f in files[c]:
         
-#            os.system('cp '+f+' '+webpath+'pics/')
-#            os.system('cp '+f.replace('_thumb','').replace('.png','.eps')+' '+webpath+'pics/')
             finput = [f, f.replace('_thumb','').replace('.png','.eps')]
             foutput = webpath+'pics/'
             
             jobs.append( pool.apply_async(copy, (finput, foutput)) )
             
-            page += '<a href="'+f.replace('_thumb','').replace('.png','.eps')+'">'+'<img src="'+f+'" height="100"/>'+'</a>\n'
+            subpage += '<a href="'+f.replace('_thumb','').replace('.png','.eps')+'">'+'<img src="'+f+'" height="100"/>'+'</a>\n'
 
-        page += '</section>\n'
+        subpage += '</body>\n'
+        subpage += '</html>'
+
+        sfile = open(webpath+c+'.html', 'w')
+        sfile.write(subpage)
+        sfile.close()
+        
+#        page += '</section>\n'
 
     if len(filesAll) > 0:
-        
-        page += '<section><h2>Others</h2>\n'
-        
+ 
+        page += '<a href="others.html">Others</a>\n'
+#        page += '<section><h2>Others</h2>\n'
+
+        subpage = '<html>\n'
+        subpage += '<body>\n'
+
         for f in filesAll:
             
-#            os.system('cp '+f+' '+webpath+'pics/')
-#            os.system('cp '+f.replace('_thumb','').replace('.png','.eps')+' '+webpath+'pics/')
             finput = [f, f.replace('_thumb','').replace('.png','.eps')]
             foutput = webpath+'pics/'
             
             jobs.append( pool.apply_async(copy, (finput, foutput)) )
             
-            page += '<a href="'+f.replace('_thumb','').replace('.png','.eps')+'">'+'<img src="'+f+'" height="100"/>'+'</a>\n'
+            subpage += '<a href="'+f.replace('_thumb','').replace('.png','.eps')+'">'+'<img src="'+f+'" height="100"/>'+'</a>\n'
             
-        page += '</section>\n'
+#        page += '</section>\n'
+
+        subpage += '</body>\n'
+        subpage += '</html>'
+
+        sfile = open(webpath+'others.html', 'w')
+        sfile.write(subpage)
+        sfile.close()
         
     page += '</body>\n'
     page += '</html>'
@@ -372,11 +394,11 @@ def createPage():
     wfile.write(page)
     wfile.close()
 
-def adjust(h1, h2):
+def adjust(h1, h2, nsig=5):
     
-    rmax = 5.
     rms = max(h1.GetRMS(), h2.GetRMS())
-    for h in [h1, h2]: h.GetXaxis().SetRangeUser(-rmax*rms,rmax*rms)
+    
+    for h in [h1, h2]: h.GetXaxis().SetRangeUser(-nsig*rms,nsig*rms)
 
 def isbadfit(r1, r2):
     

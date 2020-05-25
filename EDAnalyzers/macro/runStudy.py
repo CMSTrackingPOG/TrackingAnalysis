@@ -13,14 +13,15 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Run the analysis of histograms and produce plots"
     
     parser = OptionParser(usage)
-    parser.add_option("-p","--pv",action='store_true',help="Run PV study [default: %default]")
+    parser.add_option("--pv",action='store_true',help="Run PV study [default: %default]")
     parser.add_option("--ippv",action='store_true',help="Run IPPV measurement[default: %default]")
     parser.add_option("--ipbs",action='store_true',help="Run IPBS measurement [default: %default]")
     parser.add_option("--withbs",action='store_true',help="Use WithBS samples [default: %default]")
     parser.add_option("--qcd",action='store_true',help="Use QCD events [default: %default]")
     parser.add_option("--reweight",action='store_true',help="Produce the reweighting file [default: %default]")
-    parser.add_option("-j","--jobs",default="jobs/",help="Directory with input files [default: %default]")
+    parser.add_option("--jobs",default="jobs/",help="Directory with input files [default: %default]")
     parser.add_option("--clean",action='store_true',help="Clean merged files [default: %default]")
+    parser.add_option("--fit",action='store_true',help="Extract IP resolution from fits [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -42,8 +43,6 @@ if __name__ == '__main__':
         
     if options.withbs:
         inputMC = ['SingleNeutrino_RunIISummer19UL17RECOwithBS']
-#        inputData = ['ZeroBias_Run2017BwithBS','ZeroBias_Run2017CwithBS',\
-#        'ZeroBias_Run2017DwithBS','ZeroBias_Run2017EwithBS','ZeroBias_Run2017FwithBS']        
         inputData = ['ZeroBias_Run2017CwithBS',\
         'ZeroBias_Run2017DwithBS','ZeroBias_Run2017FwithBS']
 
@@ -55,11 +54,11 @@ if __name__ == '__main__':
 
     if not os.path.isfile(fMC) or options.clean:
         filesMC = " ".join(inputMC)
-        os.system('hadd -f '+fMC+' '+filesMC)
+        os.system('hadd -ff '+fMC+' '+filesMC)
 
     if not os.path.isfile(fData) or options.clean:
         filesData = " ".join(inputData)
-        os.system('hadd -f '+fData+' '+filesData)
+        os.system('hadd -ff '+fData+' '+filesData)
 
     if options.reweight:
         
@@ -89,6 +88,7 @@ if __name__ == '__main__':
     os.system("mkdir "+picdir)
 
     isQCD = '--qcd' if options.qcd else ''
+    doFit = '--fit' if options.fit else ''
     
     if options.pv:
         print "Run PV study"
@@ -96,9 +96,9 @@ if __name__ == '__main__':
 
     if options.ippv:
         print "Run IPPV study"
-        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=pv'+' '+isQCD)
+        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=pv'+' '+isQCD+' '+doFit)
 
     if options.ipbs:
         print "Run IPBS study"
-        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=bs'+' '+isQCD)
+        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=bs'+' '+isQCD+' '+doFit)
         
