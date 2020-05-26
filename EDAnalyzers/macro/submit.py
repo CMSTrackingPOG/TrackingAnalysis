@@ -20,6 +20,7 @@ def main(argv = None):
 #    parser.add_option("-p","--param",default="nTracks,sumTrackPt,sumTrackPtSq",help="parameterisation for PV resolution measurement [default: %default]")
     parser.add_option("-p","--param",default="sumTrackPtSq",help="parameterisation for PV resolution measurement [default: %default]")
     parser.add_option("--data",action='store_true',help="Only run on data [default: %default]")
+    parser.add_option("--mc",action='store_true',help="Only run on mc [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -72,6 +73,7 @@ if __name__ == '__main__':
     for k, v in flist.items():
         
         if options.data and ('Run20' not in k): continue
+        if options.mc and ('Run20' in k): continue
         
         lsz = lszdata if ('Run20' in k) else lszmc
         

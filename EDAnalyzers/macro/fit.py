@@ -216,7 +216,7 @@ def doFitIP(name, gr, color=38):
     
     return res, p0, p1, chi2
 
-def fwhm(h, ffit = None):
+def fwhm(h, ffit = None, nmin = 10000):
     
     nev = float(h.GetEntries())
 
@@ -283,11 +283,10 @@ def fwhm(h, ffit = None):
             resoErr = reso/math.sqrt(2.*nev)
             sys = ax.GetBinWidth(bmax)
             
-        else:
+        else: return 0., 0., 0.
             
-            print 'Can not find FWHM from the fit'
-            return 0., 0., 0.
-            
+        if h.Integral() < nmin: return 0., 0., 0.
+        
         return reso, resoErr, sys
 
 def rebin(h, nmin, nbinmin):
@@ -303,7 +302,7 @@ def rebin(h, nmin, nbinmin):
     while (max < nmin) and (nbins > nbinmin):
         
         facc = -1
-        for f in [2, 3, 5]:
+        for f in [2, 3]:
             r = nbins % f
             if r == 0:
                 facc = f

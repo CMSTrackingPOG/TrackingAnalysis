@@ -257,21 +257,24 @@ def save(res, dfc, dfcpv = None):
             
             if p in [options.pv]:
                 
-                d[p][bname]['pullx'] = [400, -5.0, 5.0]
-                d[p][bname]['pully'] = [400, -5.0, 5.0]
-                d[p][bname]['pullz'] = [400, -5.0, 5.0]
-                d[p][bname]['resox'] = [400, -300.0, 300.0]
-                d[p][bname]['resoy'] = [400, -300.0, 300.0]
-                d[p][bname]['resoz'] = [400, -500.0, 500.0]
+                d[p][bname]['pullx'] = [600, -5.0, 5.0]
+                d[p][bname]['pully'] = [600, -5.0, 5.0]
+                d[p][bname]['pullz'] = [600, -5.0, 5.0]
+                d[p][bname]['resox'] = [600, -300.0, 300.0]
+                d[p][bname]['resoy'] = [600, -300.0, 300.0]
+                d[p][bname]['resoz'] = [600, -500.0, 500.0]
                 
             else:
-                
-                d[p][bname]['d0'] = [400, -1800.0, 1800.0]
+
+                if options.meas == 'pv':
+                    d[p][bname]['d0'] = [800, -1800.0, 1800.0]
+                else:
+                    d[p][bname]['d0'] = [1800, -1800.0, 1800.0]
                 
                 if p in ['eta'] and abs(bl[i]) < 1.5 and abs(bh[i]) < 1.5:
-                    d[p][bname]['dz'] = [400, -1500.0, 1500.0]
+                    d[p][bname]['dz'] = [600, -1500.0, 1500.0]
                 else:
-                    d[p][bname]['dz'] = [400, -3000.0, 3000.0]
+                    d[p][bname]['dz'] = [600, -3000.0, 3000.0]
     
             d[p]['allbins'] = np.append(d[p]['allbins'], bl[i])
             
@@ -282,21 +285,24 @@ def save(res, dfc, dfcpv = None):
                 
                 if p in [options.pv]:
                     
-                    d[p]['']['pullx'] = [400, -5.0, 5.0]
-                    d[p]['']['pully'] = [400, -5.0, 5.0]
-                    d[p]['']['pullz'] = [400, -5.0, 5.0]
-                    d[p]['']['resox'] = [400, -300.0, 300.0]
-                    d[p]['']['resoy'] = [400, -300.0, 300.0]
-                    d[p]['']['resoz'] = [400, -500.0, 500.0]
+                    d[p]['']['pullx'] = [600, -5.0, 5.0]
+                    d[p]['']['pully'] = [600, -5.0, 5.0]
+                    d[p]['']['pullz'] = [600, -5.0, 5.0]
+                    d[p]['']['resox'] = [600, -300.0, 300.0]
+                    d[p]['']['resoy'] = [600, -300.0, 300.0]
+                    d[p]['']['resoz'] = [600, -500.0, 500.0]
                     
                 else:
                     
-                    d[p][bname]['d0'] = [400, -1800.0, 1800.0]
+                    if options.meas == 'pv':
+                        d[p][bname]['d0'] = [800, -1800.0, 1800.0]
+                    else:
+                        d[p][bname]['d0'] = [1800, -1800.0, 1800.0]
                 
                     if p in ['eta'] and abs(bl[i]) < 1.5 and abs(bh[i]) < 1.5:
-                        d[p][bname]['dz'] = [400, -1500.0, 1500.0]
+                        d[p][bname]['dz'] = [600, -1500.0, 1500.0]
                     else:
-                        d[p][bname]['dz'] = [400, -3000.0, 3000.0]
+                        d[p][bname]['dz'] = [600, -3000.0, 3000.0]
 
                     
                 d[p]['allbins'] = np.append(d[p]['allbins'], bh[i])

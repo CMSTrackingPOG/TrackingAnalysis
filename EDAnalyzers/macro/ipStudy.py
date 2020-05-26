@@ -31,6 +31,7 @@ def main(argv = None):
     parser.add_option("--parampv", default="sumTrackPtSq", help="Parameterisation for PV resolution measurement [default: %default]")
     parser.add_option("--image", default="eps", help="Image format [default: %default]")
     parser.add_option("--fit", action='store_true', help="Calculate FWHM from fit function [default: %default]")
+    parser.add_option("--method", default="fwhm", help="Method to extract resolution (fwhm or fit) [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -48,14 +49,14 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
     figs = []
 
     if hResoData.GetEntries() < 10:
-        print 'No stats in data: '+hResoData.GetName()
-        sys.exit()
+        print 'No stats in data: '+hResoData.GetName(), ktrkstr
+        return
     if hResoMC.GetEntries() < 10:
-        print 'No stats in mc: '+hResoMC.GetName()
-        sys.exit()
+        print 'No stats in mc: '+hResoMC.GetName(), ktrkstr
+        return
         
-    rResoData = fit.rebin(hResoData, 1000, 30)
-    rResoMC = fit.rebin(hResoMC, 1000, 30)
+    rResoData = fit.rebin(hResoData, 1000, 50)
+    rResoMC = fit.rebin(hResoMC, 1000, 50)
     rmax = max(rResoData, rResoMC)
     hResoData = hResoData.Rebin(rmax)
     hResoMC = hResoMC.Rebin(rmax)
@@ -106,30 +107,22 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
         ffit = ''
         if x == 'dz': ffit = ''
 
-        nsig = 0.3
+        if options.method == 'fwhm': nsig = 0.3
+        else: nsig = 1.0
         
         resoChi2MC = 1e+10
-#        while resoChi2MC > 1000:
         resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit', hResoMC, x, kstr, c.mcfit, ffit, nsig=nsig, nTries=10)
-#            if nsig > 0: nsig -= 1
-#            else:
-#                print 'Failed to fit MC:', x, kstr
-#                sys.exit()
 
         resoChi2Data = 1e+10
-#        while resoChi2Data > 1000:
         resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit', hResoData, x, kstr, 1, ffit, nsig=nsig, nTries=10)
-#            if nsig > 0: nsig -= 1
-#            else:
-#                print 'Failed to fit Data:', x, kstr
-#                sys.exit()
 
         resResoMC.Draw("same")
         resResoData.Draw("same")
         
-        # get resolution estimation from bins using the results of the maximum fit
-        resoData, resoErrData, sysErrData = fit.fwhm(hResoData, resResoData)
-        resoMC, resoErrMC, sysErrMC = fit.fwhm(hResoMC, resResoMC)
+        if options.method == 'fwhm':
+            # get resolution estimation from bins using the results of the maximum fit
+            resoData, resoErrData, sysErrData = fit.fwhm(hResoData, resResoData, nmin=10000)
+            resoMC, resoErrMC, sysErrMC = fit.fwhm(hResoMC, resResoMC, nmin=10000)
         
         resResoData.SetLineStyle(2)
             
@@ -159,9 +152,13 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
         
     else:
         
-        resoData, resoErrData, sysErrData = fit.fwhm(hResoData)
-        resoMC, resoErrMC, sysErrMC = fit.fwhm(hResoMC)
+        resoData, resoErrData, sysErrData = fit.fwhm(hResoData, nmin=10000)
+        resoMC, resoErrMC, sysErrMC = fit.fwhm(hResoMC, nmin=10000)
 
+    if resoData*resoMC == 0.:
+        resoData, resoErrData, sysErrData = 0., 0., 0.
+        resoMC, resoErrMC, sysErrMC = 0., 0., 0.
+        
     xLabel = x
     if x == 'd0': xLabel = 'd_{xy}'
     elif x == 'dz': xLabel = 'd_{z}'
@@ -181,7 +178,15 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
         lSelPV.SetTextSize(0.035)
         lSelPV.SetNDC()
         lSelPV.Draw()
+        
+    else:
 
+        lSelPVx = ROOT.TLatex(0.20,0.87,'Beam width (x) = %.1f #mum' % (vtrk['beamwidthx'][int(ktrkstr)]))
+        lSelPVy = ROOT.TLatex(0.20,0.83,'Beam width (y) = %.1f #mum' % (vtrk['beamwidthy'][int(ktrkstr)]))
+        lSelPVx.SetTextSize(0.032); lSelPVy.SetTextSize(0.032)
+        lSelPVx.SetNDC(); lSelPVy.SetNDC()
+        lSelPVx.Draw(); lSelPVy.Draw()
+        
     pLabel = 'p_{T}'
     pUnits = 'GeV'
     pPrec = '%.2f'
@@ -226,6 +231,7 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
 #    b.Draw()
 
     foutput = 'ip'+ip+'Reso_'+x+ktrkstr+kstr
+    if ip == 'bs': foutput = 'ip'+ip+'Reso_'+x+kstr+'_'+ktrkstr
     figs.append(foutput)
     c1.Print(options.output+'/'+foutput+'.'+img)
     c1.Clear()
@@ -261,9 +267,9 @@ if __name__ == '__main__':
     ppath = 'data/bins/'    
     fparam = fun.param(ppath+evt+'_pv.json')
     parampv = fparam.get(options.parampv)
-
+    
 #    ipParamList = ['pt', 'eta', 'phi', 'npv', 'dr']
-    ipParamList = ['eta']
+    ipParamList = ['pt']
     
     ParamList = {}
     
@@ -273,6 +279,11 @@ if __name__ == '__main__':
             ParamList[t][p] = param[t].get(p)
             del ParamList[t][p]['allbins']
     
+    for t in ['bsw']:
+        ParamList[t] = {}
+        for p in ['beamwidthx', 'beamwidthy']:
+            ParamList[t][p] = param[t].get(p)
+            
     img = options.image
     
     fHistData = ROOT.TFile.Open(options.data,'read')
@@ -345,6 +356,8 @@ if __name__ == '__main__':
     
     print 'Run IP fits'
     
+    if 'bs' in ip: c.IPmeas.remove('dz')
+    
     rout = {}
     rout['reso'] = {}
     for t in ['data','mc']:
@@ -355,10 +368,13 @@ if __name__ == '__main__':
                 bins = ParamList[ip][pip]
                 for k, v in bins.iteritems():
                     rout['reso'][t][x][k] = {}
-                    for ktrk, vtrk in parampv.iteritems():
-                        if ip == 'bs' and ktrk != '': break
-                        rout['reso'][t][x][k][ktrk] = {}
-                        
+                    if ip == 'pv':
+                        for ktrk, vtrk in parampv.iteritems():
+                            rout['reso'][t][x][k][ktrk] = {}
+                    elif ip == 'bs':
+                        for itrk, ktrk in enumerate(ParamList['bsw']['beamwidthx']):
+                            rout['reso'][t][x][k][str(itrk)] = {}
+                            
     jobs = []
 
     selName = 'N_{trk}'
@@ -369,36 +385,61 @@ if __name__ == '__main__':
     elif options.parampv == 'sumTrackPtSq': 
         selName = '#sqrt{#sump^{2}_{T}}'
         units = ' GeV'
-            
-    for ktrk, vtrk in parampv.iteritems():
 
-        ktrkstr = str(ktrk)
+    if ip == 'pv':
         
-        if ip == 'pv' and ktrkstr == '': continue
-        if ip == 'bs' and ktrkstr != '': break
-        
-        if ktrkstr in ['allbins', '']: continue
+        for ktrk, vtrk in parampv.iteritems():
 
-        for x in c.IPmeas:
+            ktrkstr = str(ktrk)
         
-            for pip in ipParamList:
+            if ktrkstr in ['allbins', '']: continue
+
+            for x in c.IPmeas:
+        
+                for pip in ipParamList:
             
-                bins = ParamList[ip][pip]
+                    bins = ParamList[ip][pip]
             
-                for k, v in bins.iteritems():
+                    for k, v in bins.iteritems():
                     
-                    if k in ['allbins', '']: continue
+                        if k in ['allbins', '']: continue
                     
-                    kstr = str(k)
+                        kstr = str(k)
 
-                    hNameResoData = 'h_ip'+ip+x+ktrkstr+kstr
-                    hResoData = fHistData.Get(hNameResoData).Clone('hResoData')
+                        hNameResoData = 'h_ip'+ip+x+ktrkstr+kstr
+                        hResoData = fHistData.Get(hNameResoData).Clone('hResoData')
+                        
+                        hNameResoMC = 'h_ip'+ip+x+ktrkstr+kstr
+                        hResoMC = fHistMC.Get(hNameResoMC).Clone('hResoMC')
+                        
+                        jobs.append( pool.apply_async(runFit, (evt, ip, vtrk, v, x, ktrkstr, kstr, pip, img, hResoData, hResoMC)) )
+
+    elif ip == 'bs':
         
-                    hNameResoMC = 'h_ip'+ip+x+ktrkstr+kstr
-                    hResoMC = fHistMC.Get(hNameResoMC).Clone('hResoMC')
+        for itrk, ktrk in enumerate(ParamList['bsw']['beamwidthx']):
 
-                    jobs.append( pool.apply_async(runFit, (evt, ip, vtrk, v, x, ktrkstr, kstr, pip, img, hResoData, hResoMC)) )
+            ktrkstr = str(itrk)
 
+            for x in c.IPmeas:
+        
+                for pip in ipParamList:
+            
+                    bins = ParamList[ip][pip]
+            
+                    for k, v in bins.iteritems():
+                    
+                        kstr = str(k)
+                        
+                        if kstr in ['allbins', '']: continue
+
+                        hNameResoData = 'h_ip'+ip+x+kstr+'_'+ktrkstr
+                        hResoData = fHistData.Get(hNameResoData).Clone('hResoData')
+                       
+                        hNameResoMC = 'h_ip'+ip+x+kstr
+                        hResoMC = fHistMC.Get(hNameResoMC).Clone('hResoMC')
+                        
+                        jobs.append( pool.apply_async(runFit, (evt, ip, ParamList['bsw'], v, x, ktrkstr, kstr, pip, img, hResoData, hResoMC)) )
+                        
     pool.close()
 
     for job in jobs: 

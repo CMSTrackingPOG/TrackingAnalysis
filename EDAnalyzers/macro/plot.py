@@ -32,8 +32,8 @@ def main(argv = None):
     parser.add_option("--ptmin", type=float, default=0.1, help="min track pT in GeV [default: %default]")
     parser.add_option("--pileup", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/pileup/", help="path to pileup data files [default: %default]")
 #    parser.add_option("--pileup", default="", help="path to pileup data files [default: %default]")
-    parser.add_option("--reweight", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/", help="path to reweight data files [default: %default]")
-#    parser.add_option("--reweight", default="", help="path to reweight data files [default: %default]")
+#    parser.add_option("--reweight", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/", help="path to reweight data files [default: %default]")
+    parser.add_option("--reweight", default="", help="path to reweight data files [default: %default]")
     parser.add_option("--reweightvar", default="jetHT", help="variable to reweight [default: %default]")
     parser.add_option("--time", action='store_true', help="Print out run time information [default: %default]")
 
