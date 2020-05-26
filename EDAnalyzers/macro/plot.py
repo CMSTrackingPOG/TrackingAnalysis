@@ -722,7 +722,8 @@ if __name__ == '__main__':
                                 lumiMax = bsbins['lumiend'][ibs]
                                 
                                 if not (run >= runMin and run < runMax): continue
-                                if not (lumi >= lumiMin and lumi < lumiMax): continue
+                                if (run == runMin) and (lumi < lumiMin): continue
+                                if (run == runMax) and (lumi >= lumiMax): continue
                                 
                                 h['h_ipbsd0zpv'+kp+'_'+str(ibs)].Fill(d0_bs_zpv, we)
                                 h['h_ipbsd0'+kp+'_'+str(ibs)].Fill(d0_bs, we)
