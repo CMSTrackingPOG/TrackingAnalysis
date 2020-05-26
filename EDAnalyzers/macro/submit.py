@@ -15,7 +15,7 @@ def main(argv = None):
     parser = OptionParser(usage)
     parser.add_option("-j","--json",default="list.json",help="input file list [default: %default]")
     parser.add_option("-o","--output",default="jobs",help="output directory [default: %default]")
-    parser.add_option("--splitdata",type=int,default=40,help="number of files per job [default: %default]")
+    parser.add_option("--splitdata",type=int,default=20,help="number of files per job [default: %default]")
     parser.add_option("--splitmc",type=int,default=10,help="number of files per job [default: %default]")
 #    parser.add_option("-p","--param",default="nTracks,sumTrackPt,sumTrackPtSq",help="parameterisation for PV resolution measurement [default: %default]")
     parser.add_option("-p","--param",default="sumTrackPtSq",help="parameterisation for PV resolution measurement [default: %default]")
@@ -71,22 +71,22 @@ if __name__ == '__main__':
     
     for k, v in flist.items():
         
-        if options.data and 'Run20' not in k: continue
+        if options.data and ('Run20' not in k): continue
         
-        lsz = lszdata if 'Run20' in k else lszmc
+        lsz = lszdata if ('Run20' in k) else lszmc
         
         njob = 0
         datasplit = []
         for i in range(len(v)):
             datasplit.append(v[i])
             if len(datasplit) >= lsz or i == len(v)-1:
-                with open('jobs/list_' + k + '_' + str(njob) + '.json', 'w') as outfile:
+                with open(options.output+'/list_' + k + '_' + str(njob) + '.json', 'w') as outfile:
                     data = {}; data[k] = datasplit
                     json.dump(data, outfile, indent=2)
                 datasplit = []
                 njob += 1
 
-    jobs = glob.glob('jobs/*.json')
+    jobs = glob.glob(options.output+'/*.json')
 
     for j in jobs:
         
