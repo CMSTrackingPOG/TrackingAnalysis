@@ -32,6 +32,7 @@ def main(argv = None):
     parser.add_option("--image", default="eps", help="Image format [default: %default]")
     parser.add_option("--fit", action='store_true', help="Calculate FWHM from fit function [default: %default]")
     parser.add_option("--method", default="fwhm", help="Method to extract resolution (fwhm or fit) [default: %default]")
+    parser.add_option("--selection", default="", help="Selection bin for IP resolution [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -411,10 +412,10 @@ if __name__ == '__main__':
                     
                         kstr = str(k)
 
-                        hNameResoData = 'h_ip'+ip+x+ktrkstr+kstr
+                        hNameResoData = 'h_ip'+ip+x+ktrkstr+kstr+options.selection
                         hResoData = fHistData.Get(hNameResoData).Clone('hResoData')
                         
-                        hNameResoMC = 'h_ip'+ip+x+ktrkstr+kstr
+                        hNameResoMC = 'h_ip'+ip+x+ktrkstr+kstr+options.selection
                         hResoMC = fHistMC.Get(hNameResoMC).Clone('hResoMC')
                         
                         jobs.append( pool.apply_async(runFit, (evt, ip, vtrk, v, x, ktrkstr, kstr, pip, img, hResoData, hResoMC)) )
@@ -437,10 +438,10 @@ if __name__ == '__main__':
                         
                         if kstr in ['allbins', '']: continue
 
-                        hNameResoData = 'h_ip'+ip+x+kstr+'_'+ktrkstr
+                        hNameResoData = 'h_ip'+ip+x+kstr+'_'+ktrkstr+options.selection
                         hResoData = fHistData.Get(hNameResoData).Clone('hResoData')
                        
-                        hNameResoMC = 'h_ip'+ip+x+kstr
+                        hNameResoMC = 'h_ip'+ip+x+kstr+options.selection
                         hResoMC = fHistMC.Get(hNameResoMC).Clone('hResoMC')
                         
                         jobs.append( pool.apply_async(runFit, (evt, ip, ParamList['bsw'], v, x, ktrkstr, kstr, pip, img, hResoData, hResoMC)) )
@@ -472,8 +473,8 @@ if __name__ == '__main__':
 
     if not os.path.isdir('results'): os.system('mkdir results/')
                         
-    foutput = 'results/ip_zb.json'
-    if options.qcd: foutput = 'results/ip_qcd.json'
+    foutput = 'results/ip_zb'+options.selection+'.json'
+    if options.qcd: foutput = 'results/ip_qcd'+options.selection+'.json'
     with open(foutput, "w") as write_file:
         json.dump(rout, write_file, indent=2)
 

@@ -23,6 +23,7 @@ def main(argv = None):
     parser.add_option("--clean",action='store_true',help="Clean merged files [default: %default]")
     parser.add_option("--fit",action='store_true',help="Extract IP resolution from fits [default: %default]")
     parser.add_option("--method", default="fwhm", help="Method to extract IP resolution (fwhm or fit) [default: %default]")
+    parser.add_option("--selection", default="", help="Selection bin for IP resolution [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -97,9 +98,9 @@ if __name__ == '__main__':
 
     if options.ippv:
         print "Run IPPV study"
-        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=pv'+' '+isQCD+' '+doFit+' --method='+options.method)
+        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=pv'+' '+isQCD+' '+doFit+' --method='+options.method+' --selection='+options.selection)
 
     if options.ipbs:
         print "Run IPBS study"
-        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=bs'+' '+isQCD+' '+doFit+' --method='+options.method)
+        os.system('python ipStudy.py --data='+fData+' --mc='+fMC+' --type=bs'+' '+isQCD+' '+doFit+' --method='+options.method+' --selection='+options.selection)
         
