@@ -124,7 +124,7 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
             
             chi2 = res.GetChisquare()
             ndof = res.GetNDF()
-                
+
             if chi2/ndof < chi2Min:
                     
                 par, parFit, errFit = [], [], []
@@ -134,27 +134,27 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
 
                 p0 = res.GetParameter(0); p0err = res.GetParError(0)
                 p1 = res.GetParameter(1); p1err = res.GetParError(1)
-                p0rUnc = abs(p0err/p0) if p0 != 0 else 1.; p1rUnc = abs(p1err/p1) if p1 != 0 else 1.
-                if any(x < 0 for x in [p0, p0err, p1, p1err]) or (p0rUnc > unc*p0) or (p1rUnc > unc*p1): continue
-                if p0/a < frac: continue
+#                p0rUnc = abs(p0err/p0) if p0 != 0 else 1.; p1rUnc = abs(p1err/p1) if p1 != 0 else 1.
+#                if any(x < 0 for x in [p0, p0err, p1, p1err]) or (p0rUnc > unc*p0) or (p1rUnc > unc*p1): continue
+#                if p0/a < frac: continue
                 par.append(p0i); parFit.append(p0); errFit.append(p0err)
                 par.append(p1i); parFit.append(p1); errFit.append(p1err)
                 
                 if f in ['2g', '3g']:
                     p2 = res.GetParameter(2); p2err = res.GetParError(2)
                     p3 = res.GetParameter(3); p3err = res.GetParError(3)
-                    p2rUnc = abs(p2err/p2) if p2 != 0 else 1.; p3rUnc = abs(p3err/p3) if p3 != 0 else 1.
-                    if any(x < 0 for x in [p2, p2err, p3, p3err]) or (p2rUnc > unc*p2) or (p3rUnc > unc*p3): continue
-                    if p2/a < frac: continue
+#                    p2rUnc = abs(p2err/p2) if p2 != 0 else 1.; p3rUnc = abs(p3err/p3) if p3 != 0 else 1.
+#                    if any(x < 0 for x in [p2, p2err, p3, p3err]) or (p2rUnc > unc*p2) or (p3rUnc > unc*p3): continue
+#                    if p2/a < frac: continue
                     par.append(p2i); parFit.append(p2); errFit.append(p2err)
                     par.append(p3i); parFit.append(p3); errFit.append(p3err)
 
                 if f in ['3g']:
                     p4 = res.GetParameter(4); p4err = res.GetParError(4)
                     p5 = res.GetParameter(5); p5err = res.GetParError(5)
-                    p4rUnc = abs(p4err/p4) if p4 != 0 else 1.; p5rUnc = abs(p5err/p5) if p5 != 0 else 1.
-                    if any(x < 0 for x in [p4, p4err, p5, p5err]) or (p4rUnc > unc*p4) or (p5rUnc > unc*p5): continue
-                    if p4/a < frac: continue
+#                    p4rUnc = abs(p4err/p4) if p4 != 0 else 1.; p5rUnc = abs(p5err/p5) if p5 != 0 else 1.
+#                    if any(x < 0 for x in [p4, p4err, p5, p5err]) or (p4rUnc > unc*p4) or (p5rUnc > unc*p5): continue
+#                    if p4/a < frac: continue
                     par.append(p4i); parFit.append(p4); errFit.append(p4err)
                     par.append(p5i); parFit.append(p5); errFit.append(p5err)
 
@@ -167,7 +167,7 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
 
     if len(fMin) == 0:
         
-#        print 'Failed to find a suitable fit function'
+        print 'Failed to find a suitable fit function'
         
         return None, -1, -1, 10e+10
  
@@ -197,24 +197,20 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
 
     return res, reso, resoErr, chi2
 
-def doFitIP(name, gr, color=38):
+def doFitIP(name, gr, color=38, xmin=0.0, xmax=10.0, p0s = 40, p1s = 80):
 
-    ffunc = ROOT.TF1(name,"sqrt([0]*[0]+[1]*[1]/(x*x))",0.5,10.)
+    ffunc = ROOT.TF1(name, "sqrt([0]*[0]+[1]*[1]/(x*x))", xmin, xmax)
         
-    ffunc.SetParameter(0,40)
-    ffunc.SetParameter(1,80)
+    ffunc.SetParameter(0, p0s)
+    ffunc.SetParameter(1, p1s)
 
-    gr.Fit(name,"QR")
+    gr.Fit(name, "QR")
 
     res = gr.GetFunction(name)
-    chi2 = res.GetChisquare()/res.GetNDF()
 
-    p0 = ffunc.GetParameter(0)
-    p1 = ffunc.GetParameter(1)
-    
     res.SetLineColor(color)
     
-    return res, p0, p1, chi2
+    return res
 
 def fwhm(h, ffit = None, nmin = 10000):
     

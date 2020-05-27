@@ -95,11 +95,17 @@ if __name__ == '__main__':
 
 #    os.system("mkdir "+options.output)
 
-    with open(options.input, "r") as read_file:
-        data = json.load(read_file)        
+    if os.path.isfile(options.input):
+        with open(options.input, "r") as read_file:
+            data = json.load(read_file)
+    elif mode != 'pv':
+        print 'Input file', options.input, 'not found'
 
-    with open(options.inputpv, "r") as read_file:
-        datapv = json.load(read_file)
+    if os.path.isfile(options.inputpv):
+        with open(options.inputpv, "r") as read_file:
+            datapv = json.load(read_file)
+    else:
+        print 'Input file', options.inputpv, 'not found'
         
     c1 = ROOT.TCanvas()
     
@@ -395,7 +401,6 @@ if __name__ == '__main__':
                     
                         h[hnameData].SetBinContent(bidx, vData)
                         h[hnameData].SetBinError(bidx, eData)
-                        print vData, eData
 
                         h[hnameMC].SetBinContent(bidx, vMC)
                         h[hnameMC].SetBinError(bidx, eMC)

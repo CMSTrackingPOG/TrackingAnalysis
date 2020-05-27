@@ -12,7 +12,7 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Merge the output of processed jobs"
     
     parser = OptionParser(usage)
-    parser.add_option("-d","--dir",default="jobs/",help="directory with the plot results [default: %default]")
+    parser.add_option("-d", "--dir", default="jobs/", help="directory with the plot results [default: %default]")
 
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -29,7 +29,7 @@ if __name__ == '__main__':
         print 'Directory '+dir+'/ does not exist'
         sys.exit()
 
-    jobs = glob.glob('jobs/list_*.root')
+    jobs = glob.glob(dir+'/list_*.root')
     
     fd = {}
     
@@ -46,5 +46,5 @@ if __name__ == '__main__':
     for k,v in fd.items():
         
         flist = " ".join(fd[k])
-        os.system('hadd -f jobs/'+k+'.root '+flist)
-        os.system('rm jobs/list_'+k+'_*.root')
+        os.system('hadd -ff '+dir+'/'+k+'.root '+flist)
+        os.system('rm '+dir+'/list_'+k+'_*.root')

@@ -6,12 +6,12 @@ inputjson = ['data.json', 'mc.json']
 
 param = 'sumTrackPtSq'
 
-outdir = 'jobs/'
+outdir = 'jobs_test/'
 if os.path.isdir(outdir):
     os.system("rm -rf "+outdir)
 os.system("mkdir "+outdir)
 
 for j in inputjson:
-    outfile = 'jobs/'+j.replace('.json','.root')
+    outfile = outdir+j.replace('.json','.root')
 #    os.system('python plot.py --input='+j+' --output='+outfile+' --param='+param+' --time')
     os.system('python plot.py --input='+j+' --output='+outfile+' --param='+param)

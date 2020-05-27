@@ -6,6 +6,7 @@ year = '2017'
 mccol = 45
 mcfit = 2
 datamrk = 20
+mcmrk = 21
 
 ncores = 8
 
@@ -24,3 +25,9 @@ hPVsumTrackPt2 = {'zb':[70,0.,40.],'qcd':[70,0.,800.]}
 
 hJetPtMax = {'zb':[70,0.,500.],'qcd':[70,0.,2000.]}
 hJetHT = {'zb':[70,0.,1000.],'qcd':[70,0.,4000.]}
+
+sel = {\
+'pt':{'_pt0p0to1p0':[0.0,1.0],'_pt1p0to3p0':[1.0,3.0],'_pt3p0to10p0':[3.0,10.0]},\
+'eta':{'_abseta0p0to1p0':[0.0,1.0],'_abseta1p0to1p5':[1.0,1.5],'_abseta1p5to2p0':[1.5,2.0],'_abseta2p0to3p0':[2.0,3.0]}\
+}
+

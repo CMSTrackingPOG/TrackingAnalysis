@@ -80,9 +80,10 @@ def PlotStyle(mode, name):
 
     return plotStyle
 
-def cmslabel(mode, year, proc, up=True):
+def cmslabel(mode, year, proc, shift=True):
     
     tex = ROOT.TLatex(0.66,0.906825,"CMS")
+    if not shift: tex = ROOT.TLatex(0.78,0.906825,"CMS")
     tex.SetNDC()
     tex.SetTextAlign(13)
     tex.SetTextFont(61)
@@ -90,6 +91,7 @@ def cmslabel(mode, year, proc, up=True):
     tex.SetLineWidth(2)
    
     tex2 = ROOT.TLatex(0.51,0.817125,"Work in progress")
+    if not shift: tex2 = ROOT.TLatex(0.62,0.817125,"Work in progress")
     tex2.SetNDC()
     tex2.SetTextAlign(13)
     tex2.SetTextFont(52)
@@ -98,6 +100,7 @@ def cmslabel(mode, year, proc, up=True):
     
     if year == '2017':
         lyear = ROOT.TLatex(0.81,0.94,"#sqrt{s} = 13 TeV (UL17)")
+        if not shift: lyear = ROOT.TLatex(0.93,0.94,"#sqrt{s} = 13 TeV (UL17)")
 
 #    intLumi = c.lumiRun2
 #    if year == '2017': intLumi = c.lumi2017
@@ -119,8 +122,7 @@ def cmslabel(mode, year, proc, up=True):
     elif proc == 'zb': procName = 'ZeroBias'
     else: procName = ''
     
-    if up: lproc = ROOT.TLatex(0.70,0.70,procName)
-    elif procName != '': lproc = ROOT.TLatex(0.70,0.30,procName)
+    lproc = ROOT.TLatex(0.70, 0.70, procName)
     
     lproc.SetNDC()
     lproc.SetTextAlign(31)

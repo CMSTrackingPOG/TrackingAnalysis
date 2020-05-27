@@ -13,14 +13,14 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Submit jobs"
     
     parser = OptionParser(usage)
-    parser.add_option("-j","--json",default="list.json",help="input file list [default: %default]")
-    parser.add_option("-o","--output",default="jobs",help="output directory [default: %default]")
-    parser.add_option("--splitdata",type=int,default=20,help="number of files per job [default: %default]")
-    parser.add_option("--splitmc",type=int,default=10,help="number of files per job [default: %default]")
-#    parser.add_option("-p","--param",default="nTracks,sumTrackPt,sumTrackPtSq",help="parameterisation for PV resolution measurement [default: %default]")
-    parser.add_option("-p","--param",default="sumTrackPtSq",help="parameterisation for PV resolution measurement [default: %default]")
-    parser.add_option("--data",action='store_true',help="Only run on data [default: %default]")
-    parser.add_option("--mc",action='store_true',help="Only run on mc [default: %default]")
+    parser.add_option("-j", "--json", default="list.json", help="input file list [default: %default]")
+    parser.add_option("-o", "--output", default="jobs_reweight", help="output directory [default: %default]")
+    parser.add_option("--splitdata", type=int, default=20, help="number of files per job [default: %default]")
+    parser.add_option("--splitmc", type=int, default=10, help="number of files per job [default: %default]")
+#    parser.add_option("-p", "--param", default="nTracks,sumTrackPt,sumTrackPtSq", help="parameterisation for PV resolution measurement [default: %default]")
+    parser.add_option("-p", "--param", default="sumTrackPtSq", help="parameterisation for PV resolution measurement [default: %default]")
+    parser.add_option("--data", action='store_true', help="Only run on data [default: %default]")
+    parser.add_option("--mc", action='store_true', help="Only run on mc [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     for k, v in flist.items():
         
         if options.data and ('Run20' not in k): continue
-        if options.mc and ('Run20' in k): continue
+        if options.mc and (('Run20' in k) or ('QCD' not in k)): continue
         
         lsz = lszdata if ('Run20' in k) else lszmc
         

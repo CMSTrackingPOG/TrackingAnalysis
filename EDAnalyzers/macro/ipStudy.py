@@ -107,14 +107,19 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
         ffit = ''
         if x == 'dz': ffit = ''
 
-        if options.method == 'fwhm': nsig = 0.3
-        else: nsig = 1.0
+        if options.method == 'fwhm': 
+            nsig = 0.3
+        else:
+            ffit = '3g'
+            nsig = 1.5
         
         resoChi2MC = 1e+10
         resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit', hResoMC, x, kstr, c.mcfit, ffit, nsig=nsig, nTries=10)
 
         resoChi2Data = 1e+10
         resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit', hResoData, x, kstr, 1, ffit, nsig=nsig, nTries=10)
+        
+        sysErrData, sysErrMC = hResoData.GetXaxis().GetBinWidth(2), hResoMC.GetXaxis().GetBinWidth(2)
 
         resResoMC.Draw("same")
         resResoData.Draw("same")

@@ -32,8 +32,8 @@ def main(argv = None):
     parser.add_option("--ptmin", type=float, default=0.1, help="min track pT in GeV [default: %default]")
     parser.add_option("--pileup", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/pileup/", help="path to pileup data files [default: %default]")
 #    parser.add_option("--pileup", default="", help="path to pileup data files [default: %default]")
-#    parser.add_option("--reweight", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/", help="path to reweight data files [default: %default]")
-    parser.add_option("--reweight", default="", help="path to reweight data files [default: %default]")
+    parser.add_option("--reweight", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/", help="path to reweight data files [default: %default]")
+#    parser.add_option("--reweight", default="", help="path to reweight data files [default: %default]")
     parser.add_option("--reweightvar", default="jetHT", help="variable to reweight [default: %default]")
     parser.add_option("--time", action='store_true', help="Print out run time information [default: %default]")
 
@@ -107,6 +107,10 @@ if __name__ == '__main__':
     print 'Run on ' + ('Data' if isData else 'MC')
     print 'Processed events = ' + str(nEvents)
 
+    sel = ['']
+    for ks, vs in c.sel.iteritems():
+        sel += vs.keys()
+    
     if storeHist:
         
         h = {}    
@@ -161,45 +165,47 @@ if __name__ == '__main__':
         hd['ipbszpvD0'] = {'xtit':'Track d_{xy}(BS,z=PV) [mm]','nb':100,'xmin':-1.5,'xmax':1.5,'ytit':'Events'}
         hd['ipbszpvSD0'] = {'xtit':'Track d_{xy}(BS,z=PV) significance [mm]','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
         
-        for p in ipParamList:
+        for ksel in sel:
+        
+            for p in ipParamList:
             
-            bins = ParamList['pv'][p]
+                bins = ParamList['pv'][p]
             
-            for kk, vv in bins.iteritems():
-
-                if kk in ['']: continue
-                
-                IP = bins[kk]
-                
-                for pvp in pvParamList:
+                for kk, vv in bins.iteritems():
                     
-                    pvbins = ParamList['pv'][pvp]
+                    if kk in ['']: continue
                     
-                    for kpv, vpv in pvbins.iteritems():
-
-                        hd['ippvd0'+kpv+kk] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                        hd['ippvdz'+kpv+kk] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
-
-            bins = ParamList['bs'][p]
-            
-            for kk, vv in bins.iteritems():
-
-                if kk in ['']: continue
-                
-                IP = bins[kk]
-
-                if isData:
-                    bsbins = ParamList['bsw']['beamwidthx']
-                
-                    for ibs in range(len(bsbins)):
+                    IP = bins[kk]
+                    
+                    for pvp in pvParamList:
                         
-                        hd['ipbsd0'+kk+'_'+str(ibs)] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                        hd['ipbsd0zpv'+kk+'_'+str(ibs)] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                        hd['ipbsdz'+kk+'_'+str(ibs)] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
-                else:
-                        hd['ipbsd0'+kk] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                        hd['ipbsd0zpv'+kk] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
-                        hd['ipbsdz'+kk] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
+                        pvbins = ParamList['pv'][pvp]
+                        
+                        for kpv, vpv in pvbins.iteritems():
+                            
+                            hd['ippvd0'+kpv+kk+ksel] = {'xtit':'d_{xy}(PV) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                            hd['ippvdz'+kpv+kk+ksel] = {'xtit':'d_{z}(PV) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
+
+                bins = ParamList['bs'][p]
+            
+                for kk, vv in bins.iteritems():
+
+                    if kk in ['']: continue
+                
+                    IP = bins[kk]
+                
+                    if isData:
+                        bsbins = ParamList['bsw']['beamwidthx']
+                
+                        for ibs in range(len(bsbins)):
+                        
+                            hd['ipbsd0'+kk+'_'+str(ibs)+ksel] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                            hd['ipbsd0zpv'+kk+'_'+str(ibs)+ksel] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                            hd['ipbsdz'+kk+'_'+str(ibs)+ksel] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
+                    else:
+                        hd['ipbsd0'+kk+ksel] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                        hd['ipbsd0zpv'+kk+ksel] = {'xtit':'d_{xy}(BS) [#mum]','nb':IP['d0'][0],'xmin':IP['d0'][1],'xmax':IP['d0'][2],'ytit':'Events'}
+                        hd['ipbsdz'+kk+ksel] = {'xtit':'d_{z}(BS) [#mum]','nb':IP['dz'][0],'xmin':IP['dz'][1],'xmax':IP['dz'][2],'ytit':'Events'}
 
         if isData:
             PV = c.hPVData
@@ -654,6 +660,23 @@ if __name__ == '__main__':
                 h['h_ipbszpcaD0'].Fill(d0_bs_zpca*mm, we)
                 h['h_ipbszpvSD0'].Fill(sd0_bs_zpv, we)
                 h['h_ipbszpcaSD0'].Fill(sd0_bs_zpca, we)
+
+                sellist = ['']
+                
+                for ksel, vsel in c.sel.iteritems():
+                    
+                    if ksel == 'pt': sv = pt
+                    elif ksel == 'eta': sv = math.fabs(eta)
+                    else:
+                        print 'Uknown selection:', ksel
+                        sys.exit()
+                    
+                    for kksel, vvsel in vsel.iteritems():
+                        
+                        vselMin = vvsel[0]
+                        vselMax = vvsel[1]
+                        if (sv >= vselMin and sv < vselMax):
+                            sellist.append(kksel)
                 
                 for p in ipParamList:
 
@@ -694,8 +717,10 @@ if __name__ == '__main__':
                 
                                 if not (param >= paramMin and param < paramMax): continue
                         
-                                h['h_ippvd0'+kpv+kp].Fill(d0_pv, we)
-                                h['h_ippvdz'+kpv+kp].Fill(dz_pv, we)
+                                for kselip in sellist:
+                                    
+                                    h['h_ippvd0'+kpv+kp+kselip].Fill(d0_pv, we)
+                                    h['h_ippvdz'+kpv+kp+kselip].Fill(dz_pv, we)
 
                     blistbs = ParamList['bs'][p]
                                 
@@ -724,15 +749,19 @@ if __name__ == '__main__':
                                 if not (run >= runMin and run < runMax): continue
                                 if (run == runMin) and (lumi < lumiMin): continue
                                 if (run == runMax) and (lumi >= lumiMax): continue
+
+                                for kselip in sellist:
                                 
-                                h['h_ipbsd0zpv'+kp+'_'+str(ibs)].Fill(d0_bs_zpv, we)
-                                h['h_ipbsd0'+kp+'_'+str(ibs)].Fill(d0_bs, we)
-                                h['h_ipbsdz'+kp+'_'+str(ibs)].Fill(dz_bs, we)
+                                    h['h_ipbsd0zpv'+kp+'_'+str(ibs)+kselip].Fill(d0_bs_zpv, we)
+                                    h['h_ipbsd0'+kp+'_'+str(ibs)+kselip].Fill(d0_bs, we)
+                                    h['h_ipbsdz'+kp+'_'+str(ibs)+kselip].Fill(dz_bs, we)
                         else:
                             
-                            h['h_ipbsd0zpv'+kp].Fill(d0_bs_zpv, we)
-                            h['h_ipbsd0'+kp].Fill(d0_bs, we)
-                            h['h_ipbsdz'+kp].Fill(dz_bs, we)
+                            for kselip in sellist:
+                                
+                                h['h_ipbsd0zpv'+kp+kselip].Fill(d0_bs_zpv, we)
+                                h['h_ipbsd0'+kp+kselip].Fill(d0_bs, we)
+                                h['h_ipbsdz'+kp+kselip].Fill(dz_bs, we)
                                 
         if storeTree: trkTree.fill()
         
