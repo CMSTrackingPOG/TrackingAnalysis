@@ -31,6 +31,7 @@ def main(argv = None):
     parser.add_option("--process", default="zb", help="type of process [default: %default]")
     parser.add_option("--parampv", default="sumTrackPtSq", help="Parameterisation for PV resolution measurement [default: %default]")
     parser.add_option("--sys", action='store_true', help="Add bin width as systematics [default: %default]")
+    parser.add_option("--selection", default="", help="Selection criteria in IP measurement [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -266,7 +267,7 @@ if __name__ == '__main__':
 
                             # deconv
                             if vDataTrk < vPVDataTrk or vMCTrk < vPVMCTrk:
-                                print ktrk, kparam, vDataTrk, vPVDataTrk, vMCTrk, vPVMCTrk
+                                print x, ktrk, kparam, vDataTrk, vPVDataTrk, vMCTrk, vPVMCTrk
                                 continue
                             
                             vSigmaData = math.sqrt(vDataTrk*vDataTrk-vPVDataTrk*vPVDataTrk)
@@ -412,13 +413,13 @@ if __name__ == '__main__':
                         h[hnameMC+'_deconv'].SetBinError(bidx, eMCDeconv)
                         
             hMC = h[hnameMC]; hData = h[hnameData]
-            pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_'+evt+'_mc.pkl','wb'))
-            pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_'+evt+'_data.pkl','wb'))
+            pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+options.selection+'_'+evt+'_mc.pkl','wb'))
+            pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+options.selection+'_'+evt+'_data.pkl','wb'))
             plot(c1, hData, hMC, mode, m, x)
             
             if mode != 'pv':
                 
                 hMC = h[hnameMC+'_deconv']; hData = h[hnameData+'_deconv']
-                pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+'_'+evt+'_mc_deconv.pkl','wb'))
-                pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+'_'+evt+'_data_deconv.pkl','wb'))
+                pickle.dump(hMC,open('results/'+mode+'_'+m+'_'+x+options.selection+'_'+evt+'_mc_deconv.pkl','wb'))
+                pickle.dump(hData,open('results/'+mode+'_'+m+'_'+x+options.selection+'_'+evt+'_data_deconv.pkl','wb'))
                 plot(c1, hData, hMC, mode, m, x, True)

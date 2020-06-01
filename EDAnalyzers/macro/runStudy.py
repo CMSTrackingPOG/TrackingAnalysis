@@ -19,7 +19,7 @@ def main(argv = None):
     parser.add_option("--withbs",action='store_true',help="Use WithBS samples [default: %default]")
     parser.add_option("--qcd",action='store_true',help="Use QCD events [default: %default]")
     parser.add_option("--reweight",action='store_true',help="Produce the reweighting file [default: %default]")
-    parser.add_option("--jobs",default="jobs/",help="Directory with input files [default: %default]")
+    parser.add_option("--jobs",default="jobs_analysis/",help="Directory with input files [default: %default]")
     parser.add_option("--clean",action='store_true',help="Clean merged files [default: %default]")
     parser.add_option("--fit",action='store_true',help="Extract IP resolution from fits [default: %default]")
     parser.add_option("--method", default="fwhm", help="Method to extract IP resolution (fwhm or fit) [default: %default]")

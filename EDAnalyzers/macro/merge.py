@@ -46,5 +46,10 @@ if __name__ == '__main__':
     for k,v in fd.items():
         
         flist = " ".join(fd[k])
-        os.system('hadd -ff '+dir+'/'+k+'.root '+flist)
+        
+        os.system('rm -rf /tmp/kskovpen')
+        os.system('mkdir /tmp/kskovpen')
+        os.system('hadd -ff /tmp/kskovpen/merged.root '+flist)
         os.system('rm '+dir+'/list_'+k+'_*.root')
+        os.system('mv /tmp/kskovpen/merged.root '+dir+'/'+k+'.root')
+        os.system('rm -rf /tmp/kskovpen')

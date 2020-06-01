@@ -401,6 +401,9 @@ if __name__ == '__main__':
         bs_emittanceY = tr.bs_emittanceY
         bs_betaStar = tr.bs_betaStar
 
+        # from BS monitoring
+        if (bs_beamWidthXError >= 0.1): continue
+
         pv_x = tr.pv_x
         pv_y = tr.pv_y
         pv_z = tr.pv_z
@@ -718,6 +721,9 @@ if __name__ == '__main__':
                                 if not (param >= paramMin and param < paramMax): continue
                         
                                 for kselip in sellist:
+
+#                                    if kpv+kp+kselip == '_sumTrackPtSq10p587to10p868_pt0p8207831493914127to0p931683250322938':
+#                                        print d0_pv, dz_pv
                                     
                                     h['h_ippvd0'+kpv+kp+kselip].Fill(d0_pv, we)
                                     h['h_ippvdz'+kpv+kp+kselip].Fill(dz_pv, we)

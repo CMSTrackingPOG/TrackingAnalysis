@@ -56,8 +56,8 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
         print 'No stats in mc: '+hResoMC.GetName(), ktrkstr
         return
         
-    rResoData = fit.rebin(hResoData, 1000, 50)
-    rResoMC = fit.rebin(hResoMC, 1000, 50)
+    rResoData = fit.rebin(hResoData, 100, 50)
+    rResoMC = fit.rebin(hResoMC, 100, 50)
     rmax = max(rResoData, rResoMC)
     hResoData = hResoData.Rebin(rmax)
     hResoMC = hResoMC.Rebin(rmax)
@@ -115,11 +115,11 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
             nsig = 1.5
         
         resoChi2MC = 1e+10
-        resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit', hResoMC, x, kstr, c.mcfit, ffit, nsig=nsig, nTries=10)
+        resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit', hResoMC, x, kstr, c.mcfit, ffit, nsig=nsig, nTries=100)
 
         resoChi2Data = 1e+10
-        resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit', hResoData, x, kstr, 1, ffit, nsig=nsig, nTries=10)
-        
+        resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit', hResoData, x, kstr, 1, ffit, nsig=nsig, nTries=100)
+
         sysErrData, sysErrMC = hResoData.GetXaxis().GetBinWidth(2), hResoMC.GetXaxis().GetBinWidth(2)
 
         resResoMC.Draw("same")
@@ -275,8 +275,8 @@ if __name__ == '__main__':
     parampv = fparam.get(options.parampv)
     
 #    ipParamList = ['pt', 'eta', 'phi', 'npv', 'dr']
-    ipParamList = ['pt']
-    
+    ipParamList = ['eta']
+
     ParamList = {}
     
     for t in ['bs', 'pv']:

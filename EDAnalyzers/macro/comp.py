@@ -21,13 +21,14 @@ def main(argv = None):
         argv = sys.argv[1:]
 
     usage = "usage: %prog [options]\n Plotting script to overlay histograms"
-    
+
     parser = OptionParser(usage)
     parser.add_option("--param", default='pt', help="parametrization [default: %default]")
     parser.add_option("--measurement", default='ip', help="ip or pv [default: %default]")
-    parser.add_option("--type", default='bs', help="type of IP measurement (pv or bs) [default: %default]")
-    parser.add_option("--pkl", default="reso_d0_zb_data,reso_d0_zb_mc", help="list of measurements [default: %default]")
+    parser.add_option("--type", default='bs,bs,bs,bs', help="type of IP measurement (pv or bs) [default: %default]")
+    parser.add_option("--pkl", default="reso_d0_zb_data_deconv,reso_d0_zb_mc_deconv,reso_d0_qcd_data_deconv,reso_d0_qcd_mc_deconv", help="list of measurements [default: %default]")
     parser.add_option("--fit", action='store_true', help="Perform a pT-fit [default: %default]")
+    parser.add_option("--selection", action='store_true', help="Multi parametrisation draw settings [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -42,48 +43,77 @@ if __name__ == '__main__':
     pstyle = style.SetPlotStyle(2)
 
     files = options.pkl.split(',')
+    types = options.type.split(',')
     
     c1 = ROOT.TCanvas()
-    c1.SetLogx(1)
+    
+    if 'pt' in options.param: c1.SetLogx(1)
 
     h = {}
 
-    leg = ROOT.TLegend(0.62,0.72,0.890,0.55)
+    leg = ROOT.TLegend(0.52,0.72,0.85,0.55)
+    if options.param in ['phi', 'npv']: 
+#        leg = ROOT.TLegend(0.52,0.42,0.85,0.25)
+        leg = ROOT.TLegend(0.22,0.82,0.55,0.65)
     leg.SetFillColor(253)
     leg.SetBorderSize(0)
     
-    for f in files:
+    for i, f in enumerate(files):
         
-        print '  ->', f
+        fname = f+'_'+types[i]
+        
+        print '  ->', fname
 
         pref = 'pv_'
-        if options.measurement == 'ip': pref = options.measurement+options.type+options.param+'_'
+        if options.measurement == 'ip': pref = options.measurement+types[i]+options.param+'_'
             
-        h[f] = pickle.load(open('results/'+pref+f+'.pkl','rb'))
+        h[fname] = pickle.load(open('results/'+pref+f+'.pkl','rb'))
 
-        h[f].SetMarkerStyle(22)
-        h[f].SetMarkerSize(0.7)
+        h[fname].SetMarkerStyle(26)
+        h[fname].SetMarkerSize(0.7)
         
-        if 'qcd' in f:
-            h[f].SetMarkerStyle(20)
-            h[f].SetMarkerColor(2)
-            h[f].SetLineColor(2)
+        if 'qcd' in fname:
+            h[fname].SetMarkerStyle(24)
+            h[fname].SetMarkerColor(2)
+            h[fname].SetLineColor(2)
         
-        if 'mc' in f: 
-            if 'qcd' in f: h[f].SetMarkerStyle(24)
-            else: h[f].SetMarkerStyle(26)
-            h[f].SetMarkerColor(9)
-            h[f].SetLineColor(9)
+        if 'mc' in fname:
+            h[fname].SetMarkerColor(9)
+            h[fname].SetLineColor(9)
+
+        if 'bs' in types[i]:
+            if 'qcd' in f: h[fname].SetMarkerStyle(20)
+            else: h[fname].SetMarkerStyle(22)
+            
+        if options.selection:
+            h[fname].SetMarkerStyle(20+i)
+            h[fname].SetMarkerColor(2+i*2)
+            h[fname].SetLineColor(2+i*2)
 
         lab = ''
         
-        if 'zb' in f: lab += 'ZeroBias ('
-        else: lab += ' QCD ('
+        if 'zb' in fname: lab += 'ZeroBias '+types[i].upper()+' ('
+        else: lab += ' QCD '+types[i].upper()+' ('
 
-        if 'data' in f: lab += 'Data)'
+        if 'data' in fname: lab += 'Data)'
         else: lab += 'MC)'
         
-        leg.AddEntry(h[f], lab, 'p')
+        if options.selection:
+            
+            cvar = 'pt'
+            if options.param == 'pt': cvar = 'eta'
+            
+            cuts = fname.split('_')[2].replace(cvar,'').replace('p','.').replace('abs','').split('to')
+            cmin = cuts[0]
+            cmax = cuts[1]
+            
+            if options.param == 'pt':
+                lab = cmin + ' < |#eta| < ' + cmax
+            else:
+                if cmin == '0.0': cmin = '0.1'
+                lab = cmin + ' < p_{T} < ' + cmax + ' GeV'                            
+        
+        leg.AddEntry(h[fname], lab, 'p')
     
     xmax = 0.; ymax = 0.
     xmin = 1E+10; ymin = 1E+10
@@ -100,10 +130,15 @@ if __name__ == '__main__':
         yminn = v.GetMinimum()
         if yminn < ymin: ymin = yminn
        
-    xmin = min(xmin, 0.1)
-    xmax = xmax*2.0
+    if options.measurement == 'ip' and options.param == 'pt': xmin = min(xmin, 0.1)
+    if 'pt' in options.param: 
+        xmin = xmin/2.
+        xmax = xmax*2.0
+        
     ymin = min(ymin, 0.)
     ymax = ymax*1.2
+    
+    if 'npv' in options.param: ymax *= 1.5
     
     h0 = c1.DrawFrame(xmin, ymin, xmax, ymax)
 
@@ -117,7 +152,9 @@ if __name__ == '__main__':
     
     for i, f in enumerate(files):
 
-        h[f].Draw('pe1 same')
+        fname = f+'_'+types[i]
+        
+        h[fname].Draw('pe1 same')
         
         if 'd0' in f: h0.GetYaxis().SetTitle('Track IP resolution (d_{0}) [#mum]')
         elif 'dz' in f: h0.GetYaxis().SetTitle('Track IP resolution (d_{z}) [#mum]')
@@ -136,6 +173,14 @@ if __name__ == '__main__':
     t3.Draw()
     t4.Draw()
     
+    if options.selection:
+        
+        lab = ROOT.TLatex(0.30,0.80,'ZeroBias (Data)')
+#        lab = ROOT.TLatex(0.30,0.80,'QCD (Data)')
+        lab.SetTextSize(0.045)
+        lab.SetNDC()
+        lab.Draw()
+    
     # fit
 
     if options.param == 'pt' and options.fit:
@@ -147,18 +192,20 @@ if __name__ == '__main__':
         
         for i, f in enumerate(files):
 
+            fname = f+'_'+types[i]
+            
             x = array.array('d')
             y = array.array('d')
-            for b in range(h[f].GetXaxis().GetNbins()):
-                x.append(h[f].GetXaxis().GetBinCenter(b+1))
-                y.append(h[f].GetBinContent(b+1))
+            for b in range(h[fname].GetXaxis().GetNbins()):
+                x.append(h[fname].GetXaxis().GetBinCenter(b+1))
+                y.append(h[fname].GetBinContent(b+1))
         
-            gr[f] = ROOT.TGraph(int(len(x)),x,y)
+            gr[fname] = ROOT.TGraph(int(len(x)),x,y)
             
-            if 'qcd' in f:
-                res = fit.doFitIP('ipfit', gr[f], h[f].GetMarkerColor(), ptmin_qcd, xmax=h0.GetXaxis().GetXmax())
+            if 'qcd' in fname:
+                res = fit.doFitIP('ipfit', gr[fname], h[fname].GetMarkerColor(), ptmin_qcd, xmax=h0.GetXaxis().GetXmax())
             else:
-                res = fit.doFitIP('ipfit', gr[f], h[f].GetMarkerColor(), ptmin_zb, xmax=h[f].GetXaxis().GetXmax())
+                res = fit.doFitIP('ipfit', gr[fname], h[fname].GetMarkerColor(), ptmin_zb, xmax=h[fname].GetXaxis().GetXmax())
                 
             res.Draw('same')
             
@@ -167,13 +214,13 @@ if __name__ == '__main__':
             b = res.GetParameter(1)
             bError = res.GetParError(1)
             
-            fres[f] = ROOT.TLatex(0.62,0.52-i*0.10,'#splitline{a = %.2f #pm %.2f #mum}{b = %.2f #pm %.2f #mum}' %(a, aError, b, bError))
-            fres[f].SetNDC()
-            fres[f].SetTextAlign(13)
-            fres[f].SetTextFont(42)
-            fres[f].SetTextSize(0.035)
-            fres[f].SetTextColor(h[f].GetMarkerColor())
-            fres[f].Draw()
+            fres[fname] = ROOT.TLatex(0.62,0.52-i*0.10,'#splitline{a = %.2f #pm %.2f #mum}{b = %.2f #pm %.2f #mum}' %(a, aError, b, bError))
+            fres[fname].SetNDC()
+            fres[fname].SetTextAlign(13)
+            fres[fname].SetTextFont(42)
+            fres[fname].SetTextSize(0.035)
+            fres[fname].SetTextColor(h[fname].GetMarkerColor())
+            fres[fname].Draw()
 
         tex = ROOT.TLatex(0.22,0.35,'#sigma_{d_{0}}(p_{T})  =  #sqrt{a^{2} + #frac{b^{2}}{p_{T}^{2}}}')
         tex.SetNDC()

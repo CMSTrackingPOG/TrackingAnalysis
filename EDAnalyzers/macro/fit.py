@@ -134,17 +134,25 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
 
                 p0 = res.GetParameter(0); p0err = res.GetParError(0)
                 p1 = res.GetParameter(1); p1err = res.GetParError(1)
-#                p0rUnc = abs(p0err/p0) if p0 != 0 else 1.; p1rUnc = abs(p1err/p1) if p1 != 0 else 1.
+                if (p0 > 2.*a): continue
+                p0rUnc = abs(p0err/p0) if p0 != 0 else 1.; p1rUnc = abs(p1err/p1) if p1 != 0 else 1.
+#                if any(x < 0 for x in [p0, p0err, p1, p1err]): continue
 #                if any(x < 0 for x in [p0, p0err, p1, p1err]) or (p0rUnc > unc*p0) or (p1rUnc > unc*p1): continue
+#                if (p0rUnc > unc*abs(p0)) or (p1rUnc > unc*abs(p1)): continue
+                if (p0rUnc > unc*abs(p0)): continue
 #                if p0/a < frac: continue
                 par.append(p0i); parFit.append(p0); errFit.append(p0err)
                 par.append(p1i); parFit.append(p1); errFit.append(p1err)
                 
                 if f in ['2g', '3g']:
                     p2 = res.GetParameter(2); p2err = res.GetParError(2)
-                    p3 = res.GetParameter(3); p3err = res.GetParError(3)
-#                    p2rUnc = abs(p2err/p2) if p2 != 0 else 1.; p3rUnc = abs(p3err/p3) if p3 != 0 else 1.
+                    p3 = res.GetParameter(3); p3err = res.GetParError(3)                    
+                    if (p2 > a): continue
+                    if (p2 > p0): continue
+                    p2rUnc = abs(p2err/p2) if p2 != 0 else 1.; p3rUnc = abs(p3err/p3) if p3 != 0 else 1.
+                    if any(x < 0 for x in [p2, p2err, p3, p3err]): continue
 #                    if any(x < 0 for x in [p2, p2err, p3, p3err]) or (p2rUnc > unc*p2) or (p3rUnc > unc*p3): continue
+#                    if (p2rUnc > unc*abs(p2)) or (p3rUnc > unc*abs(p3)): continue
 #                    if p2/a < frac: continue
                     par.append(p2i); parFit.append(p2); errFit.append(p2err)
                     par.append(p3i); parFit.append(p3); errFit.append(p3err)
@@ -152,8 +160,12 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
                 if f in ['3g']:
                     p4 = res.GetParameter(4); p4err = res.GetParError(4)
                     p5 = res.GetParameter(5); p5err = res.GetParError(5)
+                    if (p4 > a): continue
+                    if (p2+p4 > a): continue
+                    if (p4 > p0): continue
 #                    p4rUnc = abs(p4err/p4) if p4 != 0 else 1.; p5rUnc = abs(p5err/p5) if p5 != 0 else 1.
 #                    if any(x < 0 for x in [p4, p4err, p5, p5err]) or (p4rUnc > unc*p4) or (p5rUnc > unc*p5): continue
+#                    if (p4rUnc > unc*abs(p4)) or (p5rUnc > unc*abs(p5)): continue
 #                    if p4/a < frac: continue
                     par.append(p4i); parFit.append(p4); errFit.append(p4err)
                     par.append(p5i); parFit.append(p5); errFit.append(p5err)
@@ -175,7 +187,8 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
 
     f = fitFunction(fMin[0].gfit, 'finalFit', xmin, xmax)
     for ip in range(len(fMin[0].parFit)):
-        f.f.SetParameter(ip, fMin[0].parFit[ip])
+        pfit = fMin[0].parFit[ip]
+        f.f.SetParameter(ip, pfit)
 
     hist.Fit('finalFit', 'QR')
     res = hist.GetFunction('finalFit')
