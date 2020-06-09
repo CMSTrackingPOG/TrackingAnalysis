@@ -47,7 +47,7 @@ def main(argv = None):
     parser.add_option("--input", default='JetHT.root', help="Input file name [default: %default]")
     parser.add_option("--output", default='data/bins/qcd_bs.json', help="Output file name [default: %default]")
     parser.add_option("--tree", default='trackTree', help="Input tree name [default: %default]")
-    parser.add_option("--nmin", type=int, default=10000, help="Minimum number of events per bin in the first-level parameterisation [default: %default]")
+    parser.add_option("--nmin", type=int, default=40000, help="Minimum number of events per bin in the first-level parameterisation [default: %default]")
     parser.add_option("--nbins", type=int, default=50, help="Maximum number of bins [default: %default]")
     parser.add_option("--threads", default=8, help="Number of threads [default: %default]")
     parser.add_option("--crop", type=float, default=0.1, help="Crop factor [default: %default]")
@@ -57,6 +57,7 @@ def main(argv = None):
     parser.add_option("--param", default='pt,eta,phi,npv,dr', help="List of track parameterisations [default: %default]")
     parser.add_option("--plot", action='store_true', help="Draw validation plots [default: %default]")
     parser.add_option("--validation", action='store_true', help="Fill validation histograms for multidimensional binning [default: %default]")
+    parser.add_option("--symmetric", action='store_true', help="Use symmetric binning for eta and phi parameterisations [default: %default]")
 
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -391,6 +392,11 @@ if __name__ == '__main__':
             print ''
             print '\033[1m'+p+'\033[0m: the requested number of events per fit ('+str(int(nminopt))+') is too high'
             sys.exit()
+            
+        # do not apply quantiles in case of angular parameterisations
+        if p in ['eta', 'phi']:
+            qup[p] = 1.
+            qdown[p] = 0.
 
         qcutup[p] = df.quantile(qup[p])
         qcutdown[p] = df.quantile(qdown[p])
@@ -423,6 +429,46 @@ if __name__ == '__main__':
             opt[p], res[p] = optimise(dfc[p], nbins, nminopt, p)
         else:
             opt[p], res[p] = lastbin(dfc[p], nbins, nminopt)
+            
+        if options.symmetric and p in ['eta', 'phi']:
+                         
+            sbins = []
+
+            for b in range(len(res[p][0])):
+                sbins.append(res[p][0][b])
+            sbins.append(res[p][1][len(res[p][0])-1])
+                
+            spos = -1
+            sneg = -1
+            for b in range(len(sbins)):
+                if sbins[b] > 0:
+                    spos = b
+                    sneg = b-1
+                    break
+
+            binssym = []
+            
+            if sbins[spos] > abs(sbins[sneg]):
+                del sbins[0:sneg+1]
+                neg = [-b for b in reversed(sbins)]
+                binssym += neg
+                binssym.append(0.)
+                binssym += sbins
+            else: 
+                del sbins[spos-1:]
+                pos = [-b for b in reversed(sbins)]
+                binssym += sbins
+                binssym.append(0.)
+                binssym += pos
+                
+            res[p][0] = []
+            res[p][1] = []
+
+            b = 0
+            while b < len(binssym)-1:
+                res[p][0].append(binssym[b])
+                res[p][1].append(binssym[b+1])
+                b += 1
 
         bl[p] = res[p][0]
         bh[p] = res[p][1]

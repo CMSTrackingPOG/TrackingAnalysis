@@ -222,7 +222,7 @@ if __name__ == '__main__':
     if options.qcd:
         roi = [0, 150, 385, 920, dbspl['bin'].iloc[-1]+1]
     else:
-        roi = [0, 250, 1150, 1750, dbspl['bin'].iloc[-1]+1]
+        roi = [0, 140, 870, 1310, 1830, dbspl['bin'].iloc[-1]+1]
 
     plots = {}
 
