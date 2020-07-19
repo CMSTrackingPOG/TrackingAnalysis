@@ -28,8 +28,9 @@ def main(argv = None):
     parser.add_option("--output", default="output.root", help="output file name [default: %default]")
     parser.add_option("--param", default="nTracks", help="list of parameterisations for PV resolution measurement [default: %default]")
     parser.add_option("--nmax", type=int, default=-1, help="number of events per job [default: %default]")
-    parser.add_option("--etamax", type=float, default=3.0, help="max track eta [default: %default]")
-    parser.add_option("--ptmin", type=float, default=0.1, help="min track pT in GeV [default: %default]")
+#    parser.add_option("--etamax", type=float, default=3.0, help="max track eta [default: %default]")
+    parser.add_option("--etamax", type=float, default=2.5, help="max track eta [default: %default]")
+    parser.add_option("--ptmin", type=float, default=0.4, help="min track pT in GeV [default: %default]")
     parser.add_option("--pileup", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/pileup/", help="path to pileup data files [default: %default]")
 #    parser.add_option("--pileup", default="", help="path to pileup data files [default: %default]")
     parser.add_option("--reweight", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/", help="path to reweight data files [default: %default]")
@@ -82,7 +83,8 @@ if __name__ == '__main__':
     param['pv'] = fun.param(ppath+'zb_pv.json') if evt == 'zb' else fun.param(ppath+'qcd_pv.json')
     
     pvParamList = options.param.split(',')
-    ipParamList = ['pt', 'eta', 'phi', 'npv', 'dr']
+#    ipParamList = ['pt', 'eta', 'phi', 'npv', 'dr']
+    ipParamList = ['pt', 'eta']
     
     ParamList = {}
     
@@ -130,6 +132,11 @@ if __name__ == '__main__':
         hd['pvSumTrackPt'] = {'xtit':'#sum p_{T} [GeV]','nb':hs[evt][0],'xmin':hs[evt][1],'xmax':hs[evt][2],'ytit':'Events'}
         hs = c.hPVsumTrackPt2
         hd['pvSumTrackPt2'] = {'xtit':'#sqrt{#sum p_{T}^{2}} [GeV]','nb':hs[evt][0],'xmin':hs[evt][1],'xmax':hs[evt][2],'ytit':'Events'}
+
+        hs = c.hPVChi2
+        hd['pvChi2'] = {'xtit':'#chi^{2}/N_{DOF}','nb':hs[evt][0],'xmin':hs[evt][1],'xmax':hs[evt][2],'ytit':'Events'}
+        hs = c.hPVNdof
+        hd['pvNdof'] = {'xtit':'N_{DOF}','nb':hs[evt][0],'xmin':hs[evt][1],'xmax':hs[evt][2],'ytit':'Events'}
         
         hd['pvXError'] = {'xtit':'Primary vertex fit uncertainty in x [#mum]','nb':50,'xmin':0.,'xmax':20.,'ytit':'Events'}
         hd['pvYError'] = {'xtit':'Primary vertex fit uncertainty in y [#mum]','nb':50,'xmin':0.,'xmax':20.,'ytit':'Events'}
@@ -164,6 +171,11 @@ if __name__ == '__main__':
         hd['ipbszpcaSD0'] = {'xtit':'Track d_{xy}(BS,z=PCA) significance [mm]','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
         hd['ipbszpvD0'] = {'xtit':'Track d_{xy}(BS,z=PV) [mm]','nb':100,'xmin':-1.5,'xmax':1.5,'ytit':'Events'}
         hd['ipbszpvSD0'] = {'xtit':'Track d_{xy}(BS,z=PV) significance [mm]','nb':100,'xmin':-6.,'xmax':6.,'ytit':'Events'}
+        
+        hd['ipChi2'] = {'xtit':'#chi^{2}/N_{DOF}','nb':100,'xmin':0.,'xmax':10.,'ytit':'Events'}
+        hd['ipNdof'] = {'xtit':'N_{DOF}','nb':70,'xmin':0.,'xmax':70.,'ytit':'Events'}
+        hd['ipNvalid'] = {'xtit':'N_{valid}','nb':50,'xmin':0.,'xmax':50.,'ytit':'Events'}
+        hd['ipNmissed'] = {'xtit':'N_{missed}','nb':15,'xmin':0.,'xmax':15.,'ytit':'Events'}
         
         for ksel in sel:
         
@@ -230,6 +242,7 @@ if __name__ == '__main__':
         for pvp in pvParamList:
             
             pvbins = ParamList['pv'][pvp]
+#            pvbins = ParamList['bs'][pvp]
             
             for k, v in pvbins.iteritems():
             
@@ -358,12 +371,15 @@ if __name__ == '__main__':
             
         if not isValid or isFake: continue
 
-        nTracks = tr.pv_NTracks
+        nTracks = tr.pv_NTracks        
         sumTrackPt = tr.pv_SumTrackPt
         sumTrackPtSq = math.sqrt(tr.pv_SumTrackPt2)
         
+        pv_chi2 = tr.pv_chi2/tr.pv_ndof if tr.pv_ndof > 0 else -1
+        pv_ndof = tr.pv_ndof
+        
         if nTracks < 3: continue
-
+        
         pvParamListVal = []
         for pvp in pvParamList:
             pvParamListVal.append(eval(pvp))
@@ -454,6 +470,9 @@ if __name__ == '__main__':
             h['h_pvSumTrackPt'].Fill(sumTrackPt, we)
             h['h_pvSumTrackPt2'].Fill(sumTrackPtSq, we)
             
+            h['h_pvChi2'].Fill(pv_chi2, we)
+            h['h_pvNdof'].Fill(pv_ndof, we)
+            
             h['h_pvXError'].Fill(pv_xError, we)
             h['h_pvYError'].Fill(pv_yError, we)
             h['h_pvZError'].Fill(pv_zError, we)
@@ -497,6 +516,7 @@ if __name__ == '__main__':
                 
                 param = eval(pvp)
                 pvbins = ParamList['pv'][pvp]
+#                pvbins = ParamList['bs'][pvp]
                 
                 for k, v in pvbins.iteritems():
                     
@@ -534,6 +554,8 @@ if __name__ == '__main__':
         
         # IP study
         
+#        continue # fixme
+        
         # Fast access to vector branches
         
         trk_pt = tr.trk_pt
@@ -567,6 +589,12 @@ if __name__ == '__main__':
         
         trk_d0Err = tr.trk_d0Err
         trk_dzErr = tr.trk_dzErr
+        
+        trk_normalizedChi2 = tr.trk_normalizedChi2
+        trk_ndof = tr.trk_ndof
+        trk_nValid = tr.trk_nValidTracker
+        trk_nMissedIn = tr.trk_nMissedTrackerIn
+        trk_nMissedOut = tr.trk_nMissedTrackerOut
         
         nTracks = trk_pt.size()
 
@@ -611,6 +639,11 @@ if __name__ == '__main__':
             
             d0Err = trk_d0Err[t]
             dzErr = trk_dzErr[t]
+            
+            normalizedChi2 = trk_normalizedChi2[t]
+            ndof = trk_ndof[t]
+            nvalid = trk_nValid[t]
+            nmissed = trk_nMissedIn[t] + trk_nMissedOut[t]
 
             if pt < options.ptmin: continue
             if math.fabs(eta) > options.etamax: continue
@@ -663,6 +696,13 @@ if __name__ == '__main__':
                 h['h_ipbszpcaD0'].Fill(d0_bs_zpca*mm, we)
                 h['h_ipbszpvSD0'].Fill(sd0_bs_zpv, we)
                 h['h_ipbszpcaSD0'].Fill(sd0_bs_zpca, we)
+                
+                h['h_ipChi2'].Fill(normalizedChi2, we)
+                h['h_ipNdof'].Fill(ndof, we)
+                h['h_ipNvalid'].Fill(nvalid, we)
+                h['h_ipNmissed'].Fill(nmissed, we)
+                
+#                continue # fixme
 
                 sellist = ['']
                 
@@ -678,7 +718,8 @@ if __name__ == '__main__':
                         
                         vselMin = vvsel[0]
                         vselMax = vvsel[1]
-                        if (sv >= vselMin and sv < vselMax):
+                        if (len(vvsel) == 2 and sv >= vselMin and sv < vselMax) or \
+                        (len(vvsel) == 4 and sv >= vselMin and sv < vselMax and math.fabs(eta) >= vvsel[2] and math.fabs(eta) < vvsel[3]):
                             sellist.append(kksel)
                 
                 for p in ipParamList:

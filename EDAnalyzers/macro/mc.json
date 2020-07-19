@@ -1,7 +1,5 @@
 {
-  "SingleNeutrino_RunIIAutumn18DRPremixforRECO102Xupgrade2018realisticv15ext1v1AODSIM": [
-    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200223/SingleNeutrino/RunIIAutumn18DRPremix_forRECO_102X_upgrade2018_realistic_v15_ext1_v1_AODSIM/200223_192832/0000/output_10.root", 
-    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200223/SingleNeutrino/RunIIAutumn18DRPremix_forRECO_102X_upgrade2018_realistic_v15_ext1_v1_AODSIM/200223_192832/0000/output_11.root", 
-    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200223/SingleNeutrino/RunIIAutumn18DRPremix_forRECO_102X_upgrade2018_realistic_v15_ext1_v1_AODSIM/200223_192832/0000/output_12.root"
+  "QCDPt15to7000TuneCP5Flat13TeVpythia8_RunIISummer19UL17RECO": [
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200423/QCD_Pt-15to7000_TuneCP5_Flat_13TeV_pythia8/RunIISummer19UL17RECO_/200423_195105/0000/output_100.root"
   ]
 }

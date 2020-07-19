@@ -15,8 +15,8 @@ def main(argv = None):
     parser = OptionParser(usage)
     parser.add_option("-j", "--json", default="list.json", help="input file list [default: %default]")
     parser.add_option("-o", "--output", default="jobs", help="output directory [default: %default]")
-    parser.add_option("--splitdata", type=int, default=20, help="number of files per job [default: %default]")
-    parser.add_option("--splitmc", type=int, default=20, help="number of files per job [default: %default]")
+    parser.add_option("--splitdata", type=int, default=40, help="number of files per job [default: %default]")
+    parser.add_option("--splitmc", type=int, default=40, help="number of files per job [default: %default]")
 #    parser.add_option("-p", "--param", default="nTracks,sumTrackPt,sumTrackPtSq", help="parameterisation for PV resolution measurement [default: %default]")
     parser.add_option("-p", "--param", default="sumTrackPtSq", help="parameterisation for PV resolution measurement [default: %default]")
     parser.add_option("--data", action='store_true', help="Only run on data [default: %default]")
@@ -72,10 +72,15 @@ if __name__ == '__main__':
     
     for k, v in flist.items():
         
+#        if (('Run20' not in k) or ('ZeroBias' not in k) or ('Run2017F' not in k)): continue
         if options.data and ('Run20' not in k): continue
 #        if options.data and (('Run20' not in k) or ('ZeroBias' not in k)): continue
-        if options.mc and (('Run20' in k) or ('QCD' not in k)): continue
-#        if options.mc and ('Run20' in k): continue
+#        if options.mc and (('Run20' in k) or ('QCD' not in k)): continue
+        if options.mc and ('Run20' in k): continue
+        
+        if ('ZeroBias' not in k) and ('SingleNeutrino' not in k): continue
+        
+#        if ('Run2017B' not in k) or ('ZeroBias' not in k): continue
         
         lsz = lszdata if ('Run20' in k) else lszmc
         

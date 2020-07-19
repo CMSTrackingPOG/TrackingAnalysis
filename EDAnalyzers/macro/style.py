@@ -32,18 +32,18 @@ def PlotStyle(mode, name):
         
         plotStyle.SetPadTopMargin(0.07)
         plotStyle.SetPadRightMargin(0.2)
-        plotStyle.SetPadBottomMargin(0.16)
+        plotStyle.SetPadBottomMargin(0.18)
         plotStyle.SetPadLeftMargin(0.16)
         
     elif mode == 2:
         
         plotStyle.SetPadTopMargin(0.07)
         plotStyle.SetPadRightMargin(0.07)
-        plotStyle.SetPadBottomMargin(0.16)
+        plotStyle.SetPadBottomMargin(0.18)
         plotStyle.SetPadLeftMargin(0.16)        
     
     plotStyle.SetTitleXOffset(1.4)
-    plotStyle.SetTitleYOffset(1.4)
+    plotStyle.SetTitleYOffset(1.2)
 
     font = 42
     tsize = 0.05
@@ -99,8 +99,8 @@ def cmslabel(mode, year, proc, shift=True):
     tex2.SetLineWidth(2)
     
     if year == '2017':
-        lyear = ROOT.TLatex(0.81,0.94,"#sqrt{s} = 13 TeV (UL17)")
-        if not shift: lyear = ROOT.TLatex(0.93,0.94,"#sqrt{s} = 13 TeV (UL17)")
+        lyear = ROOT.TLatex(0.81,0.945,"#sqrt{s} = 13 TeV, 2017 (Legacy)")
+        if not shift: lyear = ROOT.TLatex(0.93,0.945,"#sqrt{s} = 13 TeV, 2017 (Legacy)")
 
 #    intLumi = c.lumiRun2
 #    if year == '2017': intLumi = c.lumi2017
@@ -122,7 +122,7 @@ def cmslabel(mode, year, proc, shift=True):
     elif proc == 'zb': procName = 'ZeroBias'
     else: procName = ''
     
-    lproc = ROOT.TLatex(0.70, 0.70, procName)
+    lproc = ROOT.TLatex(0.35, 0.80, procName)
     
     lproc.SetNDC()
     lproc.SetTextAlign(31)

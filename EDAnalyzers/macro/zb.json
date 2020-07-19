@@ -1,0 +1,12 @@
+{ 
+  "ZeroBias_Run2017F": [
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200423/ZeroBias/Run2017F_/200423_195215/0000/output_102.root", 
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200423/ZeroBias/Run2017F_/200423_195215/0000/output_105.root", 
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200423/ZeroBias/Run2017F_/200423_195215/0000/output_106.root"
+    ],
+  "SingleNeutrino_RunIISummer19UL17RECO": [
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200423/SingleNeutrino/RunIISummer19UL17RECO_/200423_195059/0000/output_100.root", 
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200423/SingleNeutrino/RunIISummer19UL17RECO_/200423_195059/0000/output_101.root", 
+    "root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Ntuple/Track-v20200423/SingleNeutrino/RunIISummer19UL17RECO_/200423_195059/0000/output_102.root"
+    ]
+}

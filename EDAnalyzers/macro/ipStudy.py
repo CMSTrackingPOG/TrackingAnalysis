@@ -50,18 +50,52 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
     figs = []
 
     if hResoData.GetEntries() < 10:
-        print 'No stats in data: '+hResoData.GetName(), ktrkstr
-        return
+#        print 'No stats in data: '+hResoData.GetName(), ktrkstr
+        return figs, x, ktrkstr, kstr, -1, -1, -1, -1, -1, -1, -1, -1
+
     if hResoMC.GetEntries() < 10:
-        print 'No stats in mc: '+hResoMC.GetName(), ktrkstr
-        return
-        
-    rResoData = fit.rebin(hResoData, 100, 50)
-    rResoMC = fit.rebin(hResoMC, 100, 50)
-    rmax = max(rResoData, rResoMC)
-    hResoData = hResoData.Rebin(rmax)
-    hResoMC = hResoMC.Rebin(rmax)
-        
+#        print 'No stats in mc: '+hResoMC.GetName(), ktrkstr
+        return figs, x, ktrkstr, kstr, -1, -1, -1, -1, -1, -1, -1, -1
+         
+    if param in ['pt', 'phi']:
+        if options.selection == '':
+            rResoData = fit.rebin(hResoData, 60, 30)
+            rResoMC = fit.rebin(hResoMC, 60, 30)
+        elif kstr == '_pt7p36to7p6':
+            rResoData = fit.rebin(hResoData, 80, 30)
+            rResoMC = fit.rebin(hResoMC, 80, 30)
+        else:
+            rResoData = fit.rebin(hResoData, 50, 30)
+            rResoMC = fit.rebin(hResoMC, 50, 30)
+        rmax = max(rResoData, rResoMC)
+        hResoData = hResoData.Rebin(rmax)
+        hResoMC = hResoMC.Rebin(rmax)
+    else:
+        if options.selection != '_pt3p0to10p0' and options.type == 'pv':
+            rResoData = fit.rebin(hResoData, 1000, 30)
+            rResoMC = fit.rebin(hResoMC, 1000, 30)
+            rmax = max(rResoData, rResoMC)
+            hResoData = hResoData.Rebin(rmax)
+            hResoMC = hResoMC.Rebin(rmax)
+        elif options.type == 'bs' and options.qcd:
+            rResoData = fit.rebin(hResoData, 500, 30)
+            rResoMC = fit.rebin(hResoMC, 500, 30)
+            rmax = max(rResoData, rResoMC)
+            hResoData = hResoData.Rebin(rmax)
+            hResoMC = hResoMC.Rebin(rmax)
+        elif options.type == 'bs' and options.selection == '_pt0p0to1p0':
+            rResoData = fit.rebin(hResoData, 1000, 30)
+            rResoMC = fit.rebin(hResoMC, 1000, 30)
+            rmax = max(rResoData, rResoMC)
+            hResoData = hResoData.Rebin(rmax)
+            hResoMC = hResoMC.Rebin(rmax)        
+        else:
+            rResoData = fit.rebin(hResoData, 500, 30)
+            rResoMC = fit.rebin(hResoMC, 500, 30)
+            rmax = max(rResoData, rResoMC)
+            hResoData = hResoData.Rebin(rmax)
+            hResoMC = hResoMC.Rebin(rmax)        
+            
     for h in [hResoData]:
         h.SetMarkerStyle(c.datamrk)
         h.SetMarkerSize(0.7)
@@ -104,21 +138,20 @@ def runFit(evt, ip, vtrk, v, x, ktrkstr, kstr, param, img, hResoData, hResoMC):
     fun.adjust(hResoMC, hResoData, nsig=2.0)
     
     if options.fit:
-        
-        ffit = ''
-        if x == 'dz': ffit = ''
 
         if options.method == 'fwhm': 
-            nsig = 0.3
+            nsig = 2.0
         else:
             ffit = '3g'
-            nsig = 1.5
+            nsig = 2.0
+
+        if x == 'dz': ffit = '3g'
         
         resoChi2MC = 1e+10
-        resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit', hResoMC, x, kstr, c.mcfit, ffit, nsig=nsig, nTries=100)
+        resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit', hResoMC, x, kstr, c.mcfit, ffit, nsig=nsig, nTries=3)
 
         resoChi2Data = 1e+10
-        resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit', hResoData, x, kstr, 1, ffit, nsig=nsig, nTries=100)
+        resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit', hResoData, x, kstr, 1, ffit, nsig=nsig, nTries=3)
 
         sysErrData, sysErrMC = hResoData.GetXaxis().GetBinWidth(2), hResoMC.GetXaxis().GetBinWidth(2)
 

@@ -205,7 +205,11 @@ def optimise(data, nbins, nmin, var = ''):
         bl = []
         bh = []
         
-        if options.method == 'c': splt = pd.cut(data, nbinsc, duplicates='drop')
+        if options.method == 'c' or (var in ['pt']):
+            print 'constant for pt'
+            nmin = 1.
+            nbinsc = 40
+            splt = pd.cut(data, nbinsc, duplicates='drop') # fixme
         else: splt = pd.qcut(data, nbinsc, duplicates='drop')
         bins = splt.value_counts(sort=False)
 #        print bins
@@ -272,8 +276,15 @@ def save(res, dfc, dfcpv = None):
                 else:
                     d[p][bname]['d0'] = [1800, -1800.0, 1800.0]
                 
-                if p in ['eta'] and abs(bl[i]) < 1.5 and abs(bh[i]) < 1.5:
-                    d[p][bname]['dz'] = [600, -1500.0, 1500.0]
+                if p in ['eta']:
+                    if abs(bl[i]) < 1.5 and abs(bh[i]) < 1.5:
+                        d[p][bname]['dz'] = [600, -1500.0, 1500.0]
+                    elif abs(bl[i]) < 2.3 and abs(bh[i]) < 2.3:
+                        d[p][bname]['dz'] = [600, -3000.0, 3000.0]
+                    elif abs(bl[i]) < 2.6 and abs(bh[i]) < 2.6:
+                        d[p][bname]['dz'] = [1200, -6000.0, 6000.0]
+                    else:
+                        d[p][bname]['dz'] = [1200, -12000.0, 12000.0]
                 else:
                     d[p][bname]['dz'] = [600, -3000.0, 3000.0]
     
@@ -300,11 +311,17 @@ def save(res, dfc, dfcpv = None):
                     else:
                         d[p][bname]['d0'] = [1800, -1800.0, 1800.0]
                 
-                    if p in ['eta'] and abs(bl[i]) < 1.5 and abs(bh[i]) < 1.5:
-                        d[p][bname]['dz'] = [600, -1500.0, 1500.0]
+                    if p in ['eta']:
+                        if abs(bl[i]) < 1.5 and abs(bh[i]) < 1.5:
+                            d[p][bname]['dz'] = [600, -1500.0, 1500.0]
+                        elif abs(bl[i]) < 2.3 and abs(bh[i]) < 2.3:
+                            d[p][bname]['dz'] = [600, -3000.0, 3000.0]
+                        elif abs(bl[i]) < 2.6 and abs(bh[i]) < 2.6:
+                            d[p][bname]['dz'] = [1200, -6000.0, 6000.0]
+                        else:
+                            d[p][bname]['dz'] = [1200, -12000.0, 12000.0]
                     else:
                         d[p][bname]['dz'] = [600, -3000.0, 3000.0]
-
                     
                 d[p]['allbins'] = np.append(d[p]['allbins'], bh[i])
                 
@@ -383,7 +400,7 @@ if __name__ == '__main__':
         qt = nminopt/(total*float(options.crop))
 #        if 'pt' in p.lower() or 'dr' in p.lower(): qt = max(qt, options.quantile)
 #        if 'pt' in p.lower(): qt = max(qt, options.quantile)
-        if 'pt' in p: qt = max(qt, options.quantile)
+##        if 'pt' in p: qt = max(qt, options.quantile)
         
         qup[p] = 1.-qt
         qdown[p] = qt
@@ -400,6 +417,10 @@ if __name__ == '__main__':
 
         qcutup[p] = df.quantile(qup[p])
         qcutdown[p] = df.quantile(qdown[p])
+        
+        if p in ['pt']: 
+            qcutup[p] = 10.0
+            qcutdown[p] = 0.4
  
         dfc[p] = df[(df < qcutup[p]) & (df > qcutdown[p])]
 
@@ -428,7 +449,8 @@ if __name__ == '__main__':
         if (options.method in ['c', 'v']) and ('pt' not in p):
             opt[p], res[p] = optimise(dfc[p], nbins, nminopt, p)
         else:
-            opt[p], res[p] = lastbin(dfc[p], nbins, nminopt)
+            opt[p], res[p] = optimise(dfc[p], nbins, nminopt, p)
+#            opt[p], res[p] = lastbin(dfc[p], nbins, nminopt)
             
         if options.symmetric and p in ['eta', 'phi']:
                          

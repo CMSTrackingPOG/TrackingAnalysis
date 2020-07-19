@@ -71,7 +71,13 @@ def runFit(evt, v, x, kstr, img, hResoData, hResoMC, hPullData, hPullMC):
     
     intPullMC = hPullMC.Integral()
     intPullData = hPullData.Integral()
-    hPullMC.Scale(intPullData/intPullMC)        
+    hPullMC.Scale(intPullData/intPullMC)
+    
+    # Rebin in case of fine-bin measurement
+#    hResoData = hResoData.Rebin(2)
+#    hResoMC = hResoMC.Rebin(2)
+#    hPullData = hPullData.Rebin(5)
+#    hPullMC = hPullMC.Rebin(5)
             
     maxResoData = hResoData.GetMaximum()
     maxResoMC = hResoMC.GetMaximum()
@@ -101,10 +107,10 @@ def runFit(evt, v, x, kstr, img, hResoData, hResoMC, hPullData, hPullMC):
     hResoMC.Draw('hist')
     hResoData.Draw('e1 sames')
 
-    resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit_reso', hResoMC, x, kstr, c.mcfit, '2g', nsig=4, nTries=3)
+    resResoMC, resoMC, resoErrMC, resoChi2MC = fit.doFit('mcfit_reso', hResoMC, x, kstr, c.mcfit, '2g', nsig=3, nTries=3)
     resResoMC.Draw("same")
             
-    resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit_reso', hResoData, x, kstr, 1, '2g', nsig=4, nTries=3)
+    resResoData, resoData, resoErrData, resoChi2Data = fit.doFit('datafit_reso', hResoData, x, kstr, 1, '2g', nsig=3, nTries=3)
     resResoData.Draw("same")
     resResoData.SetLineStyle(2)
     
@@ -177,11 +183,11 @@ def runFit(evt, v, x, kstr, img, hResoData, hResoMC, hPullData, hPullMC):
         
     hPullMC.Draw('hist')
     hPullData.Draw('e1 sames')
-    
-    resPullMC, pullMC, pullErrMC, pullChi2MC = fit.doFit('mcfit_pull', hPullMC, x, kstr, c.mcfit, '1g', nsig=4, nTries=3)
+
+    resPullMC, pullMC, pullErrMC, pullChi2MC = fit.doFit('mcfit_pull', hPullMC, x, kstr, c.mcfit, '1g', nsig=2.5, nTries=3)
     resPullMC.Draw("same")
     
-    resPullData, pullData, pullErrData, pullChi2Data = fit.doFit('datafit_pull', hPullData, x, kstr, 1, '1g', nsig=4, nTries=3)
+    resPullData, pullData, pullErrData, pullChi2Data = fit.doFit('datafit_pull', hPullData, x, kstr, 1, '1g', nsig=2.5, nTries=3)
     resPullData.Draw("same")
     resPullData.SetLineStyle(2)
 
@@ -273,6 +279,7 @@ if __name__ == '__main__':
 
     ppath = 'data/bins/'
     fparam = fun.param(ppath+evt+'_pv.json')
+#    fparam = fun.param(ppath+evt+'_bs.json')
     param = fparam.get(options.param)
     
     img = options.image
@@ -407,58 +414,58 @@ if __name__ == '__main__':
             if samp == 'data':
                 hpvplot = pv_hXYData
                 hbsplot = bs_hXYData
-                hbsplot.Draw('BOX SAME')
-                hbsplot.SetLineColor(ROOT.kRed)
+#                hbsplot.Draw('BOX SAME')
+#                hbsplot.SetLineColor(ROOT.kRed)
             else:
                 hpvplot = pv_hXYMC
                 hbsplot = bs_hXYMC
-                hbsplot.Draw('BOX SAME')
-                hbsplot.SetLineColor(ROOT.kRed)
+#                hbsplot.Draw('BOX SAME')
+#                hbsplot.SetLineColor(ROOT.kRed)
             lpvrms1 = ROOT.TLatex(0.2,0.3,"RMS (PV)"); lpvrms1.SetNDC(); lpvrms1.SetTextFont(43); lpvrms1.SetTextSize(20); lpvrms1.Draw()
             lpvrms2 = ROOT.TLatex(0.2,0.25,"x = %.1f" % (hpvplot.GetRMS(1)*math.pow(10,3))+" #mum"); lpvrms2.SetNDC(); lpvrms2.SetTextFont(43); lpvrms2.SetTextSize(20); lpvrms2.Draw()
             lpvrms3 = ROOT.TLatex(0.2,0.2,"y = %.1f" % (hpvplot.GetRMS(2)*math.pow(10,3))+" #mum"); lpvrms3.SetNDC(); lpvrms3.SetTextFont(43); lpvrms3.SetTextSize(20); lpvrms3.Draw()
-            if samp == 'data':
-                lbsrms1 = ROOT.TLatex(0.65,0.3,"RMS (BS)"); lbsrms1.SetNDC(); lbsrms1.SetTextFont(43); lbsrms1.SetTextSize(20); lbsrms1.Draw()
-                lbsrms2 = ROOT.TLatex(0.65,0.25,"x = %.1f" % (hbsplot.GetRMS(1)*math.pow(10,3))+" #mum"); lbsrms2.SetNDC(); lbsrms2.SetTextFont(43); lbsrms2.SetTextSize(20); lbsrms2.Draw()
-                lbsrms3 = ROOT.TLatex(0.65,0.2,"y = %.1f" % (hbsplot.GetRMS(2)*math.pow(10,3))+" #mum"); lbsrms3.SetNDC(); lbsrms3.SetTextFont(43); lbsrms3.SetTextSize(20); lbsrms3.Draw()
+#            if samp == 'data':
+#                lbsrms1 = ROOT.TLatex(0.65,0.3,"RMS (BS)"); lbsrms1.SetNDC(); lbsrms1.SetTextFont(43); lbsrms1.SetTextSize(20); lbsrms1.SetTextColor(ROOT.kRed); lbsrms1.Draw()
+#                lbsrms2 = ROOT.TLatex(0.65,0.25,"x = %.1f" % (hbsplot.GetRMS(1)*math.pow(10,3))+" #mum"); lbsrms2.SetNDC(); lbsrms2.SetTextFont(43); lbsrms2.SetTextSize(20); lbsrms2.SetTextColor(ROOT.kRed); lbsrms2.Draw()
+#                lbsrms3 = ROOT.TLatex(0.65,0.2,"y = %.1f" % (hbsplot.GetRMS(2)*math.pow(10,3))+" #mum"); lbsrms3.SetNDC(); lbsrms3.SetTextFont(43); lbsrms3.SetTextSize(20); lbsrms3.SetTextColor(ROOT.kRed); lbsrms3.Draw()
                     
         if 'x_z' in h.GetName():
             if samp == 'data':
                 hpvplot = pv_hXZData
                 hbsplot = bs_hXZData
-                hbsplot.Draw('BOX SAME')
-                hbsplot.SetLineColor(ROOT.kRed)
+#                hbsplot.Draw('BOX SAME')
+#                hbsplot.SetLineColor(ROOT.kRed)
             else:
                 hpvplot = pv_hXZMC
                 hbsplot = bs_hXZMC
-                hbsplot.Draw('BOX SAME')
-                hbsplot.SetLineColor(ROOT.kRed)
+#                hbsplot.Draw('BOX SAME')
+#                hbsplot.SetLineColor(ROOT.kRed)
             lpvrms1 = ROOT.TLatex(0.2,0.3,"RMS (PV)"); lpvrms1.SetNDC(); lpvrms1.SetTextFont(43); lpvrms1.SetTextSize(20); lpvrms1.Draw()
             lpvrms2 = ROOT.TLatex(0.2,0.25,"x = %.1f" % (hpvplot.GetRMS(2)*math.pow(10,3))+" #mum"); lpvrms2.SetNDC(); lpvrms2.SetTextFont(43); lpvrms2.SetTextSize(20); lpvrms2.Draw()
-            lpvrms3 = ROOT.TLatex(0.2,0.2,"z = %.1f" % (hpvplot.GetRMS(1))+" mm"); lpvrms3.SetNDC(); lpvrms3.SetTextFont(43); lpvrms3.SetTextSize(20); lpvrms3.Draw()
-            if samp == 'data':
-                lbsrms1 = ROOT.TLatex(0.65,0.3,"RMS (BS)"); lbsrms1.SetNDC(); lbsrms1.SetTextFont(43); lbsrms1.SetTextSize(20); lbsrms1.Draw()
-                lbsrms2 = ROOT.TLatex(0.65,0.25,"x = %.1f" % (hbsplot.GetRMS(2)*math.pow(10,3))+" #mum"); lbsrms2.SetNDC(); lbsrms2.SetTextFont(43); lbsrms2.SetTextSize(20); lbsrms2.Draw()
-                lbsrms3 = ROOT.TLatex(0.65,0.2,"z = %.1f" % (hbsplot.GetRMS(1))+" mm"); lbsrms3.SetNDC(); lbsrms3.SetTextFont(43); lbsrms3.SetTextSize(20); lbsrms3.Draw()
+            lpvrms3 = ROOT.TLatex(0.2,0.2,"z = %.1f" % (hpvplot.GetRMS(1)*10.)+" mm"); lpvrms3.SetNDC(); lpvrms3.SetTextFont(43); lpvrms3.SetTextSize(20); lpvrms3.Draw()
+#            if samp == 'data':
+#                lbsrms1 = ROOT.TLatex(0.65,0.3,"RMS (BS)"); lbsrms1.SetNDC(); lbsrms1.SetTextFont(43); lbsrms1.SetTextSize(20); lbsrms1.SetTextColor(ROOT.kRed); lbsrms1.Draw()
+#                lbsrms2 = ROOT.TLatex(0.65,0.25,"x = %.1f" % (hbsplot.GetRMS(2)*math.pow(10,3))+" #mum"); lbsrms2.SetNDC(); lbsrms2.SetTextFont(43); lbsrms2.SetTextSize(20); lbsrms2.SetTextColor(ROOT.kRed); lbsrms2.Draw()
+#                lbsrms3 = ROOT.TLatex(0.65,0.2,"z = %.1f" % (hbsplot.GetRMS(1))+" mm"); lbsrms3.SetNDC(); lbsrms3.SetTextFont(43); lbsrms3.SetTextSize(20); lbsrms3.SetTextColor(ROOT.kRed); lbsrms3.Draw()
                     
         if 'y_z' in h.GetName():
             if samp == 'data':
                 hpvplot = pv_hYZData
                 hbsplot = bs_hYZData
-                hbsplot.Draw('BOX SAME')
-                hbsplot.SetLineColor(ROOT.kRed)
+#                hbsplot.Draw('BOX SAME')
+#                hbsplot.SetLineColor(ROOT.kRed)
             else:
                 hpvplot = pv_hYZMC
                 hbsplot = bs_hYZMC
-                hbsplot.Draw('BOX SAME')
-                hbsplot.SetLineColor(ROOT.kRed)
+#                hbsplot.Draw('BOX SAME')
+#                hbsplot.SetLineColor(ROOT.kRed)
             lpvrms1 = ROOT.TLatex(0.2,0.3,"RMS (PV)"); lpvrms1.SetNDC(); lpvrms1.SetTextFont(43); lpvrms1.SetTextSize(20); lpvrms1.Draw()
             lpvrms2 = ROOT.TLatex(0.2,0.25,"y = %.1f" % (hpvplot.GetRMS(2)*math.pow(10,3))+" #mum"); lpvrms2.SetNDC(); lpvrms2.SetTextFont(43); lpvrms2.SetTextSize(20); lpvrms2.Draw()
-            lpvrms3 = ROOT.TLatex(0.2,0.2,"z = %.1f" % (hpvplot.GetRMS(1))+" mm"); lpvrms3.SetNDC(); lpvrms3.SetTextFont(43); lpvrms3.SetTextSize(20); lpvrms3.Draw()
-            if samp == 'data':
-                lbsrms1 = ROOT.TLatex(0.65,0.3,"RMS (BS)"); lbsrms1.SetNDC(); lbsrms1.SetTextFont(43); lbsrms1.SetTextSize(20); lbsrms1.Draw()
-                lbsrms2 = ROOT.TLatex(0.65,0.25,"y = %.1f" % (hbsplot.GetRMS(2)*math.pow(10,3))+" #mum"); lbsrms2.SetNDC(); lbsrms2.SetTextFont(43); lbsrms2.SetTextSize(20); lbsrms2.Draw()
-                lbsrms3 = ROOT.TLatex(0.65,0.2,"z = %.1f" % (hbsplot.GetRMS(1))+" mm"); lbsrms3.SetNDC(); lbsrms3.SetTextFont(43); lbsrms3.SetTextSize(20); lbsrms3.Draw()
+            lpvrms3 = ROOT.TLatex(0.2,0.2,"z = %.1f" % (hpvplot.GetRMS(1)*10.)+" mm"); lpvrms3.SetNDC(); lpvrms3.SetTextFont(43); lpvrms3.SetTextSize(20); lpvrms3.Draw()
+#            if samp == 'data':
+#                lbsrms1 = ROOT.TLatex(0.65,0.3,"RMS (BS)"); lbsrms1.SetNDC(); lbsrms1.SetTextFont(43); lbsrms1.SetTextSize(20); lbsrms1.SetTextColor(ROOT.kRed); lbsrms1.Draw()
+#                lbsrms2 = ROOT.TLatex(0.65,0.25,"y = %.1f" % (hbsplot.GetRMS(2)*math.pow(10,3))+" #mum"); lbsrms2.SetNDC(); lbsrms2.SetTextFont(43); lbsrms2.SetTextSize(20); lbsrms2.SetTextColor(ROOT.kRed); lbsrms2.Draw()
+#                lbsrms3 = ROOT.TLatex(0.65,0.2,"z = %.1f" % (hbsplot.GetRMS(1))+" mm"); lbsrms3.SetNDC(); lbsrms3.SetTextFont(43); lbsrms3.SetTextSize(20); lbsrms3.SetTextColor(ROOT.kRed); lbsrms3.Draw()
 
         t1, t2, t3, t4 = style.cmslabel(1, c.year, evt)
         t1.Draw()
@@ -468,7 +475,9 @@ if __name__ == '__main__':
 
         foutput = 'pv'+proj+'_'+samp
         figs.append(foutput)
-        c1.Print(options.output+'/'+foutput+'.'+img)
+        for outdir in [options.output, 'pub']:
+            c1.Print(outdir+'/'+foutput+'.'+img)
+        c1.Print('pub_dps/'+foutput+'.root')
         c1.Clear()
 
     for idx, h in enumerate([bs_hBeamWidthXData,bs_hBeamWidthYData,bs_hSigmaZData,bs_hBeamWidthXMC,bs_hBeamWidthYMC,bs_hSigmaZMC]):

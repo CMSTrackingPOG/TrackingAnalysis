@@ -7,17 +7,6 @@ class fitFunction():
     def __init__(self, gfit, fname, xmin, xmax, par = None, chi2 = None, ndof = None, parFit = None, errFit = None):
 
         self.gfit = gfit
-        
-        if gfit == '1g':
-            self.f = ROOT.TF1(fname, "[0]/sqrt(2*pi)/[1]*exp(-x*x/2/[1]/[1])", xmin, xmax)
-        elif gfit == '2g':
-            self.f = ROOT.TF1(fname, "[0]*exp(-x*x/2/[1]/[1])+[2]*exp(-x*x/2/[3]/[3])", xmin, xmax)
-        elif gfit == '3g':
-            self.f = ROOT.TF1(fname, "[0]*exp(-x*x/2/[1]/[1])+[2]*exp(-x*x/2/[3]/[3])+[4]*exp(-x*x/2/[5]/[5])", xmin, xmax)
-        else:
-            print 'Function is unknown'
-            sys.exit()
-            
         self.par = par
         self.parFit = parFit
         self.errFit = errFit
@@ -25,6 +14,11 @@ class fitFunction():
         self.ndof = ndof
         
 def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
+
+    formula = {}
+    formula['1g'] = "[0]/sqrt(2*pi)/[1]*exp(-x*x/2/[1]/[1])"
+    formula['2g'] = "[0]*exp(-x*x/2/[1]/[1])+[2]*exp(-x*x/2/[3]/[3])"
+    formula['3g'] = "[0]*exp(-x*x/2/[1]/[1])+[2]*exp(-x*x/2/[3]/[3])+[4]*exp(-x*x/2/[5]/[5])"
     
     rand = ROOT.TRandom3()
     
@@ -59,6 +53,8 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
         bmax = hist.GetXaxis().FindBin(xmax)
         nbfit = bmax-bmin
 
+    binw = hist.GetXaxis().GetBinWidth(1)
+        
     chi2Min = 10E+10
     fMin = []
     
@@ -67,56 +63,44 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
     for f in ['3g','2g','1g']:
 
         if func != '' and func != f: continue
-        
+
         for it in range(nTries):
-
+            
             fname = name+'_'+f+'_'+str(it)
-            
-            ffunc = fitFunction(f, fname, xmin, xmax)
-                
-            ra1 = rand.Uniform(0.,1.)
-            rs1 = rand.Uniform(0.,1.)
-            ffunc.f.SetParameter(0,a*ra1)            
-            ffunc.f.SetParameter(1,rms*rs1)
-            
-            p0i = ffunc.f.GetParameter(0)
-            p1i = ffunc.f.GetParameter(1)
 
-            if f in ['2g']:
-                
+            f1 = ROOT.TF1(fname, formula[f], xmin, xmax)
+            
+            if f in ['1g', '2g', '3g']:
                 ra1 = rand.Uniform(0.,1.)
                 rs1 = rand.Uniform(0.,1.)
-                ffunc.f.SetParameter(0,a*ra1*0.7)
-                ffunc.f.SetParameter(1,rms*rs1)
-                ra2 = rand.Uniform(0.,1.)
-                rs2 = rand.Uniform(0.,1.)
-                ffunc.f.SetParameter(2,a*ra2*0.3)
-                ffunc.f.SetParameter(3,rms*rs2*5.)
+                f1.SetParameter(0, a*ra1)
+                f1.SetParameter(1, binw+rms*rs1)
+                f1.SetParLimits(0, 0., 3*a)
+                f1.SetParLimits(1, binw, 1000*rms)
+                p0i = f1.GetParameter(0)
+                p1i = f1.GetParameter(1)
                 
-                p2i = ffunc.f.GetParameter(2)
-                p3i = ffunc.f.GetParameter(3)
-            
+            if f in ['2g', '3g']:
+                ra1 = rand.Uniform(0.,1.)
+                rs1 = rand.Uniform(0.,1.)
+                f1.SetParameter(2, a*ra1)
+                f1.SetParameter(3, binw+rms*rs1)
+                f1.SetParLimits(2, 0., 3*a)
+                f1.SetParLimits(3, binw, 1000*rms)
+                p2i = f1.GetParameter(2)
+                p3i = f1.GetParameter(3)
+                
             if f in ['3g']:
-                
                 ra1 = rand.Uniform(0.,1.)
                 rs1 = rand.Uniform(0.,1.)
-                ffunc.f.SetParameter(0,a*ra1*0.5)
-                ffunc.f.SetParameter(1,rms*rs1)
-                ra2 = rand.Uniform(0.,1.)
-                rs2 = rand.Uniform(0.,1.)
-                ffunc.f.SetParameter(2,a*ra2*0.3)
-                ffunc.f.SetParameter(3,rms*rs2*5.)
-                ra3 = rand.Uniform(0.,1.)
-                rs3 = rand.Uniform(0.,1.)
-                ffunc.f.SetParameter(4,a*ra3*0.2)
-                ffunc.f.SetParameter(5,rms*rs3*30.)                    
-
-                p2i = ffunc.f.GetParameter(2)
-                p3i = ffunc.f.GetParameter(3)
-                p4i = ffunc.f.GetParameter(4)
-                p5i = ffunc.f.GetParameter(5)
-
-            hist.Fit(fname, 'QR0+')
+                f1.SetParameter(4, a*ra1)
+                f1.SetParameter(5, binw+rms*rs1)
+                f1.SetParLimits(4, 0., 3*a)
+                f1.SetParLimits(5, binw, 1000*rms)
+                p4i = f1.GetParameter(4)
+                p5i = f1.GetParameter(5)
+                
+            ress = hist.Fit(f1, 'QRS0+')
 
             if param == '': break
 
@@ -126,47 +110,26 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
             ndof = res.GetNDF()
 
             if chi2/ndof < chi2Min:
-                    
+                
                 par, parFit, errFit = [], [], []
-
-                unc = 1./math.sqrt(nev)
-                frac = 0.01
 
                 p0 = res.GetParameter(0); p0err = res.GetParError(0)
                 p1 = res.GetParameter(1); p1err = res.GetParError(1)
-                if (p0 > 2.*a): continue
-                p0rUnc = abs(p0err/p0) if p0 != 0 else 1.; p1rUnc = abs(p1err/p1) if p1 != 0 else 1.
-#                if any(x < 0 for x in [p0, p0err, p1, p1err]): continue
-#                if any(x < 0 for x in [p0, p0err, p1, p1err]) or (p0rUnc > unc*p0) or (p1rUnc > unc*p1): continue
-#                if (p0rUnc > unc*abs(p0)) or (p1rUnc > unc*abs(p1)): continue
-                if (p0rUnc > unc*abs(p0)): continue
-#                if p0/a < frac: continue
+
                 par.append(p0i); parFit.append(p0); errFit.append(p0err)
                 par.append(p1i); parFit.append(p1); errFit.append(p1err)
                 
                 if f in ['2g', '3g']:
                     p2 = res.GetParameter(2); p2err = res.GetParError(2)
                     p3 = res.GetParameter(3); p3err = res.GetParError(3)                    
-                    if (p2 > a): continue
-                    if (p2 > p0): continue
-                    p2rUnc = abs(p2err/p2) if p2 != 0 else 1.; p3rUnc = abs(p3err/p3) if p3 != 0 else 1.
-                    if any(x < 0 for x in [p2, p2err, p3, p3err]): continue
-#                    if any(x < 0 for x in [p2, p2err, p3, p3err]) or (p2rUnc > unc*p2) or (p3rUnc > unc*p3): continue
-#                    if (p2rUnc > unc*abs(p2)) or (p3rUnc > unc*abs(p3)): continue
-#                    if p2/a < frac: continue
+
                     par.append(p2i); parFit.append(p2); errFit.append(p2err)
                     par.append(p3i); parFit.append(p3); errFit.append(p3err)
 
                 if f in ['3g']:
                     p4 = res.GetParameter(4); p4err = res.GetParError(4)
                     p5 = res.GetParameter(5); p5err = res.GetParError(5)
-                    if (p4 > a): continue
-                    if (p2+p4 > a): continue
-                    if (p4 > p0): continue
-#                    p4rUnc = abs(p4err/p4) if p4 != 0 else 1.; p5rUnc = abs(p5err/p5) if p5 != 0 else 1.
-#                    if any(x < 0 for x in [p4, p4err, p5, p5err]) or (p4rUnc > unc*p4) or (p5rUnc > unc*p5): continue
-#                    if (p4rUnc > unc*abs(p4)) or (p5rUnc > unc*abs(p5)): continue
-#                    if p4/a < frac: continue
+
                     par.append(p4i); parFit.append(p4); errFit.append(p4err)
                     par.append(p5i); parFit.append(p5); errFit.append(p5err)
 
@@ -174,8 +137,6 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
 
                 fres = fitFunction(f, fname+'_sel', xmin, xmax, par=par, chi2=chi2, ndof=ndof, parFit=parFit, errFit=errFit)
                 fMin.append(fres)
-
-                if chi2Min < 1.: break
 
     if len(fMin) == 0:
         
@@ -185,10 +146,13 @@ def doFit(name, hist, var, param, color=38, func='', nsig=4, nTries=3):
  
     fMin.sort(key=lambda x: x.chi2/x.ndof, reverse=False)
 
-    f = fitFunction(fMin[0].gfit, 'finalFit', xmin, xmax)
-    for ip in range(len(fMin[0].parFit)):
+    f1 = ROOT.TF1('finalFit', formula[fMin[0].gfit], xmin, xmax)
+    for ip in range(len(fMin[0].par)):
         pfit = fMin[0].parFit[ip]
-        f.f.SetParameter(ip, pfit)
+        f1.SetParameter(ip, pfit)
+#        print ip, pfit
+        if (ip % 2 == 0): f1.SetParLimits(ip, 0., 3*a)
+        else: f1.SetParLimits(ip, 0., 1000*rms)
 
     hist.Fit('finalFit', 'QR')
     res = hist.GetFunction('finalFit')

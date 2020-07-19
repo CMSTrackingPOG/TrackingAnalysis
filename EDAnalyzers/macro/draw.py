@@ -32,6 +32,7 @@ def main(argv = None):
     parser.add_option("--parampv", default="sumTrackPtSq", help="Parameterisation for PV resolution measurement [default: %default]")
     parser.add_option("--sys", action='store_true', help="Add bin width as systematics [default: %default]")
     parser.add_option("--selection", default="", help="Selection criteria in IP measurement [default: %default]")
+    parser.add_option("--pub", action='store_true', help="Publish plots [default: %default]")
     
     (options, args) = parser.parse_args(sys.argv[1:])
     
@@ -48,36 +49,59 @@ def plot(c1, hData, hMC, mode, m, x, isDeconv = False):
     hMC.SetMarkerSize(1.0)
     hMC.SetMarkerColor(c.mcfit)
     hMC.SetLineColor(c.mcfit)
-
-    hMC.Draw('')
+    
+    if mode == 'pv':
+        if m == 'reso':
+            if options.process == 'zb': h0 = c1.DrawFrame(0., 0., 20., 70.)
+            else: h0 = c1.DrawFrame(0., 0., 400., 30.)
+        else:
+            if options.process == 'zb': h0 = c1.DrawFrame(0., 0., 20., 1.7)
+            else: h0 = c1.DrawFrame(0., 0., 400., 1.7)
+    
+    if mode == 'pv': 
+        hMC.Draw('same')
+        h0.GetXaxis().SetTitle(hMC.GetXaxis().GetTitle())
+        h0.GetYaxis().SetTitle(hMC.GetYaxis().GetTitle())
+    else: hMC.Draw('')
     hMC.Draw('pe1 same')
     hData.Draw('same')
     hData.Draw('pe1 same')
     
-    if mode == 'pv':
-        if m == 'reso': hMC.GetYaxis().SetRangeUser(0.,70.)
-        else: hMC.GetYaxis().SetRangeUser(0.,1.7)
-    else:
+    if mode != 'pv':
         hMC.GetYaxis().SetRangeUser(0.,450.)
         if 'eta' in mode and x == 'dz': hMC.GetYaxis().SetRangeUser(0.,3000.)
             
-    leg = ROOT.TLegend(0.82,0.92,0.990,0.75)
+    leg = ROOT.TLegend(0.62,0.55,0.86,0.73)
     leg.SetFillColor(253)
     leg.SetBorderSize(0)
     leg.AddEntry(hData,"Data","p")
     leg.AddEntry(hMC,"Simulation","p")
-    leg.Draw()        
     
-    t1, t2, t3, t4 = style.cmslabel(1, c.year, evt, True)
+    if mode == 'pv' and m == 'pull':
+        leg = ROOT.TLegend(0.67,0.25,0.910,0.43)
+        leg.SetFillColor(253)
+        leg.SetBorderSize(0)
+        leg.AddEntry(hData,"Data","p")
+        leg.AddEntry(hMC,"Simulation","p")
+    
+    leg.Draw()
+    
+    t1, t2, t3, t4 = style.cmslabel(2, c.year, evt, False)
     t1.Draw()
     t2.Draw()
     t3.Draw()
     t4.Draw()
 
     if isDeconv == False:
-        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'_'+options.process+'.pdf')
+        for outdir in [options.output, 'pub']:
+            if not options.pub and outdir == 'pub': continue
+            c1.Print(outdir+'/'+mode+'_'+m+'_'+x+'_'+options.process+'.pdf')
+        if options.pub: c1.SaveAs('pub/'+mode+'_'+m+'_'+x+'_'+options.process+'.root')
     else:
-        c1.Print(options.output+'/'+mode+'_'+m+'_'+x+'_deconv_'+options.process+'.pdf')
+        for outdir in [options.output, 'pub']:
+            if not options.pub and outdir == 'pub': continue
+            c1.Print(outdir+'/'+mode+'_'+m+'_'+x+'_deconv_'+options.process+'.pdf')
+        if options.pub: c1.SaveAs('pub/'+mode+'_'+m+'_'+x+'_deconv_'+options.process+'.root')
     c1.Clear()    
 
 if __name__ == '__main__':
@@ -88,7 +112,7 @@ if __name__ == '__main__':
 
     ROOT.gROOT.SetBatch()
 
-    pstyle = style.SetPlotStyle(1)
+    pstyle = style.SetPlotStyle(2)
 #    pstyle.SetErrorX(0.5)
 
 #    if os.path.isdir(options.output):
@@ -123,6 +147,7 @@ if __name__ == '__main__':
     
     ppath = 'data/bins/'
     fparampv = fun.param(ppath+evt+'_pv.json')
+#    fparampv = fun.param(ppath+evt+'_bs.json')
     parampv = fparampv.get(options.parampv)
     parambinspv = np.array(list(parampv['allbins'].replace('[','').replace(']','').split(',')), dtype='float64')
     
@@ -247,7 +272,7 @@ if __name__ == '__main__':
                             sPVMCTrk = resPVMC['sys']
                                 
                             wDataTrk = float(iDataTrk)
-                            wMCTrk = float(iMCTrk)
+                            wMCTrk = float(iMCTrk)                                                        
                             
                             if vDataTrk*vMCTrk == 0.: continue
                             
@@ -266,8 +291,9 @@ if __name__ == '__main__':
                                 eMC += math.pow(eMCTrk*wMCTrk,2)
 
                             # deconv
-                            if vDataTrk < vPVDataTrk or vMCTrk < vPVMCTrk:
-                                print x, ktrk, kparam, vDataTrk, vPVDataTrk, vMCTrk, vPVMCTrk
+                            if (vDataTrk < vPVDataTrk or vMCTrk < vPVMCTrk):
+                                if vDataTrk != -1 and vMCTrk != -1:
+                                    print x, ktrk, kparam, vDataTrk, vPVDataTrk, vMCTrk, vPVMCTrk
                                 continue
                             
                             vSigmaData = math.sqrt(vDataTrk*vDataTrk-vPVDataTrk*vPVDataTrk)
@@ -321,8 +347,14 @@ if __name__ == '__main__':
                         eDataDeconv = 0; eMCDeconv = 0;                        
                         wDataSum = 0; wMCSum = 0;
                         
-                        beamWidthXMC = datapv['widthx']['mc']['x'].itervalues().next()['value']
-                        beamWidthYMC = datapv['widthy']['mc']['y'].itervalues().next()['value']
+                        bwx = datapv['widthx']['mc']['x'].itervalues()
+                        bwy = datapv['widthy']['mc']['y'].itervalues()
+                        bwx.next()
+                        bwy.next()
+#                        beamWidthXMC = datapv['widthx']['mc']['x'].itervalues().next()['value']
+#                        beamWidthYMC = datapv['widthy']['mc']['y'].itervalues().next()['value']
+                        beamWidthXMC = bwx.next()['value']
+                        beamWidthYMC = bwy.next()['value']
                         beamWidthXYMC = (beamWidthXMC+beamWidthYMC)/2.
                         beamWidthErrorXYMC = abs(beamWidthXYMC-beamWidthXMC)
                         
@@ -365,8 +397,9 @@ if __name__ == '__main__':
                                 eMC += math.pow(eMCTrk*wMCTrk,2)
 
                             # deconv
-                            if vDataTrk < resXYBSData or vMCTrk < beamWidthXYMC:
-                                print ktrk, kparam, vDataTrk, resXYBSData, vMCTrk, beamWidthXYMC
+                            if (vDataTrk < resXYBSData or vMCTrk < beamWidthXYMC):
+                                if vDataTrk != -1 and vMCTrk != -1:
+                                    print ktrk, kparam, vDataTrk, resXYBSData, vMCTrk, beamWidthXYMC
                                 continue
                             
                             vSigmaData = math.sqrt(vDataTrk*vDataTrk-resXYBSData*resXYBSData)

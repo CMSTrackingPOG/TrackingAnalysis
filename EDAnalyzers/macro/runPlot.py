@@ -3,6 +3,7 @@
 import os
 
 inputjson = ['data.json', 'mc.json']
+#inputjson = ['data_zb.json', 'mc_zb.json']
 
 param = 'sumTrackPtSq'
 
