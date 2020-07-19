@@ -1,0 +1,2 @@
+/SingleNeutrino/RunIISummer19UL17DIGI-FEVTDEBUG_106X_mc2017_realistic_v6-v2/GEN-SIM-DIGI-RAW
+/SingleNeutrino/RunIISummer19UL17RECO-FEVTDEBUG_106X_mc2017_realistic_v6-v2/AODSIM
