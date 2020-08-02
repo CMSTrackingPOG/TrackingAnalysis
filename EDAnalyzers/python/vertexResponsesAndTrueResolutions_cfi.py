@@ -7,7 +7,10 @@ vertexResponsesAndTrueResolutions = cms.EDAnalyzer("VertexResponsesAndTrueResolu
   TkMinXLayers = cms.int32(7),
   TkMaxMissedOuterLayers = cms.int32(4),
   TkMaxMissedInnerLayers = cms.int32(0),
-                           
+
+  BeamSpotLabel = cms.InputTag("offlineBeamSpot"),
+  BeamSpotConfig = cms.string(""),
+  
   VertexLabel = cms.InputTag("offlinePrimaryVertices"),       
   VtxTracksSizeMin = cms.int32(2),
   VtxTracksSizeMax = cms.int32(300),

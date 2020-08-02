@@ -106,53 +106,273 @@ class ResTree
    float bs_emittanceY;
    float bs_betaStar;
    
-   bool pv_IsValid;
-   bool pv_IsFake;
-   int pv_NTracks;
-   float pv_SumTrackPt;
-   float pv_SumTrackPt2;
-   float pv_chi2;
-   int pv_ndof;
-   float pv_x;
-   float pv_y;
-   float pv_z;
-   float pv_xError;
-   float pv_yError;
-   float pv_zError;
+   std::vector<bool> pv_IsValid;
+   std::vector<bool> pv_IsFake;
+   std::vector<int> pv_NTracks;
+   std::vector<float> pv_SumTrackPt;
+   std::vector<float> pv_SumTrackPt2;
+   std::vector<float> pv_fracHighPurity;
+   std::vector<float> pv_chi2;
+   std::vector<int> pv_ndof;
+   std::vector<float> pv_x;
+   std::vector<float> pv_y;
+   std::vector<float> pv_z;
+   std::vector<float> pv_xError;
+   std::vector<float> pv_yError;
+   std::vector<float> pv_zError;
+   
+   std::vector<std::vector<float> > pv_trk_weight;
+   std::vector<std::vector<int> > pv_trk_isHighPurity;
+   std::vector<std::vector<int> > pv_trk_algo;
+   std::vector<std::vector<int> > pv_trk_originalAlgo;
+   
+   std::vector<std::vector<float> > pv_trk_pt;
+   std::vector<std::vector<float> > pv_trk_px;
+   std::vector<std::vector<float> > pv_trk_py;
+   std::vector<std::vector<float> > pv_trk_pz;
+   std::vector<std::vector<float> > pv_trk_p;
+   std::vector<std::vector<float> > pv_trk_eta;
+   std::vector<std::vector<float> > pv_trk_phi;
+   
+   std::vector<std::vector<int> > pv_trk_nTrackerLayers;
+   std::vector<std::vector<int> > pv_trk_nPixelBarrelLayers;
+   std::vector<std::vector<int> > pv_trk_nPixelEndcapLayers;
+   std::vector<std::vector<int> > pv_trk_nStripLayers;
+   
+   std::vector<std::vector<int> > pv_trk_nValid;
+   std::vector<std::vector<float> > pv_trk_fValid;
+   std::vector<std::vector<int> > pv_trk_nValidTracker;
+   std::vector<std::vector<int> > pv_trk_nValidPixelBarrel;
+   std::vector<std::vector<int> > pv_trk_nValidPixelEndcap;
+   std::vector<std::vector<int> > pv_trk_nValidStrip;
+   
+   std::vector<std::vector<int> > pv_trk_nMissed;
+   std::vector<std::vector<int> > pv_trk_nMissedOut;
+   std::vector<std::vector<int> > pv_trk_nMissedIn;
+   std::vector<std::vector<int> > pv_trk_nMissedTrackerOut;
+   std::vector<std::vector<int> > pv_trk_nMissedTrackerIn;
+   std::vector<std::vector<int> > pv_trk_nMissedPixelBarrelOut;
+   std::vector<std::vector<int> > pv_trk_nMissedPixelBarrelIn;
+   std::vector<std::vector<int> > pv_trk_nMissedPixelEndcapOut;
+   std::vector<std::vector<int> > pv_trk_nMissedPixelEndcapIn;
+   
+   std::vector<std::vector<int> > pv_trk_hasPixelBarrelLayer1;
+   std::vector<std::vector<int> > pv_trk_hasPixelEndcapLayer1;
+   std::vector<std::vector<int> > pv_trk_hasPixelBarrelLayer2;
+   std::vector<std::vector<int> > pv_trk_hasPixelEndcapLayer2;
+   std::vector<std::vector<int> > pv_trk_hasPixelBarrelLayer3;
+   std::vector<std::vector<int> > pv_trk_hasPixelEndcapLayer3;
+   std::vector<std::vector<int> > pv_trk_hasPixelBarrelLayer4;
+   std::vector<std::vector<int> > pv_trk_hasPixelEndcapLayer4;
+   
+   std::vector<std::vector<int> > pv_trk_quality;
+   std::vector<std::vector<float> > pv_trk_normalizedChi2;
+   std::vector<std::vector<int> > pv_trk_ndof;
+   std::vector<std::vector<int> > pv_trk_charge;
+   std::vector<std::vector<float> > pv_trk_qoverp;
+   std::vector<std::vector<float> > pv_trk_qoverpError;
+   std::vector<std::vector<float> > pv_trk_theta;
+   std::vector<std::vector<float> > pv_trk_thetaError;
+   std::vector<std::vector<float> > pv_trk_lambda;
+   std::vector<std::vector<float> > pv_trk_lambdaError;
+   std::vector<std::vector<float> > pv_trk_ptError;
+   std::vector<std::vector<float> > pv_trk_etaError;
+   std::vector<std::vector<float> > pv_trk_phiError;
+   
+   std::vector<std::vector<float> > pv_trk_d0;
+   std::vector<std::vector<float> > pv_trk_dz;
+   std::vector<std::vector<float> > pv_trk_d0_pv;
+   std::vector<std::vector<float> > pv_trk_dz_pv;
+   std::vector<std::vector<float> > pv_trk_d0_bs;
+   std::vector<std::vector<float> > pv_trk_d0_bs_zpca;
+   std::vector<std::vector<float> > pv_trk_d0_bs_zpv;
+   std::vector<std::vector<float> > pv_trk_dz_bs;
+   std::vector<std::vector<float> > pv_trk_d0Err;
+   std::vector<std::vector<float> > pv_trk_dzErr;
+   
+   std::vector<bool> pv_mc_hasMatch;
+   std::vector<std::vector<float> >  pv_mc_matchQuality;
+   std::vector<std::vector<bool> > pv_mc_isFake;
+   std::vector<std::vector<int> > pv_mc_isPrimaryVertex;
+   std::vector<std::vector<int> > pv_mc_isSecondaryVertex;
+   std::vector<std::vector<int> > pv_mc_isTertiaryVertex;
+   std::vector<std::vector<int> > pv_mc_isSignalEvent;
+   std::vector<std::vector<int> > pv_mc_isBWeakDecay;
+   std::vector<std::vector<int> > pv_mc_isCWeakDecay;
+   std::vector<std::vector<int> > pv_mc_isTauDecay;
+   std::vector<std::vector<int> > pv_mc_isKsDecay;
+   std::vector<std::vector<int> > pv_mc_isLambdaDecay;
+   std::vector<std::vector<int> > pv_mc_isJpsiDecay;
+   std::vector<std::vector<int> > pv_mc_isXiDecay;
+   std::vector<std::vector<int> > pv_mc_isOmegaDecay;
+   std::vector<std::vector<int> > pv_mc_isSigmaPlusDecay;
+   std::vector<std::vector<int> > pv_mc_isSigmaMinusDecay;
+   std::vector<std::vector<int> > pv_mc_isLongLivedDecay;
+   
+   std::vector<std::vector<int> > pv_mc_isKnownProcess;
+   std::vector<std::vector<int> > pv_mc_isUndefinedProcess;
+   std::vector<std::vector<int> > pv_mc_isUnknownProcess;
+   std::vector<std::vector<int> > pv_mc_isPrimaryProcess;
+   std::vector<std::vector<int> > pv_mc_isHadronicProcess;
+   std::vector<std::vector<int> > pv_mc_isDecayProcess;
+   std::vector<std::vector<int> > pv_mc_isComptonProcess;
+   std::vector<std::vector<int> > pv_mc_isAnnihilationProcess;
+   std::vector<std::vector<int> > pv_mc_isEIoniProcess;
+   std::vector<std::vector<int> > pv_mc_isHIoniProcess;
+   std::vector<std::vector<int> > pv_mc_isMuIoniProcess;
+   std::vector<std::vector<int> > pv_mc_isPhotonProcess;
+   std::vector<std::vector<int> > pv_mc_isMuPairProdProcess;
+   std::vector<std::vector<int> > pv_mc_isConversionsProcess;
+   std::vector<std::vector<int> > pv_mc_isEBremProcess;
+   std::vector<std::vector<int> > pv_mc_isSynchrotronRadiationProcess;
+   std::vector<std::vector<int> > pv_mc_isMuBremProcess;
+   std::vector<std::vector<int> > pv_mc_isMuNuclProcess;
+   std::vector<std::vector<int> > pv_mc_isUnknown;
 
-   bool pv_IsValid_p1;
-   bool pv_IsFake_p1;
-   int pv_NTracks_p1;
-   float pv_SumTrackPt_p1;
-   float pv_SumTrackPt2_p1;
-   float pv_chi2_p1;
-   int pv_ndof_p1;
-   float pv_x_p1;
-   float pv_y_p1;
-   float pv_z_p1;
-   float pv_xError_p1;
-   float pv_yError_p1;
-   float pv_zError_p1;
-
-   bool pv_IsValid_p2;
-   bool pv_IsFake_p2;
-   int pv_NTracks_p2;
-   float pv_SumTrackPt_p2;
-   float pv_SumTrackPt2_p2;
-   float pv_chi2_p2;
-   int pv_ndof_p2;
-   float pv_x_p2;
-   float pv_y_p2;
-   float pv_z_p2;
-   float pv_xError_p2;
-   float pv_yError_p2;
-   float pv_zError_p2;
+   std::vector<std::vector<int> > pv_mc_inVolume;
+   std::vector<std::vector<float> > pv_mc_x;
+   std::vector<std::vector<float> > pv_mc_y;
+   std::vector<std::vector<float> > pv_mc_z;
+   std::vector<std::vector<float> > pv_mc_t;
+   std::vector<std::vector<int> > pv_mc_nGenVtx;
+   std::vector<std::vector<int> > pv_mc_nSimVtx;
+   std::vector<std::vector<int> > pv_mc_nDaughterTracks;
+   std::vector<std::vector<int> > pv_mc_nSourceTracks;
+   
+   std::vector<bool> pv_IsValid_p1;
+   std::vector<bool> pv_IsFake_p1;
+   std::vector<int> pv_NTracks_p1;
+   std::vector<float> pv_SumTrackPt_p1;
+   std::vector<float> pv_SumTrackPt2_p1;
+   std::vector<float> pv_fracHighPurity_p1;
+   std::vector<std::vector<int> > pv_vtxTkIdx_p1;
+   std::vector<float> pv_chi2_p1;
+   std::vector<int> pv_ndof_p1;
+   std::vector<float> pv_x_p1;
+   std::vector<float> pv_y_p1;
+   std::vector<float> pv_z_p1;
+   std::vector<float> pv_xError_p1;
+   std::vector<float> pv_yError_p1;
+   std::vector<float> pv_zError_p1;
+   
+   std::vector<bool> pv_IsValid_p2;
+   std::vector<bool> pv_IsFake_p2;
+   std::vector<int> pv_NTracks_p2;
+   std::vector<float> pv_SumTrackPt_p2;
+   std::vector<float> pv_SumTrackPt2_p2;
+   std::vector<float> pv_fracHighPurity_p2;
+   std::vector<std::vector<int> > pv_vtxTkIdx_p2;
+   std::vector<float> pv_chi2_p2;
+   std::vector<int> pv_ndof_p2;
+   std::vector<float> pv_x_p2;
+   std::vector<float> pv_y_p2;
+   std::vector<float> pv_z_p2;
+   std::vector<float> pv_xError_p2;
+   std::vector<float> pv_yError_p2;
+   std::vector<float> pv_zError_p2;
    
    int pfjet_n;
    std::vector<float> pfjet_pt;
    std::vector<float> pfjet_eta;
    std::vector<float> pfjet_phi;
    std::vector<float> pfjet_E;
+
+   std::vector<bool> trk_mc_hasMatch;
+   std::vector<std::vector<float> > trk_mc_matchQuality;
+   
+   std::vector<std::vector<int> > trk_mc_pdgId;   
+   std::vector<std::vector<int> > trk_mc_origin;
+   std::vector<std::vector<int> > trk_mc_status;
+   
+   std::vector<std::vector<float> > trk_mc_pt;
+   std::vector<std::vector<float> > trk_mc_px;
+   std::vector<std::vector<float> > trk_mc_py;
+   std::vector<std::vector<float> > trk_mc_pz;
+   std::vector<std::vector<float> > trk_mc_E;
+   std::vector<std::vector<float> > trk_mc_p;
+   std::vector<std::vector<float> > trk_mc_eta;
+   std::vector<std::vector<float> > trk_mc_phi;
+   
+   std::vector<std::vector<int> > trk_mc_numberOfHits;
+   std::vector<std::vector<int> > trk_mc_numberOfTrackerHits;
+   std::vector<std::vector<int> > trk_mc_numberOfTrackerLayers;
+   
+   std::vector<std::vector<float> > trk_mc_dxy_center;
+   std::vector<std::vector<float> > trk_mc_dz_center;
+   std::vector<std::vector<float> > trk_mc_dxy_pv;
+   std::vector<std::vector<float> > trk_mc_dz_pv;
+   std::vector<std::vector<float> > trk_mc_dxy_bs;
+   std::vector<std::vector<float> > trk_mc_dz_bs;
+   
+   std::vector<std::vector<float> > trk_mc_dxy_tp_center;
+   std::vector<std::vector<float> > trk_mc_dz_tp_center;
+   std::vector<std::vector<float> > trk_mc_dxy_tp_pv;
+   std::vector<std::vector<float> > trk_mc_dz_tp_pv;
+   std::vector<std::vector<float> > trk_mc_dxy_tp_bs;
+   std::vector<std::vector<float> > trk_mc_dz_tp_bs;
+   
+   std::vector<std::vector<float> > trk_mc_vtx_x;
+   std::vector<std::vector<float> > trk_mc_vtx_y;
+   std::vector<std::vector<float> > trk_mc_vtx_z;
+   std::vector<std::vector<float> > trk_mc_vtx_pca_x;
+   std::vector<std::vector<float> > trk_mc_vtx_pca_y;
+   std::vector<std::vector<float> > trk_mc_vtx_pca_z;
+   
+   std::vector<std::vector<int> > trk_mc_isFake;
+   std::vector<std::vector<int> > trk_mc_isBad;
+   std::vector<std::vector<int> > trk_mc_isBadInnerHits;
+   std::vector<std::vector<int> > trk_mc_isSharedInnerHits;
+   std::vector<std::vector<int> > trk_mc_isSignalEvent;
+   std::vector<std::vector<int> > trk_mc_isTrackerSimHits;
+   std::vector<std::vector<int> > trk_mc_isBottom;
+   std::vector<std::vector<int> > trk_mc_isCharm;
+   std::vector<std::vector<int> > trk_mc_isLight;
+   std::vector<std::vector<int> > trk_mc_isMuon;
+   
+   std::vector<std::vector<int> > trk_mc_isBWeakDecay;
+   std::vector<std::vector<int> > trk_mc_isCWeakDecay;
+   std::vector<std::vector<int> > trk_mc_isChargePionDecay;
+   std::vector<std::vector<int> > trk_mc_isChargeKaonDecay;
+   std::vector<std::vector<int> > trk_mc_isTauDecay;
+   std::vector<std::vector<int> > trk_mc_isKsDecay;
+   std::vector<std::vector<int> > trk_mc_isLambdaDecay;
+   std::vector<std::vector<int> > trk_mc_isJpsiDecay;
+   std::vector<std::vector<int> > trk_mc_isXiDecay;
+   std::vector<std::vector<int> > trk_mc_isOmegaDecay;
+   std::vector<std::vector<int> > trk_mc_isSigmaPlusDecay;
+   std::vector<std::vector<int> > trk_mc_isSigmaMinusDecay;
+   std::vector<std::vector<int> > trk_mc_isLongLivedDecay;
+	     
+   std::vector<std::vector<int> > trk_mc_isKnownProcess;
+   std::vector<std::vector<int> > trk_mc_isUndefinedProcess;
+   std::vector<std::vector<int> > trk_mc_isUnknownProcess;
+   std::vector<std::vector<int> > trk_mc_isPrimaryProcess;
+   std::vector<std::vector<int> > trk_mc_isHadronicProcess;
+   std::vector<std::vector<int> > trk_mc_isDecayProcess;
+   std::vector<std::vector<int> > trk_mc_isComptonProcess;
+   std::vector<std::vector<int> > trk_mc_isAnnihilationProcess;
+   std::vector<std::vector<int> > trk_mc_isEIoniProcess;
+   std::vector<std::vector<int> > trk_mc_isHIoniProcess;
+   std::vector<std::vector<int> > trk_mc_isMuIoniProcess;
+   std::vector<std::vector<int> > trk_mc_isPhotonProcess;
+   std::vector<std::vector<int> > trk_mc_isMuPairProdProcess;
+   std::vector<std::vector<int> > trk_mc_isConversionsProcess;
+   std::vector<std::vector<int> > trk_mc_isEBremProcess;
+   std::vector<std::vector<int> > trk_mc_isSynchrotronRadiationProcess;
+   std::vector<std::vector<int> > trk_mc_isMuBremProcess;
+   std::vector<std::vector<int> > trk_mc_isMuNuclProcess;
+   
+   std::vector<std::vector<int> > trk_mc_isFromBWeakDecayMuon;
+   std::vector<std::vector<int> > trk_mc_isFromCWeakDecayMuon;
+   std::vector<std::vector<int> > trk_mc_isDecayOnFlightMuon;
+   std::vector<std::vector<int> > trk_mc_isFromChargePionMuon;
+   std::vector<std::vector<int> > trk_mc_isFromChargeKaonMuon;
+   
+   std::vector<std::vector<int> > trk_mc_isPrimaryVertex;
+   std::vector<std::vector<int> > trk_mc_isSecondaryVertex;
+   std::vector<std::vector<int> > trk_mc_isTertiaryVertex;
+   
+   std::vector<std::vector<int> > trk_mc_isUnknown;
 
    std::vector<float> trk_pt;
    std::vector<float> trk_px;

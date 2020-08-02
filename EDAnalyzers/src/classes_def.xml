@@ -1,0 +1,4 @@
+<lcgdict>
+   <class pattern="edm::Wrapper<*>" />
+   <class name="std::vector<std::vector<bool> >"/>
+</lcgdict>
