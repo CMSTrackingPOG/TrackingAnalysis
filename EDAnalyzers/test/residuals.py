@@ -43,8 +43,8 @@ process.load("CondCore.CondDB.CondDB_cfi")
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 
-##process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+##process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3) )
 
 process.source = source
 
