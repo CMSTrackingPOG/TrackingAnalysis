@@ -973,7 +973,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	       {	     
 		  vtxTkCollection2.push_back(trk);
 		  SumTrackPt_p2 += trk.pt();
-		  SumTrackPt_p2 += trk.pt()*trk.pt();
+		  SumTrackPt2_p2 += trk.pt()*trk.pt();
 		  pv_fracHighPurity_p2 += trk.quality(reco::TrackBase::highPurity);
 		  vtxTkIdx2.push_back(iTrk);
 	       }
