@@ -696,74 +696,74 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	float pv_SumTrackPt2 = 0.;
 	float pv_fracHighPurity = 0.;
 	
-	std::vector<float> pv_trackWeight( nTracks );
-	std::vector<bool> pv_trk_isHighPurity( nTracks );
-	std::vector<int> pv_trk_algo( nTracks );
-	std::vector<int> pv_trk_originalAlgo( nTracks );
+	std::vector<float> pv_trackWeight;
+	std::vector<bool> pv_trk_isHighPurity;
+	std::vector<int> pv_trk_algo;
+	std::vector<int> pv_trk_originalAlgo;
 	
-	std::vector<float> pv_trk_pt( nTracks );
-	std::vector<float> pv_trk_px( nTracks );
-	std::vector<float> pv_trk_py( nTracks );
-	std::vector<float> pv_trk_pz( nTracks );
-	std::vector<float> pv_trk_p( nTracks );
-	std::vector<float> pv_trk_eta( nTracks );
-	std::vector<float> pv_trk_phi( nTracks );
+	std::vector<float> pv_trk_pt;
+	std::vector<float> pv_trk_px;
+	std::vector<float> pv_trk_py;
+	std::vector<float> pv_trk_pz;
+	std::vector<float> pv_trk_p;
+	std::vector<float> pv_trk_eta;
+	std::vector<float> pv_trk_phi;
 
-	std::vector<int> pv_trk_nTrackerLayers( nTracks );
-	std::vector<int> pv_trk_nPixelBarrelLayers( nTracks );
-	std::vector<int> pv_trk_nPixelEndcapLayers( nTracks );
-	std::vector<int> pv_trk_nStripLayers( nTracks );
+	std::vector<int> pv_trk_nTrackerLayers;
+	std::vector<int> pv_trk_nPixelBarrelLayers;
+	std::vector<int> pv_trk_nPixelEndcapLayers;
+	std::vector<int> pv_trk_nStripLayers;
 	     
-	std::vector<int> pv_trk_nValid( nTracks );
-	std::vector<float> pv_trk_fValid( nTracks );
-	std::vector<int> pv_trk_nValidTracker( nTracks );
-	std::vector<int> pv_trk_nValidPixelBarrel( nTracks );
-	std::vector<int> pv_trk_nValidPixelEndcap( nTracks );
-	std::vector<int> pv_trk_nValidStrip( nTracks );
+	std::vector<int> pv_trk_nValid;
+	std::vector<float> pv_trk_fValid;
+	std::vector<int> pv_trk_nValidTracker;
+	std::vector<int> pv_trk_nValidPixelBarrel;
+	std::vector<int> pv_trk_nValidPixelEndcap;
+	std::vector<int> pv_trk_nValidStrip;
+
+	std::vector<int> pv_trk_nMissed;
+	std::vector<int> pv_trk_nMissedOut;
+	std::vector<int> pv_trk_nMissedIn;
+	std::vector<int> pv_trk_nMissedTrackerOut;
+	std::vector<int> pv_trk_nMissedTrackerIn;
+	std::vector<int> pv_trk_nMissedPixelBarrelOut;
+	std::vector<int> pv_trk_nMissedPixelBarrelIn;
+	std::vector<int> pv_trk_nMissedPixelEndcapOut;
+	std::vector<int> pv_trk_nMissedPixelEndcapIn;
 	     
-	std::vector<int> pv_trk_nMissed( nTracks );
-	std::vector<int> pv_trk_nMissedOut( nTracks );
-	std::vector<int> pv_trk_nMissedIn( nTracks );
-	std::vector<int> pv_trk_nMissedTrackerOut( nTracks );
-	std::vector<int> pv_trk_nMissedTrackerIn( nTracks );
-	std::vector<int> pv_trk_nMissedPixelBarrelOut( nTracks );
-	std::vector<int> pv_trk_nMissedPixelBarrelIn( nTracks );
-	std::vector<int> pv_trk_nMissedPixelEndcapOut( nTracks );
-	std::vector<int> pv_trk_nMissedPixelEndcapIn( nTracks );
+	std::vector<bool> pv_trk_hasPixelBarrelLayer1;
+	std::vector<bool> pv_trk_hasPixelEndcapLayer1;
+	std::vector<bool> pv_trk_hasPixelBarrelLayer2;
+	std::vector<bool> pv_trk_hasPixelEndcapLayer2;
+	std::vector<bool> pv_trk_hasPixelBarrelLayer3;
+	std::vector<bool> pv_trk_hasPixelEndcapLayer3;
+	std::vector<bool> pv_trk_hasPixelBarrelLayer4;
+	std::vector<bool> pv_trk_hasPixelEndcapLayer4;
 	     
-	std::vector<bool> pv_trk_hasPixelBarrelLayer1( nTracks );
-	std::vector<bool> pv_trk_hasPixelEndcapLayer1( nTracks );
-	std::vector<bool> pv_trk_hasPixelBarrelLayer2( nTracks );
-	std::vector<bool> pv_trk_hasPixelEndcapLayer2( nTracks );
-	std::vector<bool> pv_trk_hasPixelBarrelLayer3( nTracks );
-	std::vector<bool> pv_trk_hasPixelEndcapLayer3( nTracks );
-	std::vector<bool> pv_trk_hasPixelBarrelLayer4( nTracks );
-	std::vector<bool> pv_trk_hasPixelEndcapLayer4( nTracks );
-	     
-	std::vector<int> pv_trk_quality( nTracks );
-	std::vector<float> pv_trk_normalizedChi2( nTracks );
-	std::vector<int> pv_trk_ndof( nTracks );
-	std::vector<int> pv_trk_charge( nTracks );
-	std::vector<float> pv_trk_qoverp( nTracks );
-	std::vector<float> pv_trk_qoverpError( nTracks );
-	std::vector<float> pv_trk_theta( nTracks );
-	std::vector<float> pv_trk_thetaError( nTracks );
-	std::vector<float> pv_trk_lambda( nTracks );
-	std::vector<float> pv_trk_lambdaError( nTracks );
-	std::vector<float> pv_trk_ptError( nTracks );
-	std::vector<float> pv_trk_etaError( nTracks );
-	std::vector<float> pv_trk_phiError( nTracks );
+	std::vector<int> pv_trk_quality;
+	std::vector<float> pv_trk_normalizedChi2;
+	std::vector<int> pv_trk_ndof;
+	std::vector<int> pv_trk_charge;
+	std::vector<float> pv_trk_qoverp;
+	std::vector<float> pv_trk_qoverpError;
+	std::vector<float> pv_trk_theta;
+	std::vector<float> pv_trk_thetaError;
+	std::vector<float> pv_trk_lambda;
+	std::vector<float> pv_trk_lambdaError;
+	std::vector<float> pv_trk_ptError;
+	std::vector<float> pv_trk_etaError;
+	std::vector<float> pv_trk_phiError;
 	
-	std::vector<float> pv_trk_d0( nTracks );
-	std::vector<float> pv_trk_dz( nTracks );
-	std::vector<float> pv_trk_d0_pv( nTracks );
-	std::vector<float> pv_trk_dz_pv( nTracks );
-	std::vector<float> pv_trk_d0_bs( nTracks );
-	std::vector<float> pv_trk_d0_bs_zpca( nTracks );
-	std::vector<float> pv_trk_d0_bs_zpv( nTracks );
-	std::vector<float> pv_trk_dz_bs( nTracks );
-	std::vector<float> pv_trk_d0Err( nTracks );
-	std::vector<float> pv_trk_dzErr( nTracks );
+	std::vector<float> pv_trk_d0;
+	std::vector<float> pv_trk_dz;
+	std::vector<float> pv_trk_d0_pv;
+	std::vector<float> pv_trk_dz_pv;
+	std::vector<float> pv_trk_d0_bs;
+	std::vector<float> pv_trk_d0_bs_zpca;
+	std::vector<float> pv_trk_d0_bs_zpv;
+	std::vector<float> pv_trk_dz_bs;
+	std::vector<float> pv_trk_d0Err;
+	std::vector<float> pv_trk_dzErr;
 	
 	for( std::vector<reco::TransientTrack>::const_iterator it = vtxTracks.begin(); it != vtxTracks.end(); it++ )
 	  {
