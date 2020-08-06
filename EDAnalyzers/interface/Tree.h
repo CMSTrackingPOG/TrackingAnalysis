@@ -126,6 +126,8 @@ class ResTree
    std::vector<std::vector<int> > pv_trk_algo;
    std::vector<std::vector<int> > pv_trk_originalAlgo;
    
+   std::vector<std::vector<int> > pv_trk_idx;
+   
    std::vector<std::vector<float> > pv_trk_pt;
    std::vector<std::vector<float> > pv_trk_px;
    std::vector<std::vector<float> > pv_trk_py;
@@ -382,6 +384,8 @@ class ResTree
    std::vector<float> trk_eta;
    std::vector<float> trk_phi;
    
+   std::vector<int> trk_idx;
+   
    std::vector<int> trk_nTrackerLayers;
    std::vector<int> trk_nPixelBarrelLayers;
    std::vector<int> trk_nPixelEndcapLayers;
@@ -414,6 +418,7 @@ class ResTree
    std::vector<bool> trk_hasPixelEndcapLayer4;
    
    std::vector<int> trk_quality;
+   std::vector<bool> trk_isHighPurity;
    std::vector<float> trk_normalizedChi2;
    std::vector<int> trk_ndof;
    std::vector<int> trk_charge;

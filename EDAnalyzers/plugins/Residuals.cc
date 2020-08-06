@@ -96,15 +96,31 @@ class Residuals : public edm::EDAnalyzer
    class TrackEqual 
      {	
       public:
-	TrackEqual( const edm::Ptr<reco::Track> & t) : track_( t ) {}
 	
-	bool operator()( const edm::Ptr<reco::Track> & t ) const 
-	  {
-	     return t->pt()==track_->pt();
-	  }
+	TrackEqual( const edm::Ptr<reco::Track> & t ) : track_( t ) {}
+	
+	bool operator()( const edm::Ptr<reco::Track> & t ) const {
+	   return t->pt()==track_->pt();
+	}
 	
       private:
+	
 	const edm::Ptr<reco::Track> & track_;
+     };
+
+   class TrackEqualReco
+     {	
+      public:
+	
+	TrackEqualReco( const reco::Track & t ) : track_( t ) {}
+	
+	bool operator()( const reco::Track & t ) const {
+	   return t.pt()==track_.pt();
+	}
+	
+      private:
+	
+	const reco::Track & track_;
      };
 
    class TrackEqualRef
@@ -700,6 +716,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<bool> pv_trk_isHighPurity;
 	std::vector<int> pv_trk_algo;
 	std::vector<int> pv_trk_originalAlgo;
+		
+	std::vector<int> pv_trk_idx;
 	
 	std::vector<float> pv_trk_pt;
 	std::vector<float> pv_trk_px;
@@ -766,12 +784,19 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<float> pv_trk_dzErr;
 	
 	for( std::vector<reco::TransientTrack>::const_iterator it = vtxTracks.begin(); it != vtxTracks.end(); it++ )
-	  {
+	  {	     
 	     reco::Track trk = (*it).track();
+
+	     // Since TrackBaseRefs are not preserved after vertex refitting, do a pt-based track matching
+	     TrackCollection::const_iterator itt = find_if(tracks->begin(), tracks->end(), TrackEqualReco(trk));
+
+	     if( itt != tracks->end() ) pv_trk_idx.push_back( itt - tracks->begin() );
+	     else pv_trk_idx.push_back( -1 );
+	     
 	     pv_SumTrackPt += trk.pt();
 	     pv_SumTrackPt2 += trk.pt()*trk.pt();
 	     pv_fracHighPurity += trk.quality(reco::TrackBase::highPurity);
-	     	     
+	     
 	     if( pvs[ipv].hasTrackWeight() ) pv_trackWeight.push_back( pvs[ipv].trackWeight(*it) );
 	     else pv_trackWeight.push_back( null );
 	     
@@ -864,6 +889,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_trk_isHighPurity.push_back( pv_trk_isHighPurity );
 	ftree->pv_trk_algo.push_back( pv_trk_algo );
 	ftree->pv_trk_originalAlgo.push_back( pv_trk_originalAlgo );
+	
+	ftree->pv_trk_idx.push_back( pv_trk_idx );
 	
 	ftree->pv_trk_pt.push_back( pv_trk_pt );
 	ftree->pv_trk_px.push_back( pv_trk_px );
@@ -1108,12 +1135,12 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	if( rnd->Rndm() > trackProb && trackScale > 0 ) continue;
 	
 	// --- track selection ---
-	if( ! trackSelection(*itk) ) continue;
+//	if( ! trackSelection(*itk) ) continue;
 	// ---
-     
+	
 	TrackCollection newTkCollection;
 	newTkCollection.assign(tracks->begin(), itk);
-	newTkCollection.insert(newTkCollection.end(),itk+1,tracks->end());
+	newTkCollection.insert(newTkCollection.end(), itk+1, tracks->end());
 
 	//newTkCollection.insert(newTkCollection.end(),itk,tracks->end()); // only for debugging purpose
 
@@ -1473,6 +1500,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_eta.push_back( itk->eta() );
 	ftree->trk_phi.push_back( itk->phi() );
 	
+	ftree->trk_idx.push_back( itk - tracks->begin() );
+	
 	ftree->trk_nTrackerLayers.push_back( itk->hitPattern().trackerLayersWithMeasurement() );
 	ftree->trk_nPixelBarrelLayers.push_back( itk->hitPattern().pixelBarrelLayersWithMeasurement() );
 	ftree->trk_nPixelEndcapLayers.push_back( itk->hitPattern().pixelEndcapLayersWithMeasurement() );
@@ -1505,6 +1534,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_hasPixelEndcapLayer4.push_back( itk->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 4) );
 
 	ftree->trk_quality.push_back( itk->qualityMask() );
+	ftree->trk_isHighPurity.push_back( itk->quality(reco::TrackBase::highPurity) );
 	ftree->trk_normalizedChi2.push_back( itk->normalizedChi2() );
 	ftree->trk_ndof.push_back( itk->ndof() );
 	ftree->trk_charge.push_back( itk->charge() );

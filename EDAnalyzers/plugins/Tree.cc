@@ -122,6 +122,8 @@ void ResTree::Init()
 	pv_trk_algo[i].clear();
 	pv_trk_originalAlgo[i].clear();
    
+	pv_trk_idx[i].clear();
+	
 	pv_trk_pt[i].clear();
 	pv_trk_px[i].clear();
 	pv_trk_py[i].clear();
@@ -191,6 +193,8 @@ void ResTree::Init()
    pv_trk_isHighPurity.clear();
    pv_trk_algo.clear();
    pv_trk_originalAlgo.clear();
+   
+   pv_trk_idx.clear();
    
    pv_trk_pt.clear();
    pv_trk_px.clear();
@@ -602,6 +606,8 @@ void ResTree::Init()
    trk_eta.clear();
    trk_phi.clear();
    
+   trk_idx.clear();
+   
    trk_nTrackerLayers.clear();
    trk_nPixelBarrelLayers.clear();
    trk_nPixelEndcapLayers.clear();
@@ -634,6 +640,7 @@ void ResTree::Init()
    trk_hasPixelEndcapLayer4.clear();
    
    trk_quality.clear();
+   trk_isHighPurity.clear();
    trk_normalizedChi2.clear();
    trk_ndof.clear();
    trk_charge.clear();
@@ -934,6 +941,8 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("pv_trk_algo", "std::vector<std::vector<int> >", &pv_trk_algo, buff);
    tree->Branch("pv_trk_originalAlgo", "std::vector<std::vector<int> >", &pv_trk_originalAlgo, buff);
    
+   tree->Branch("pv_trk_idx", "std::vector<std::vector<int> >", &pv_trk_idx, buff);
+   
    tree->Branch("pv_trk_pt", "std::vector<std::vector<float> >", &pv_trk_pt, buff);
    tree->Branch("pv_trk_px", "std::vector<std::vector<float> >", &pv_trk_px, buff);
    tree->Branch("pv_trk_py", "std::vector<std::vector<float> >", &pv_trk_py, buff);
@@ -1191,6 +1200,8 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("trk_eta", "std::vector<float>", &trk_eta, buff);
    tree->Branch("trk_phi", "std::vector<float>", &trk_phi, buff);
    
+   tree->Branch("trk_idx", "std::vector<int>", &trk_idx, buff);
+
    tree->Branch("trk_nTrackerLayers", "std::vector<int>", &trk_nTrackerLayers, buff);
    tree->Branch("trk_nPixelBarrelLayers", "std::vector<int>", &trk_nPixelBarrelLayers, buff);
    tree->Branch("trk_nPixelEndcapLayers", "std::vector<int>", &trk_nPixelEndcapLayers, buff);
@@ -1223,6 +1234,7 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("trk_hasPixelEndcapLayer4", "std::vector<bool>", &trk_hasPixelEndcapLayer4, buff);
    
    tree->Branch("trk_quality", "std::vector<int>", &trk_quality, buff);
+   tree->Branch("trk_isHighPurity", "std::vector<bool>", &trk_isHighPurity, buff);
    tree->Branch("trk_normalizedChi2", "std::vector<float>", &trk_normalizedChi2, buff);
    tree->Branch("trk_ndof", "std::vector<int>", &trk_ndof, buff);
    tree->Branch("trk_charge", "std::vector<int>", &trk_charge, buff);
