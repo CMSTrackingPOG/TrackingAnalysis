@@ -128,6 +128,33 @@ class ResTree
    
    std::vector<std::vector<int> > pv_trk_idx;
    
+   std::vector<std::vector<int> > pv_trk_pvN;
+   
+   std::vector<std::vector<bool> > pv_trk_pvunbiased_IsValid;
+   std::vector<std::vector<bool> > pv_trk_pvunbiased_IsFake;
+   std::vector<std::vector<int> > pv_trk_pvunbiased_NTracks;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_SumTrackPt;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_SumTrackPt2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_fracHighPurity;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_chi2;
+   std::vector<std::vector<int> > pv_trk_pvunbiased_ndof;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_x;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_y;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_z;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_xError;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_yError;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_zError;
+   
+   std::vector<std::vector<float> > pv_trk_d0_pvunbiased;
+   std::vector<std::vector<float> > pv_trk_dz_pvunbiased;
+   std::vector<std::vector<float> > pv_trk_d0_bs_zpvunbiased;
+
+   std::vector<std::vector<float> > pv_trk_mc_dxy_pvunbiased;
+   std::vector<std::vector<float> > pv_trk_mc_dz_pvunbiased;
+
+   std::vector<std::vector<float> > pv_trk_mc_dxy_tp_pvunbiased;
+   std::vector<std::vector<float> > pv_trk_mc_dz_tp_pvunbiased;
+   
    std::vector<std::vector<float> > pv_trk_pt;
    std::vector<std::vector<float> > pv_trk_px;
    std::vector<std::vector<float> > pv_trk_py;

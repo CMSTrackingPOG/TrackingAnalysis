@@ -483,7 +483,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ESHandle<ParametersDefinerForTP> parametersDefinerTP;
    
    reco::RecoToSimCollection recSimCollTracks;
-   
+
    if( doTruth && !runOnData )
      {
 	vtxClassifier_.newEvent(iEvent, iSetup);
@@ -695,7 +695,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     ftree->pv_mc_nSourceTracks.push_back( pv_mc_nSourceTracks );
 	  }
      }   
-   
+
    // Primary vertex   
    for( unsigned int ipv=0;ipv<pvr.size();ipv++ )
      {	     	   
@@ -718,6 +718,33 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<int> pv_trk_originalAlgo;
 		
 	std::vector<int> pv_trk_idx;
+	
+	std::vector<int> pv_trk_pvN;
+
+	std::vector<bool> pv_trk_pvunbiased_IsValid;
+	std::vector<bool> pv_trk_pvunbiased_IsFake;
+	std::vector<int> pv_trk_pvunbiased_NTracks;
+	std::vector<float> pv_trk_pvunbiased_SumTrackPt;
+	std::vector<float> pv_trk_pvunbiased_SumTrackPt2;
+	std::vector<float> pv_trk_pvunbiased_fracHighPurity;
+	std::vector<float> pv_trk_pvunbiased_chi2;
+	std::vector<int> pv_trk_pvunbiased_ndof;
+	std::vector<float> pv_trk_pvunbiased_x;
+	std::vector<float> pv_trk_pvunbiased_y;
+	std::vector<float> pv_trk_pvunbiased_z;
+	std::vector<float> pv_trk_pvunbiased_xError;
+	std::vector<float> pv_trk_pvunbiased_yError;
+	std::vector<float> pv_trk_pvunbiased_zError;
+		  
+	std::vector<float> pv_trk_d0_pvunbiased;
+	std::vector<float> pv_trk_dz_pvunbiased;
+	std::vector<float> pv_trk_d0_bs_zpvunbiased;
+
+	std::vector<float> pv_trk_mc_dxy_pvunbiased;
+	std::vector<float> pv_trk_mc_dz_pvunbiased;
+	
+	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased;
+	std::vector<float> pv_trk_mc_dz_tp_pvunbiased;
 	
 	std::vector<float> pv_trk_pt;
 	std::vector<float> pv_trk_px;
@@ -783,6 +810,14 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<float> pv_trk_d0Err;
 	std::vector<float> pv_trk_dzErr;
 	
+	TrackCollection initPVTkCollection;
+	for( std::vector<reco::TransientTrack>::const_iterator it = vtxTracks.begin(); it != vtxTracks.end(); it++ )
+	  {
+	     reco::Track trk = (*it).track();
+	     initPVTkCollection.push_back(trk);
+	  }	
+	
+	int iTrk = 0;
 	for( std::vector<reco::TransientTrack>::const_iterator it = vtxTracks.begin(); it != vtxTracks.end(); it++ )
 	  {	     
 	     reco::Track trk = (*it).track();
@@ -792,6 +827,111 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	     if( itt != tracks->end() ) pv_trk_idx.push_back( itt - tracks->begin() );
 	     else pv_trk_idx.push_back( -1 );
+	     
+	     // Remove the track from the PV track collection
+	     TrackCollection newPVTkCollection;
+	     newPVTkCollection.assign(initPVTkCollection.begin(), initPVTkCollection.begin()+iTrk);
+	     newPVTkCollection.insert(newPVTkCollection.end(), initPVTkCollection.begin()+iTrk+1, initPVTkCollection.end());
+
+	     // Remake vertices
+	     vector<TransientVertex> pvst = revertex.makeVertices(newPVTkCollection, *pvbeamspot, iSetup);
+	     
+	     pv_trk_pvN.push_back( pvst.size() );
+
+	     if( !pvst.empty() )
+	       {
+		  reco::Vertex vtxt = reco::Vertex(pvst.front());
+
+		  float unbiasedSumTrackPt = 0.;
+		  float unbiasedSumTrackPt2 = 0.;
+		  float unbiasedFracHighPurity = 0.;
+		  
+		  for( TrackCollection::const_iterator itt = newPVTkCollection.begin(); itt != newPVTkCollection.end(); itt++ )
+		    {
+		       unbiasedSumTrackPt += (*itt).pt();
+		       unbiasedSumTrackPt2 += (*itt).pt()*(*itt).pt();
+		       unbiasedFracHighPurity += (*itt).quality(reco::TrackBase::highPurity);
+		    }		  
+		  int nTracksUnbiased = vtxt.tracksSize();
+		  if( nTracksUnbiased ) unbiasedFracHighPurity /= float(nTracksUnbiased);
+		  
+		  pv_trk_pvunbiased_IsValid.push_back( vtxt.isValid() );
+		  pv_trk_pvunbiased_IsFake.push_back( vtxt.isFake() );		  
+		  pv_trk_pvunbiased_NTracks.push_back( newPVTkCollection.size() );
+		  pv_trk_pvunbiased_SumTrackPt.push_back( unbiasedSumTrackPt );
+		  pv_trk_pvunbiased_SumTrackPt2.push_back( unbiasedSumTrackPt2 );
+		  pv_trk_pvunbiased_fracHighPurity.push_back( unbiasedFracHighPurity );
+		  pv_trk_pvunbiased_chi2.push_back( vtxt.chi2() );		  
+		  pv_trk_pvunbiased_ndof.push_back( vtxt.ndof() );		  
+		  pv_trk_pvunbiased_x.push_back( vtxt.x()*micron );
+		  pv_trk_pvunbiased_y.push_back( vtxt.y()*micron );
+		  pv_trk_pvunbiased_z.push_back( vtxt.z()*micron );
+		  pv_trk_pvunbiased_xError.push_back( vtxt.xError()*micron );
+		  pv_trk_pvunbiased_yError.push_back( vtxt.yError()*micron );
+		  pv_trk_pvunbiased_zError.push_back( vtxt.zError()*micron );
+
+		  Track::Point vtxPositionUnbiased = Track::Point(vtxt.position().x(), vtxt.position().y(), vtxt.position().z());
+		  
+		  pv_trk_d0_pvunbiased.push_back( trk.dxy(vtxPositionUnbiased) * micron );
+		  pv_trk_dz_pvunbiased.push_back( trk.dz(vtxPositionUnbiased) * micron );
+		  pv_trk_d0_bs_zpvunbiased.push_back( trk.dxy(pvbeamspot->position(vtxPositionUnbiased.z())) * micron );
+		  
+		  if( doTruth && !runOnData )
+		    {
+		       RefToBase<Track> trkRef(trackViews, pv_trk_idx.back());
+		       
+		       auto matched = recSimCollTracks.find(trkRef);
+		       
+		       if( matched != recSimCollTracks.end() )
+			 {
+			    const TrackingParticleRef* tpPtr = &((matched->val)[0].first);
+			    const TrackingParticleRef& tp = *tpPtr;
+
+			    TrackingParticle::Point vertex = tp->vertex();
+			    TrackingParticle::Vector momentum = tp->momentum();
+
+			    TrackingParticle::Point vertexTP = parametersDefinerTP->vertex(iEvent, iSetup, tp);
+			    TrackingParticle::Vector momentumTP = parametersDefinerTP->momentum(iEvent, iSetup, tp);
+			    
+			    GlobalPoint gp = GlobalPoint(vtxt.position().x(), vtxt.position().y(), vtxt.position().z());
+			    
+			    pv_trk_mc_dxy_pvunbiased.push_back( TrackingParticleIP::dxy(vertex, momentum, gp) * micron );
+			    pv_trk_mc_dz_pvunbiased.push_back( TrackingParticleIP::dz(vertex, momentum, gp) * micron );
+			    
+			    pv_trk_mc_dxy_tp_pvunbiased.push_back( TrackingParticleIP::dxy(vertexTP, momentumTP, gp) * micron );
+			    pv_trk_mc_dz_tp_pvunbiased.push_back( TrackingParticleIP::dz(vertexTP, momentumTP, gp) * micron );
+			 }
+		    }
+		  else
+		    {		       
+		       pv_trk_mc_dxy_pvunbiased.push_back( null );
+		       pv_trk_mc_dz_pvunbiased.push_back( null );
+		       
+		       pv_trk_mc_dxy_tp_pvunbiased.push_back( null );
+		       pv_trk_mc_dz_tp_pvunbiased.push_back( null );
+		    }		  
+	       }
+	     else
+	       {
+		  pv_trk_pvunbiased_IsValid.push_back( 0 );
+		  pv_trk_pvunbiased_IsFake.push_back( 0 );
+		  pv_trk_pvunbiased_NTracks.push_back( null );
+		  pv_trk_pvunbiased_SumTrackPt.push_back( null );
+		  pv_trk_pvunbiased_SumTrackPt2.push_back( null );
+		  pv_trk_pvunbiased_fracHighPurity.push_back( null );
+		  pv_trk_pvunbiased_chi2.push_back( null );		  
+		  pv_trk_pvunbiased_ndof.push_back( null );
+		  pv_trk_pvunbiased_x.push_back( null );
+		  pv_trk_pvunbiased_y.push_back( null );
+		  pv_trk_pvunbiased_z.push_back( null );
+		  pv_trk_pvunbiased_xError.push_back( null );
+		  pv_trk_pvunbiased_yError.push_back( null );
+		  pv_trk_pvunbiased_zError.push_back( null );
+		  
+		  pv_trk_d0_pvunbiased.push_back( null );
+		  pv_trk_dz_pvunbiased.push_back( null );
+		  pv_trk_d0_bs_zpvunbiased.push_back( null );
+	       }	     
 	     
 	     pv_SumTrackPt += trk.pt();
 	     pv_SumTrackPt2 += trk.pt()*trk.pt();
@@ -867,6 +1007,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     pv_trk_dz_bs.push_back( trk.dz(pvbeamspot->position()) * micron );
 	     pv_trk_d0Err.push_back( trk.d0Error() * micron );
 	     pv_trk_dzErr.push_back( trk.dzError() * micron );
+	     
+	     iTrk++;
 	  }
 	if( nTracks ) pv_fracHighPurity /= float(nTracks);
    
@@ -891,6 +1033,33 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_trk_originalAlgo.push_back( pv_trk_originalAlgo );
 	
 	ftree->pv_trk_idx.push_back( pv_trk_idx );
+
+	ftree->pv_trk_pvN.push_back( pv_trk_pvN );
+
+	ftree->pv_trk_pvunbiased_IsValid.push_back( pv_trk_pvunbiased_IsValid );
+	ftree->pv_trk_pvunbiased_IsFake.push_back( pv_trk_pvunbiased_IsFake );
+	ftree->pv_trk_pvunbiased_NTracks.push_back( pv_trk_pvunbiased_NTracks );
+	ftree->pv_trk_pvunbiased_SumTrackPt.push_back( pv_trk_pvunbiased_SumTrackPt );
+	ftree->pv_trk_pvunbiased_SumTrackPt2.push_back( pv_trk_pvunbiased_SumTrackPt2 );
+	ftree->pv_trk_pvunbiased_fracHighPurity.push_back( pv_trk_pvunbiased_fracHighPurity );
+	ftree->pv_trk_pvunbiased_chi2.push_back( pv_trk_pvunbiased_chi2 );
+	ftree->pv_trk_pvunbiased_ndof.push_back( pv_trk_pvunbiased_ndof );
+	ftree->pv_trk_pvunbiased_x.push_back( pv_trk_pvunbiased_x );
+	ftree->pv_trk_pvunbiased_y.push_back( pv_trk_pvunbiased_y );
+	ftree->pv_trk_pvunbiased_z.push_back( pv_trk_pvunbiased_z );
+	ftree->pv_trk_pvunbiased_xError.push_back( pv_trk_pvunbiased_xError );
+	ftree->pv_trk_pvunbiased_yError.push_back( pv_trk_pvunbiased_yError );
+	ftree->pv_trk_pvunbiased_zError.push_back( pv_trk_pvunbiased_zError );
+		  
+	ftree->pv_trk_d0_pvunbiased.push_back( pv_trk_d0_pvunbiased );
+	ftree->pv_trk_dz_pvunbiased.push_back( pv_trk_dz_pvunbiased );
+	ftree->pv_trk_d0_bs_zpvunbiased.push_back( pv_trk_d0_bs_zpvunbiased );
+
+	ftree->pv_trk_mc_dxy_pvunbiased.push_back( pv_trk_mc_dxy_pvunbiased );
+	ftree->pv_trk_mc_dz_pvunbiased.push_back( pv_trk_mc_dz_pvunbiased );
+	
+	ftree->pv_trk_mc_dxy_tp_pvunbiased.push_back( pv_trk_mc_dxy_tp_pvunbiased );
+	ftree->pv_trk_mc_dz_tp_pvunbiased.push_back( pv_trk_mc_dz_tp_pvunbiased );
 	
 	ftree->pv_trk_pt.push_back( pv_trk_pt );
 	ftree->pv_trk_px.push_back( pv_trk_px );
@@ -1265,12 +1434,11 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  trk_mc_hasMatch = 1;
 		 
 		  for(const auto trkRefQuality: matched->val)
-		    {
-		       
+		    {		       
 		       const TrackingParticleRef* tpPtr = &(trkRefQuality.first);
 		       const TrackingParticleRef& tp = *tpPtr;
 		       trk_mc_matchQuality.push_back( trkRefQuality.second );
-
+		       
 		       trk_mc_pt.push_back( tp->pt() );
 		       trk_mc_px.push_back( tp->px() );
 		       trk_mc_py.push_back( tp->py() );

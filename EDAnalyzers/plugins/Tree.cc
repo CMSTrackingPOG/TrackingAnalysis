@@ -124,6 +124,33 @@ void ResTree::Init()
    
 	pv_trk_idx[i].clear();
 	
+	pv_trk_pvN[i].clear();
+	
+	pv_trk_pvunbiased_IsValid[i].clear();
+	pv_trk_pvunbiased_IsFake[i].clear();
+	pv_trk_pvunbiased_NTracks[i].clear();
+	pv_trk_pvunbiased_SumTrackPt[i].clear();
+	pv_trk_pvunbiased_SumTrackPt2[i].clear();
+	pv_trk_pvunbiased_fracHighPurity[i].clear();
+	pv_trk_pvunbiased_chi2[i].clear();
+	pv_trk_pvunbiased_ndof[i].clear();
+	pv_trk_pvunbiased_x[i].clear();
+	pv_trk_pvunbiased_y[i].clear();
+	pv_trk_pvunbiased_z[i].clear();
+	pv_trk_pvunbiased_xError[i].clear();
+	pv_trk_pvunbiased_yError[i].clear();
+	pv_trk_pvunbiased_zError[i].clear();
+	
+	pv_trk_d0_pvunbiased[i].clear();
+	pv_trk_dz_pvunbiased[i].clear();
+	pv_trk_d0_bs_zpvunbiased[i].clear();
+
+	pv_trk_mc_dxy_pvunbiased[i].clear();
+	pv_trk_mc_dz_pvunbiased[i].clear();
+	
+	pv_trk_mc_dxy_tp_pvunbiased[i].clear();
+	pv_trk_mc_dz_tp_pvunbiased[i].clear();
+	
 	pv_trk_pt[i].clear();
 	pv_trk_px[i].clear();
 	pv_trk_py[i].clear();
@@ -195,6 +222,33 @@ void ResTree::Init()
    pv_trk_originalAlgo.clear();
    
    pv_trk_idx.clear();
+   
+   pv_trk_pvN.clear();
+   
+   pv_trk_pvunbiased_IsValid.clear();
+   pv_trk_pvunbiased_IsFake.clear();
+   pv_trk_pvunbiased_NTracks.clear();
+   pv_trk_pvunbiased_SumTrackPt.clear();
+   pv_trk_pvunbiased_SumTrackPt2.clear();
+   pv_trk_pvunbiased_fracHighPurity.clear();
+   pv_trk_pvunbiased_chi2.clear();
+   pv_trk_pvunbiased_ndof.clear();
+   pv_trk_pvunbiased_x.clear();
+   pv_trk_pvunbiased_y.clear();
+   pv_trk_pvunbiased_z.clear();
+   pv_trk_pvunbiased_xError.clear();
+   pv_trk_pvunbiased_yError.clear();
+   pv_trk_pvunbiased_zError.clear();
+   
+   pv_trk_d0_pvunbiased.clear();
+   pv_trk_dz_pvunbiased.clear();
+   pv_trk_d0_bs_zpvunbiased.clear();
+   
+   pv_trk_mc_dxy_pvunbiased.clear();
+   pv_trk_mc_dz_pvunbiased.clear();
+
+   pv_trk_mc_dxy_tp_pvunbiased.clear();
+   pv_trk_mc_dz_tp_pvunbiased.clear();
    
    pv_trk_pt.clear();
    pv_trk_px.clear();
@@ -942,6 +996,33 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("pv_trk_originalAlgo", "std::vector<std::vector<int> >", &pv_trk_originalAlgo, buff);
    
    tree->Branch("pv_trk_idx", "std::vector<std::vector<int> >", &pv_trk_idx, buff);
+   
+   tree->Branch("pv_trk_pvN", "std::vector<std::vector<int> >", &pv_trk_pvN, buff);
+
+   tree->Branch("pv_trk_pvunbiased_IsValid", "std::vector<std::vector<bool> >", &pv_trk_pvunbiased_IsValid, buff);
+   tree->Branch("pv_trk_pvunbiased_IsFake", "std::vector<std::vector<bool> >", &pv_trk_pvunbiased_IsFake, buff);
+   tree->Branch("pv_trk_pvunbiased_NTracks", "std::vector<std::vector<int> >", &pv_trk_pvunbiased_NTracks, buff);
+   tree->Branch("pv_trk_pvunbiased_SumTrackPt", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_SumTrackPt, buff);
+   tree->Branch("pv_trk_pvunbiased_SumTrackPt2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_SumTrackPt2, buff);
+   tree->Branch("pv_trk_pvunbiased_fracHighPurity", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_fracHighPurity, buff);
+   tree->Branch("pv_trk_pvunbiased_chi2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_chi2, buff);
+   tree->Branch("pv_trk_pvunbiased_ndof", "std::vector<std::vector<int> >", &pv_trk_pvunbiased_ndof, buff);
+   tree->Branch("pv_trk_pvunbiased_x", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_x, buff);
+   tree->Branch("pv_trk_pvunbiased_y", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_y, buff);
+   tree->Branch("pv_trk_pvunbiased_z", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_z, buff);
+   tree->Branch("pv_trk_pvunbiased_xError", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_xError, buff);
+   tree->Branch("pv_trk_pvunbiased_yError", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_yError, buff);
+   tree->Branch("pv_trk_pvunbiased_zError", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_zError, buff);
+
+   tree->Branch("pv_trk_d0_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_d0_pvunbiased, buff);
+   tree->Branch("pv_trk_dz_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_dz_pvunbiased, buff);
+   tree->Branch("pv_trk_d0_bs_zpvunbiased", "std::vector<std::vector<float> >", &pv_trk_d0_bs_zpvunbiased, buff);
+   
+   tree->Branch("pv_trk_mc_dxy_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dxy_pvunbiased, buff);
+   tree->Branch("pv_trk_mc_dz_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dz_pvunbiased, buff);
+   
+   tree->Branch("pv_trk_mc_dxy_tp_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dxy_tp_pvunbiased, buff);
+   tree->Branch("pv_trk_mc_dz_tp_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dz_tp_pvunbiased, buff);
    
    tree->Branch("pv_trk_pt", "std::vector<std::vector<float> >", &pv_trk_pt, buff);
    tree->Branch("pv_trk_px", "std::vector<std::vector<float> >", &pv_trk_px, buff);
