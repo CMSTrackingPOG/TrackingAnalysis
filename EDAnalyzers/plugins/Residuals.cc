@@ -760,7 +760,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<float> pv_trk_d0_pvunbiased_p1;
 	std::vector<float> pv_trk_dz_pvunbiased_p1;
 	std::vector<float> pv_trk_d0_bs_zpvunbiased_p1;
-
+	
 	std::vector<bool> pv_trk_pvunbiased_IsValid_p2;
 	std::vector<bool> pv_trk_pvunbiased_IsFake_p2;
 	std::vector<int> pv_trk_pvunbiased_NTracks_p2;
@@ -781,10 +781,19 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<float> pv_trk_d0_bs_zpvunbiased_p2;
 	
 	std::vector<float> pv_trk_mc_dxy_pvunbiased;
-	std::vector<float> pv_trk_mc_dz_pvunbiased;
-	
+	std::vector<float> pv_trk_mc_dz_pvunbiased;	
 	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased;
 	std::vector<float> pv_trk_mc_dz_tp_pvunbiased;
+
+	std::vector<float> pv_trk_mc_dxy_pvunbiased_p1;
+	std::vector<float> pv_trk_mc_dz_pvunbiased_p1;	
+	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased_p1;
+	std::vector<float> pv_trk_mc_dz_tp_pvunbiased_p1;
+
+	std::vector<float> pv_trk_mc_dxy_pvunbiased_p2;
+	std::vector<float> pv_trk_mc_dz_pvunbiased_p2;	
+	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased_p2;
+	std::vector<float> pv_trk_mc_dz_tp_pvunbiased_p2;
 	
 	std::vector<float> pv_trk_pt;
 	std::vector<float> pv_trk_px;
@@ -972,7 +981,63 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  pv_trk_d0_pvunbiased_p2.push_back( trk.dxy(vtxPositionUnbiased2) * micron );
 		  pv_trk_dz_pvunbiased_p2.push_back( trk.dz(vtxPositionUnbiased2) * micron );
 		  pv_trk_d0_bs_zpvunbiased_p2.push_back( trk.dxy(pvbeamspot->position(vtxPositionUnbiased2.z())) * micron );
-	       }
+
+		  if( doTruth && !runOnData )
+		    {
+		       RefToBase<Track> trkRef(trackViews, pv_trk_idx.back());
+		       
+		       auto matched = recSimCollTracks.find(trkRef);
+		       
+		       if( matched != recSimCollTracks.end() )
+			 {
+			    const TrackingParticleRef* tpPtr = &((matched->val)[0].first);
+			    const TrackingParticleRef& tp = *tpPtr;
+
+			    TrackingParticle::Point vertex = tp->vertex();
+			    TrackingParticle::Vector momentum = tp->momentum();
+
+			    TrackingParticle::Point vertexTP = parametersDefinerTP->vertex(iEvent, iSetup, tp);
+			    TrackingParticle::Vector momentumTP = parametersDefinerTP->momentum(iEvent, iSetup, tp);
+			    
+			    GlobalPoint gp1 = GlobalPoint(vtx1.position().x(), vtx1.position().y(), vtx1.position().z());
+			    GlobalPoint gp2 = GlobalPoint(vtx2.position().x(), vtx2.position().y(), vtx2.position().z());
+
+			    pv_trk_mc_dxy_pvunbiased_p1.push_back( TrackingParticleIP::dxy(vertex, momentum, gp1) * micron );
+			    pv_trk_mc_dz_pvunbiased_p1.push_back( TrackingParticleIP::dz(vertex, momentum, gp1) * micron );
+			    pv_trk_mc_dxy_tp_pvunbiased_p1.push_back( TrackingParticleIP::dxy(vertexTP, momentumTP, gp1) * micron );
+			    pv_trk_mc_dz_tp_pvunbiased_p1.push_back( TrackingParticleIP::dz(vertexTP, momentumTP, gp1) * micron );
+
+			    pv_trk_mc_dxy_pvunbiased_p2.push_back( TrackingParticleIP::dxy(vertex, momentum, gp2) * micron );
+			    pv_trk_mc_dz_pvunbiased_p2.push_back( TrackingParticleIP::dz(vertex, momentum, gp2) * micron );
+			    pv_trk_mc_dxy_tp_pvunbiased_p2.push_back( TrackingParticleIP::dxy(vertexTP, momentumTP, gp2) * micron );
+			    pv_trk_mc_dz_tp_pvunbiased_p2.push_back( TrackingParticleIP::dz(vertexTP, momentumTP, gp2) * micron );
+			 }
+		       else
+			 {
+			    pv_trk_mc_dxy_pvunbiased_p1.push_back( null );
+			    pv_trk_mc_dz_pvunbiased_p1.push_back( null );
+			    pv_trk_mc_dxy_tp_pvunbiased_p1.push_back( null );
+			    pv_trk_mc_dz_tp_pvunbiased_p1.push_back( null );
+
+			    pv_trk_mc_dxy_pvunbiased_p2.push_back( null );
+			    pv_trk_mc_dz_pvunbiased_p2.push_back( null );
+			    pv_trk_mc_dxy_tp_pvunbiased_p2.push_back( null );
+			    pv_trk_mc_dz_tp_pvunbiased_p2.push_back( null );
+			 }
+		    }		  
+		  else
+		    {		       
+		       pv_trk_mc_dxy_pvunbiased_p1.push_back( null );
+		       pv_trk_mc_dz_pvunbiased_p1.push_back( null );
+		       pv_trk_mc_dxy_tp_pvunbiased_p1.push_back( null );
+		       pv_trk_mc_dz_tp_pvunbiased_p1.push_back( null );
+
+		       pv_trk_mc_dxy_pvunbiased_p2.push_back( null );
+		       pv_trk_mc_dz_pvunbiased_p2.push_back( null );
+		       pv_trk_mc_dxy_tp_pvunbiased_p2.push_back( null );
+		       pv_trk_mc_dz_tp_pvunbiased_p2.push_back( null );
+		    }
+	       }	     
 	     else
 	       {
 		  pv_trk_pvunbiased_IsValid_p1.push_back( 0 );
@@ -1080,16 +1145,14 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			    GlobalPoint gp = GlobalPoint(vtxt.position().x(), vtxt.position().y(), vtxt.position().z());
 			    
 			    pv_trk_mc_dxy_pvunbiased.push_back( TrackingParticleIP::dxy(vertex, momentum, gp) * micron );
-			    pv_trk_mc_dz_pvunbiased.push_back( TrackingParticleIP::dz(vertex, momentum, gp) * micron );
-			    
+			    pv_trk_mc_dz_pvunbiased.push_back( TrackingParticleIP::dz(vertex, momentum, gp) * micron );			    
 			    pv_trk_mc_dxy_tp_pvunbiased.push_back( TrackingParticleIP::dxy(vertexTP, momentumTP, gp) * micron );
 			    pv_trk_mc_dz_tp_pvunbiased.push_back( TrackingParticleIP::dz(vertexTP, momentumTP, gp) * micron );
 			 }
 		       else
 			 {
 			    pv_trk_mc_dxy_pvunbiased.push_back( null );
-			    pv_trk_mc_dz_pvunbiased.push_back( null );
-			    
+			    pv_trk_mc_dz_pvunbiased.push_back( null );			    
 			    pv_trk_mc_dxy_tp_pvunbiased.push_back( null );
 			    pv_trk_mc_dz_tp_pvunbiased.push_back( null );			    
 			 }
@@ -1098,7 +1161,6 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		    {		       
 		       pv_trk_mc_dxy_pvunbiased.push_back( null );
 		       pv_trk_mc_dz_pvunbiased.push_back( null );
-		       
 		       pv_trk_mc_dxy_tp_pvunbiased.push_back( null );
 		       pv_trk_mc_dz_tp_pvunbiased.push_back( null );
 		    }		  
@@ -1263,11 +1325,20 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_trk_d0_bs_zpvunbiased.push_back( pv_trk_d0_bs_zpvunbiased );
 
 	ftree->pv_trk_mc_dxy_pvunbiased.push_back( pv_trk_mc_dxy_pvunbiased );
-	ftree->pv_trk_mc_dz_pvunbiased.push_back( pv_trk_mc_dz_pvunbiased );
-	
+	ftree->pv_trk_mc_dz_pvunbiased.push_back( pv_trk_mc_dz_pvunbiased );	
 	ftree->pv_trk_mc_dxy_tp_pvunbiased.push_back( pv_trk_mc_dxy_tp_pvunbiased );
 	ftree->pv_trk_mc_dz_tp_pvunbiased.push_back( pv_trk_mc_dz_tp_pvunbiased );
 
+	ftree->pv_trk_mc_dxy_pvunbiased_p1.push_back( pv_trk_mc_dxy_pvunbiased_p1 );
+	ftree->pv_trk_mc_dz_pvunbiased_p1.push_back( pv_trk_mc_dz_pvunbiased_p1 );	
+	ftree->pv_trk_mc_dxy_tp_pvunbiased_p1.push_back( pv_trk_mc_dxy_tp_pvunbiased_p1 );
+	ftree->pv_trk_mc_dz_tp_pvunbiased_p1.push_back( pv_trk_mc_dz_tp_pvunbiased_p1 );
+
+	ftree->pv_trk_mc_dxy_pvunbiased_p2.push_back( pv_trk_mc_dxy_pvunbiased_p2 );
+	ftree->pv_trk_mc_dz_pvunbiased_p2.push_back( pv_trk_mc_dz_pvunbiased_p2 );	
+	ftree->pv_trk_mc_dxy_tp_pvunbiased_p2.push_back( pv_trk_mc_dxy_tp_pvunbiased_p2 );
+	ftree->pv_trk_mc_dz_tp_pvunbiased_p2.push_back( pv_trk_mc_dz_tp_pvunbiased_p2 );
+	
 	ftree->pv_trk_pvunbiased_IsValid_p1.push_back( pv_trk_pvunbiased_IsValid_p1 );
 	ftree->pv_trk_pvunbiased_IsFake_p1.push_back( pv_trk_pvunbiased_IsFake_p1 );
 	ftree->pv_trk_pvunbiased_NTracks_p1.push_back( pv_trk_pvunbiased_NTracks_p1 );

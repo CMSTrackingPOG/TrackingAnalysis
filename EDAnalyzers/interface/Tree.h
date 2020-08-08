@@ -153,10 +153,19 @@ class ResTree
 
    std::vector<std::vector<float> > pv_trk_mc_dxy_pvunbiased;
    std::vector<std::vector<float> > pv_trk_mc_dz_pvunbiased;
-
    std::vector<std::vector<float> > pv_trk_mc_dxy_tp_pvunbiased;
    std::vector<std::vector<float> > pv_trk_mc_dz_tp_pvunbiased;
 
+   std::vector<std::vector<float> > pv_trk_mc_dxy_pvunbiased_p1;
+   std::vector<std::vector<float> > pv_trk_mc_dz_pvunbiased_p1;
+   std::vector<std::vector<float> > pv_trk_mc_dxy_tp_pvunbiased_p1;
+   std::vector<std::vector<float> > pv_trk_mc_dz_tp_pvunbiased_p1;
+
+   std::vector<std::vector<float> > pv_trk_mc_dxy_pvunbiased_p2;
+   std::vector<std::vector<float> > pv_trk_mc_dz_pvunbiased_p2;
+   std::vector<std::vector<float> > pv_trk_mc_dxy_tp_pvunbiased_p2;
+   std::vector<std::vector<float> > pv_trk_mc_dz_tp_pvunbiased_p2;
+   
    std::vector<std::vector<bool> > pv_trk_pvunbiased_IsValid_p1;
    std::vector<std::vector<bool> > pv_trk_pvunbiased_IsFake_p1;
    std::vector<std::vector<int> > pv_trk_pvunbiased_NTracks_p1;
