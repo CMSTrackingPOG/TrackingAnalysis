@@ -129,10 +129,12 @@ class ResTree
    std::vector<std::vector<int> > pv_trk_idx;
    
    std::vector<std::vector<int> > pv_trk_pvN;
+   std::vector<std::vector<int> > pv_trk_pv1N;
+   std::vector<std::vector<int> > pv_trk_pv2N;
    
    std::vector<std::vector<bool> > pv_trk_pvunbiased_IsValid;
    std::vector<std::vector<bool> > pv_trk_pvunbiased_IsFake;
-   std::vector<std::vector<int> > pv_trk_pvunbiased_NTracks;
+   std::vector<std::vector<int> > pv_trk_pvunbiased_NTracks;   
    std::vector<std::vector<float> > pv_trk_pvunbiased_SumTrackPt;
    std::vector<std::vector<float> > pv_trk_pvunbiased_SumTrackPt2;
    std::vector<std::vector<float> > pv_trk_pvunbiased_fracHighPurity;
@@ -154,6 +156,44 @@ class ResTree
 
    std::vector<std::vector<float> > pv_trk_mc_dxy_tp_pvunbiased;
    std::vector<std::vector<float> > pv_trk_mc_dz_tp_pvunbiased;
+
+   std::vector<std::vector<bool> > pv_trk_pvunbiased_IsValid_p1;
+   std::vector<std::vector<bool> > pv_trk_pvunbiased_IsFake_p1;
+   std::vector<std::vector<int> > pv_trk_pvunbiased_NTracks_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_SumTrackPt_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_SumTrackPt2_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_fracHighPurity_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_chi2_p1;
+   std::vector<std::vector<int> > pv_trk_pvunbiased_ndof_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_x_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_y_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_z_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_xError_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_yError_p1;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_zError_p1;
+   
+   std::vector<std::vector<float> > pv_trk_d0_pvunbiased_p1;
+   std::vector<std::vector<float> > pv_trk_dz_pvunbiased_p1;
+   std::vector<std::vector<float> > pv_trk_d0_bs_zpvunbiased_p1;
+
+   std::vector<std::vector<bool> > pv_trk_pvunbiased_IsValid_p2;
+   std::vector<std::vector<bool> > pv_trk_pvunbiased_IsFake_p2;
+   std::vector<std::vector<int> > pv_trk_pvunbiased_NTracks_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_SumTrackPt_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_SumTrackPt2_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_fracHighPurity_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_chi2_p2;
+   std::vector<std::vector<int> > pv_trk_pvunbiased_ndof_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_x_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_y_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_z_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_xError_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_yError_p2;
+   std::vector<std::vector<float> > pv_trk_pvunbiased_zError_p2;
+   
+   std::vector<std::vector<float> > pv_trk_d0_pvunbiased_p2;
+   std::vector<std::vector<float> > pv_trk_dz_pvunbiased_p2;
+   std::vector<std::vector<float> > pv_trk_d0_bs_zpvunbiased_p2;
    
    std::vector<std::vector<float> > pv_trk_pt;
    std::vector<std::vector<float> > pv_trk_px;

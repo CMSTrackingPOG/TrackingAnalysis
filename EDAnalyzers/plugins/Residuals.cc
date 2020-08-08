@@ -275,8 +275,8 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    TFile& f = fs->file();
    f.SetCompressionAlgorithm(ROOT::kZLIB);
    f.SetCompressionLevel(9);
-   ftree = new ResTree(fs->make<TTree>("tree","tree"));   
-   ftree->CreateBranches(32000,runOnData);
+   ftree = new ResTree(fs->make<TTree>("tree", "tree"));
+   ftree->CreateBranches(32000, runOnData);
    
    ncount = 0;
 }
@@ -720,6 +720,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<int> pv_trk_idx;
 	
 	std::vector<int> pv_trk_pvN;
+	std::vector<int> pv_trk_pv1N;
+	std::vector<int> pv_trk_pv2N;
 
 	std::vector<bool> pv_trk_pvunbiased_IsValid;
 	std::vector<bool> pv_trk_pvunbiased_IsFake;
@@ -740,6 +742,44 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<float> pv_trk_dz_pvunbiased;
 	std::vector<float> pv_trk_d0_bs_zpvunbiased;
 
+	std::vector<bool> pv_trk_pvunbiased_IsValid_p1;
+	std::vector<bool> pv_trk_pvunbiased_IsFake_p1;
+	std::vector<int> pv_trk_pvunbiased_NTracks_p1;
+	std::vector<float> pv_trk_pvunbiased_SumTrackPt_p1;
+	std::vector<float> pv_trk_pvunbiased_SumTrackPt2_p1;
+	std::vector<float> pv_trk_pvunbiased_fracHighPurity_p1;
+	std::vector<float> pv_trk_pvunbiased_chi2_p1;
+	std::vector<int> pv_trk_pvunbiased_ndof_p1;
+	std::vector<float> pv_trk_pvunbiased_x_p1;
+	std::vector<float> pv_trk_pvunbiased_y_p1;
+	std::vector<float> pv_trk_pvunbiased_z_p1;
+	std::vector<float> pv_trk_pvunbiased_xError_p1;
+	std::vector<float> pv_trk_pvunbiased_yError_p1;
+	std::vector<float> pv_trk_pvunbiased_zError_p1;
+		  
+	std::vector<float> pv_trk_d0_pvunbiased_p1;
+	std::vector<float> pv_trk_dz_pvunbiased_p1;
+	std::vector<float> pv_trk_d0_bs_zpvunbiased_p1;
+
+	std::vector<bool> pv_trk_pvunbiased_IsValid_p2;
+	std::vector<bool> pv_trk_pvunbiased_IsFake_p2;
+	std::vector<int> pv_trk_pvunbiased_NTracks_p2;
+	std::vector<float> pv_trk_pvunbiased_SumTrackPt_p2;
+	std::vector<float> pv_trk_pvunbiased_SumTrackPt2_p2;
+	std::vector<float> pv_trk_pvunbiased_fracHighPurity_p2;
+	std::vector<float> pv_trk_pvunbiased_chi2_p2;
+	std::vector<int> pv_trk_pvunbiased_ndof_p2;
+	std::vector<float> pv_trk_pvunbiased_x_p2;
+	std::vector<float> pv_trk_pvunbiased_y_p2;
+	std::vector<float> pv_trk_pvunbiased_z_p2;
+	std::vector<float> pv_trk_pvunbiased_xError_p2;
+	std::vector<float> pv_trk_pvunbiased_yError_p2;
+	std::vector<float> pv_trk_pvunbiased_zError_p2;
+		  
+	std::vector<float> pv_trk_d0_pvunbiased_p2;
+	std::vector<float> pv_trk_dz_pvunbiased_p2;
+	std::vector<float> pv_trk_d0_bs_zpvunbiased_p2;
+	
 	std::vector<float> pv_trk_mc_dxy_pvunbiased;
 	std::vector<float> pv_trk_mc_dz_pvunbiased;
 	
@@ -836,11 +876,152 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     newPVTkCollection.assign(initPVTkCollection.begin(), initPVTkCollection.begin()+iTrk);
 	     newPVTkCollection.insert(newPVTkCollection.end(), initPVTkCollection.begin()+iTrk+1, initPVTkCollection.end());
 
+	     // Split vertex tracks in two groups (unbiased)
+	     reco::TrackCollection vtxTkCollection1;
+	     reco::TrackCollection vtxTkCollection2;
+	     
+	     float SumTrackPt_p1 = 0;
+	     float SumTrackPt2_p1 = 0;
+	     
+	     float SumTrackPt_p2 = 0;
+	     float SumTrackPt2_p2 = 0;
+	     
+	     float pv_fracHighPurity_p1 = 0;
+	     float pv_fracHighPurity_p2 = 0;
+	     
+	     for( std::vector<reco::Track>::const_iterator itv = newPVTkCollection.begin(); itv != newPVTkCollection.end(); itv++ )
+	       {
+		  reco::Track pvtrk = (*itv);
+		  
+		  if( rnd->Rndm() > 0.5 )
+		    {
+		       vtxTkCollection1.push_back(pvtrk);
+		       SumTrackPt_p1 += pvtrk.pt();
+		       SumTrackPt2_p1 += pvtrk.pt()*pvtrk.pt();
+		       pv_fracHighPurity_p1 += pvtrk.quality(reco::TrackBase::highPurity);
+		    }	
+		  else
+		    {	     
+		       vtxTkCollection2.push_back(pvtrk);
+		       SumTrackPt_p2 += pvtrk.pt();
+		       SumTrackPt2_p2 += pvtrk.pt()*pvtrk.pt();
+		       pv_fracHighPurity_p2 += pvtrk.quality(reco::TrackBase::highPurity);
+		    }
+	       }	     
+	     
 	     // Remake vertices
 	     vector<TransientVertex> pvst = revertex.makeVertices(newPVTkCollection, *pvbeamspot, iSetup);
 	     
+	     vector<TransientVertex> pvst1 = revertex.makeVertices(vtxTkCollection1, *pvbeamspot, iSetup);
+	     vector<TransientVertex> pvst2 = revertex.makeVertices(vtxTkCollection2, *pvbeamspot, iSetup);
+	     
 	     pv_trk_pvN.push_back( pvst.size() );
+	     pv_trk_pv1N.push_back( pvst1.size() );
+	     pv_trk_pv2N.push_back( pvst2.size() );
+	     
+	     if( !pvst1.empty() && !pvst2.empty() )
+	       {
+		  reco::Vertex vtx1 = reco::Vertex(pvst1.front());
+		  reco::Vertex vtx2 = reco::Vertex(pvst2.front());
+		  
+		  pv_trk_pvunbiased_IsValid_p1.push_back( vtx1.isValid() );
+		  pv_trk_pvunbiased_IsValid_p2.push_back( vtx2.isValid() );
+		  
+		  pv_trk_pvunbiased_IsFake_p1.push_back( vtx1.isFake() );
+		  pv_trk_pvunbiased_IsFake_p2.push_back( vtx2.isFake() );
+		  
+		  pv_trk_pvunbiased_NTracks_p1.push_back( vtxTkCollection1.size() );
+		  pv_trk_pvunbiased_NTracks_p2.push_back( vtxTkCollection2.size() );
+		  
+		  pv_trk_pvunbiased_SumTrackPt_p1.push_back( SumTrackPt_p1 );
+		  pv_trk_pvunbiased_SumTrackPt_p2.push_back( SumTrackPt_p2 );
+		  
+		  pv_trk_pvunbiased_SumTrackPt2_p1.push_back( SumTrackPt2_p1 );	     
+		  pv_trk_pvunbiased_SumTrackPt2_p2.push_back( SumTrackPt2_p2 );
+		  
+		  pv_trk_pvunbiased_fracHighPurity_p1.push_back( pv_fracHighPurity_p1 );
+		  pv_trk_pvunbiased_fracHighPurity_p2.push_back( pv_fracHighPurity_p2 );
+		  
+		  pv_trk_pvunbiased_chi2_p1.push_back( vtx1.chi2() );
+		  pv_trk_pvunbiased_chi2_p2.push_back( vtx2.chi2() );
+		  
+		  pv_trk_pvunbiased_ndof_p1.push_back( vtx1.ndof() );
+		  pv_trk_pvunbiased_ndof_p2.push_back( vtx2.ndof() );
+		  
+		  pv_trk_pvunbiased_x_p1.push_back( vtx1.x()*micron );
+		  pv_trk_pvunbiased_y_p1.push_back( vtx1.y()*micron );
+		  pv_trk_pvunbiased_z_p1.push_back( vtx1.z()*micron );
+		  pv_trk_pvunbiased_xError_p1.push_back( vtx1.xError()*micron );
+		  pv_trk_pvunbiased_yError_p1.push_back( vtx1.yError()*micron );
+		  pv_trk_pvunbiased_zError_p1.push_back( vtx1.zError()*micron );
+		  
+		  pv_trk_pvunbiased_x_p2.push_back( vtx2.x()*micron );
+		  pv_trk_pvunbiased_y_p2.push_back( vtx2.y()*micron );
+		  pv_trk_pvunbiased_z_p2.push_back( vtx2.z()*micron );
+		  pv_trk_pvunbiased_xError_p2.push_back( vtx2.xError()*micron );
+		  pv_trk_pvunbiased_yError_p2.push_back( vtx2.yError()*micron );
+		  pv_trk_pvunbiased_zError_p2.push_back( vtx2.zError()*micron );
 
+		  Track::Point vtxPositionUnbiased1 = Track::Point(vtx1.position().x(), vtx1.position().y(), vtx1.position().z());
+		  Track::Point vtxPositionUnbiased2 = Track::Point(vtx2.position().x(), vtx2.position().y(), vtx2.position().z());
+		  
+		  pv_trk_d0_pvunbiased_p1.push_back( trk.dxy(vtxPositionUnbiased1) * micron );
+		  pv_trk_dz_pvunbiased_p1.push_back( trk.dz(vtxPositionUnbiased1) * micron );
+		  pv_trk_d0_bs_zpvunbiased_p1.push_back( trk.dxy(pvbeamspot->position(vtxPositionUnbiased1.z())) * micron );
+
+		  pv_trk_d0_pvunbiased_p2.push_back( trk.dxy(vtxPositionUnbiased2) * micron );
+		  pv_trk_dz_pvunbiased_p2.push_back( trk.dz(vtxPositionUnbiased2) * micron );
+		  pv_trk_d0_bs_zpvunbiased_p2.push_back( trk.dxy(pvbeamspot->position(vtxPositionUnbiased2.z())) * micron );
+	       }
+	     else
+	       {
+		  pv_trk_pvunbiased_IsValid_p1.push_back( 0 );
+		  pv_trk_pvunbiased_IsValid_p2.push_back( 0 );
+		  
+		  pv_trk_pvunbiased_IsFake_p1.push_back( 0 );
+		  pv_trk_pvunbiased_IsFake_p2.push_back( 0 );
+		  
+		  pv_trk_pvunbiased_NTracks_p1.push_back( 0 );
+		  pv_trk_pvunbiased_NTracks_p2.push_back( 0 );
+		  
+		  pv_trk_pvunbiased_SumTrackPt_p1.push_back( null );
+		  pv_trk_pvunbiased_SumTrackPt_p2.push_back( null );
+		  
+		  pv_trk_pvunbiased_SumTrackPt2_p1.push_back( null );
+		  pv_trk_pvunbiased_SumTrackPt2_p2.push_back( null );
+		  
+		  pv_trk_pvunbiased_fracHighPurity_p1.push_back( null );
+		  pv_trk_pvunbiased_fracHighPurity_p2.push_back( null );
+		  
+		  pv_trk_pvunbiased_chi2_p1.push_back( null );
+		  pv_trk_pvunbiased_chi2_p2.push_back( null );
+		  
+		  pv_trk_pvunbiased_ndof_p1.push_back( null );
+		  pv_trk_pvunbiased_ndof_p2.push_back( null );
+		  
+		  pv_trk_pvunbiased_x_p1.push_back( null );
+		  pv_trk_pvunbiased_y_p1.push_back( null );
+		  pv_trk_pvunbiased_z_p1.push_back( null );
+		  pv_trk_pvunbiased_xError_p1.push_back( null );
+		  pv_trk_pvunbiased_yError_p1.push_back( null );
+		  pv_trk_pvunbiased_zError_p1.push_back( null );
+		  
+		  pv_trk_pvunbiased_x_p2.push_back( null );
+		  pv_trk_pvunbiased_y_p2.push_back( null );
+		  pv_trk_pvunbiased_z_p2.push_back( null );
+		  pv_trk_pvunbiased_xError_p2.push_back( null );
+		  pv_trk_pvunbiased_yError_p2.push_back( null );
+		  pv_trk_pvunbiased_zError_p2.push_back( null );
+
+		  pv_trk_d0_pvunbiased_p1.push_back( null );
+		  pv_trk_dz_pvunbiased_p1.push_back( null );
+		  pv_trk_d0_bs_zpvunbiased_p1.push_back( null );
+
+		  pv_trk_d0_pvunbiased_p2.push_back( null );
+		  pv_trk_dz_pvunbiased_p2.push_back( null );
+		  pv_trk_d0_bs_zpvunbiased_p2.push_back( null );
+	       }
+	     
 	     if( !pvst.empty() )
 	       {
 		  reco::Vertex vtxt = reco::Vertex(pvst.front());
@@ -1059,6 +1240,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_trk_idx.push_back( pv_trk_idx );
 
 	ftree->pv_trk_pvN.push_back( pv_trk_pvN );
+	ftree->pv_trk_pv1N.push_back( pv_trk_pv1N );
+	ftree->pv_trk_pv2N.push_back( pv_trk_pv2N );
 
 	ftree->pv_trk_pvunbiased_IsValid.push_back( pv_trk_pvunbiased_IsValid );
 	ftree->pv_trk_pvunbiased_IsFake.push_back( pv_trk_pvunbiased_IsFake );
@@ -1084,6 +1267,44 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	
 	ftree->pv_trk_mc_dxy_tp_pvunbiased.push_back( pv_trk_mc_dxy_tp_pvunbiased );
 	ftree->pv_trk_mc_dz_tp_pvunbiased.push_back( pv_trk_mc_dz_tp_pvunbiased );
+
+	ftree->pv_trk_pvunbiased_IsValid_p1.push_back( pv_trk_pvunbiased_IsValid_p1 );
+	ftree->pv_trk_pvunbiased_IsFake_p1.push_back( pv_trk_pvunbiased_IsFake_p1 );
+	ftree->pv_trk_pvunbiased_NTracks_p1.push_back( pv_trk_pvunbiased_NTracks_p1 );
+	ftree->pv_trk_pvunbiased_SumTrackPt_p1.push_back( pv_trk_pvunbiased_SumTrackPt_p1 );
+	ftree->pv_trk_pvunbiased_SumTrackPt2_p1.push_back( pv_trk_pvunbiased_SumTrackPt2_p1 );
+	ftree->pv_trk_pvunbiased_fracHighPurity_p1.push_back( pv_trk_pvunbiased_fracHighPurity_p1 );
+	ftree->pv_trk_pvunbiased_chi2_p1.push_back( pv_trk_pvunbiased_chi2_p1 );
+	ftree->pv_trk_pvunbiased_ndof_p1.push_back( pv_trk_pvunbiased_ndof_p1 );
+	ftree->pv_trk_pvunbiased_x_p1.push_back( pv_trk_pvunbiased_x_p1 );
+	ftree->pv_trk_pvunbiased_y_p1.push_back( pv_trk_pvunbiased_y_p1 );
+	ftree->pv_trk_pvunbiased_z_p1.push_back( pv_trk_pvunbiased_z_p1 );
+	ftree->pv_trk_pvunbiased_xError_p1.push_back( pv_trk_pvunbiased_xError_p1 );
+	ftree->pv_trk_pvunbiased_yError_p1.push_back( pv_trk_pvunbiased_yError_p1 );
+	ftree->pv_trk_pvunbiased_zError_p1.push_back( pv_trk_pvunbiased_zError_p1 );
+		  
+	ftree->pv_trk_d0_pvunbiased_p1.push_back( pv_trk_d0_pvunbiased_p1 );
+	ftree->pv_trk_dz_pvunbiased_p1.push_back( pv_trk_dz_pvunbiased_p1 );
+	ftree->pv_trk_d0_bs_zpvunbiased_p1.push_back( pv_trk_d0_bs_zpvunbiased_p1 );
+
+	ftree->pv_trk_pvunbiased_IsValid_p2.push_back( pv_trk_pvunbiased_IsValid_p2 );
+	ftree->pv_trk_pvunbiased_IsFake_p2.push_back( pv_trk_pvunbiased_IsFake_p2 );
+	ftree->pv_trk_pvunbiased_NTracks_p2.push_back( pv_trk_pvunbiased_NTracks_p2 );
+	ftree->pv_trk_pvunbiased_SumTrackPt_p2.push_back( pv_trk_pvunbiased_SumTrackPt_p2 );
+	ftree->pv_trk_pvunbiased_SumTrackPt2_p2.push_back( pv_trk_pvunbiased_SumTrackPt2_p2 );
+	ftree->pv_trk_pvunbiased_fracHighPurity_p2.push_back( pv_trk_pvunbiased_fracHighPurity_p2 );
+	ftree->pv_trk_pvunbiased_chi2_p2.push_back( pv_trk_pvunbiased_chi2_p2 );
+	ftree->pv_trk_pvunbiased_ndof_p2.push_back( pv_trk_pvunbiased_ndof_p2 );
+	ftree->pv_trk_pvunbiased_x_p2.push_back( pv_trk_pvunbiased_x_p2 );
+	ftree->pv_trk_pvunbiased_y_p2.push_back( pv_trk_pvunbiased_y_p2 );
+	ftree->pv_trk_pvunbiased_z_p2.push_back( pv_trk_pvunbiased_z_p2 );
+	ftree->pv_trk_pvunbiased_xError_p2.push_back( pv_trk_pvunbiased_xError_p2 );
+	ftree->pv_trk_pvunbiased_yError_p2.push_back( pv_trk_pvunbiased_yError_p2 );
+	ftree->pv_trk_pvunbiased_zError_p2.push_back( pv_trk_pvunbiased_zError_p2 );
+		  
+	ftree->pv_trk_d0_pvunbiased_p2.push_back( pv_trk_d0_pvunbiased_p2 );
+	ftree->pv_trk_dz_pvunbiased_p2.push_back( pv_trk_dz_pvunbiased_p2 );
+	ftree->pv_trk_d0_bs_zpvunbiased_p2.push_back( pv_trk_d0_bs_zpvunbiased_p2 );
 	
 	ftree->pv_trk_pt.push_back( pv_trk_pt );
 	ftree->pv_trk_px.push_back( pv_trk_px );

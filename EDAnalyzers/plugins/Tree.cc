@@ -125,6 +125,8 @@ void ResTree::Init()
 	pv_trk_idx[i].clear();
 	
 	pv_trk_pvN[i].clear();
+	pv_trk_pv1N[i].clear();
+	pv_trk_pv2N[i].clear();
 	
 	pv_trk_pvunbiased_IsValid[i].clear();
 	pv_trk_pvunbiased_IsFake[i].clear();
@@ -150,6 +152,44 @@ void ResTree::Init()
 	
 	pv_trk_mc_dxy_tp_pvunbiased[i].clear();
 	pv_trk_mc_dz_tp_pvunbiased[i].clear();
+
+	pv_trk_pvunbiased_IsValid_p1[i].clear();
+	pv_trk_pvunbiased_IsFake_p1[i].clear();
+	pv_trk_pvunbiased_NTracks_p1[i].clear();
+	pv_trk_pvunbiased_SumTrackPt_p1[i].clear();
+	pv_trk_pvunbiased_SumTrackPt2_p1[i].clear();
+	pv_trk_pvunbiased_fracHighPurity_p1[i].clear();
+	pv_trk_pvunbiased_chi2_p1[i].clear();
+	pv_trk_pvunbiased_ndof_p1[i].clear();
+	pv_trk_pvunbiased_x_p1[i].clear();
+	pv_trk_pvunbiased_y_p1[i].clear();
+	pv_trk_pvunbiased_z_p1[i].clear();
+	pv_trk_pvunbiased_xError_p1[i].clear();
+	pv_trk_pvunbiased_yError_p1[i].clear();
+	pv_trk_pvunbiased_zError_p1[i].clear();
+	
+	pv_trk_d0_pvunbiased_p1[i].clear();
+	pv_trk_dz_pvunbiased_p1[i].clear();
+	pv_trk_d0_bs_zpvunbiased_p1[i].clear();
+
+	pv_trk_pvunbiased_IsValid_p2[i].clear();
+	pv_trk_pvunbiased_IsFake_p2[i].clear();
+	pv_trk_pvunbiased_NTracks_p2[i].clear();
+	pv_trk_pvunbiased_SumTrackPt_p2[i].clear();
+	pv_trk_pvunbiased_SumTrackPt2_p2[i].clear();
+	pv_trk_pvunbiased_fracHighPurity_p2[i].clear();
+	pv_trk_pvunbiased_chi2_p2[i].clear();
+	pv_trk_pvunbiased_ndof_p2[i].clear();
+	pv_trk_pvunbiased_x_p2[i].clear();
+	pv_trk_pvunbiased_y_p2[i].clear();
+	pv_trk_pvunbiased_z_p2[i].clear();
+	pv_trk_pvunbiased_xError_p2[i].clear();
+	pv_trk_pvunbiased_yError_p2[i].clear();
+	pv_trk_pvunbiased_zError_p2[i].clear();
+	
+	pv_trk_d0_pvunbiased_p2[i].clear();
+	pv_trk_dz_pvunbiased_p2[i].clear();
+	pv_trk_d0_bs_zpvunbiased_p2[i].clear();
 	
 	pv_trk_pt[i].clear();
 	pv_trk_px[i].clear();
@@ -227,6 +267,8 @@ void ResTree::Init()
    pv_trk_idx.clear();
    
    pv_trk_pvN.clear();
+   pv_trk_pv1N.clear();
+   pv_trk_pv2N.clear();
    
    pv_trk_pvunbiased_IsValid.clear();
    pv_trk_pvunbiased_IsFake.clear();
@@ -252,6 +294,44 @@ void ResTree::Init()
 
    pv_trk_mc_dxy_tp_pvunbiased.clear();
    pv_trk_mc_dz_tp_pvunbiased.clear();
+
+   pv_trk_pvunbiased_IsValid_p1.clear();
+   pv_trk_pvunbiased_IsFake_p1.clear();
+   pv_trk_pvunbiased_NTracks_p1.clear();
+   pv_trk_pvunbiased_SumTrackPt_p1.clear();
+   pv_trk_pvunbiased_SumTrackPt2_p1.clear();
+   pv_trk_pvunbiased_fracHighPurity_p1.clear();
+   pv_trk_pvunbiased_chi2_p1.clear();
+   pv_trk_pvunbiased_ndof_p1.clear();
+   pv_trk_pvunbiased_x_p1.clear();
+   pv_trk_pvunbiased_y_p1.clear();
+   pv_trk_pvunbiased_z_p1.clear();
+   pv_trk_pvunbiased_xError_p1.clear();
+   pv_trk_pvunbiased_yError_p1.clear();
+   pv_trk_pvunbiased_zError_p1.clear();
+   
+   pv_trk_d0_pvunbiased_p1.clear();
+   pv_trk_dz_pvunbiased_p1.clear();
+   pv_trk_d0_bs_zpvunbiased_p1.clear();
+
+   pv_trk_pvunbiased_IsValid_p2.clear();
+   pv_trk_pvunbiased_IsFake_p2.clear();
+   pv_trk_pvunbiased_NTracks_p2.clear();
+   pv_trk_pvunbiased_SumTrackPt_p2.clear();
+   pv_trk_pvunbiased_SumTrackPt2_p2.clear();
+   pv_trk_pvunbiased_fracHighPurity_p2.clear();
+   pv_trk_pvunbiased_chi2_p2.clear();
+   pv_trk_pvunbiased_ndof_p2.clear();
+   pv_trk_pvunbiased_x_p2.clear();
+   pv_trk_pvunbiased_y_p2.clear();
+   pv_trk_pvunbiased_z_p2.clear();
+   pv_trk_pvunbiased_xError_p2.clear();
+   pv_trk_pvunbiased_yError_p2.clear();
+   pv_trk_pvunbiased_zError_p2.clear();
+   
+   pv_trk_d0_pvunbiased_p2.clear();
+   pv_trk_dz_pvunbiased_p2.clear();
+   pv_trk_d0_bs_zpvunbiased_p2.clear();
    
    pv_trk_pt.clear();
    pv_trk_px.clear();
@@ -1007,6 +1087,8 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("pv_trk_idx", "std::vector<std::vector<int> >", &pv_trk_idx, buff);
    
    tree->Branch("pv_trk_pvN", "std::vector<std::vector<int> >", &pv_trk_pvN, buff);
+   tree->Branch("pv_trk_pv1N", "std::vector<std::vector<int> >", &pv_trk_pv1N, buff);
+   tree->Branch("pv_trk_pv2N", "std::vector<std::vector<int> >", &pv_trk_pv2N, buff);
 
    tree->Branch("pv_trk_pvunbiased_IsValid", "std::vector<std::vector<bool> >", &pv_trk_pvunbiased_IsValid, buff);
    tree->Branch("pv_trk_pvunbiased_IsFake", "std::vector<std::vector<bool> >", &pv_trk_pvunbiased_IsFake, buff);
@@ -1026,12 +1108,53 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("pv_trk_d0_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_d0_pvunbiased, buff);
    tree->Branch("pv_trk_dz_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_dz_pvunbiased, buff);
    tree->Branch("pv_trk_d0_bs_zpvunbiased", "std::vector<std::vector<float> >", &pv_trk_d0_bs_zpvunbiased, buff);
-   
-   tree->Branch("pv_trk_mc_dxy_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dxy_pvunbiased, buff);
-   tree->Branch("pv_trk_mc_dz_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dz_pvunbiased, buff);
-   
-   tree->Branch("pv_trk_mc_dxy_tp_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dxy_tp_pvunbiased, buff);
-   tree->Branch("pv_trk_mc_dz_tp_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dz_tp_pvunbiased, buff);
+
+   if( !runOnData ) 
+     {   
+	tree->Branch("pv_trk_mc_dxy_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dxy_pvunbiased, buff);
+	tree->Branch("pv_trk_mc_dz_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dz_pvunbiased, buff);
+	
+	tree->Branch("pv_trk_mc_dxy_tp_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dxy_tp_pvunbiased, buff);
+	tree->Branch("pv_trk_mc_dz_tp_pvunbiased", "std::vector<std::vector<float> >", &pv_trk_mc_dz_tp_pvunbiased, buff);
+     }   
+
+   tree->Branch("pv_trk_pvunbiased_IsValid_p1", "std::vector<std::vector<bool> >", &pv_trk_pvunbiased_IsValid_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_IsFake_p1", "std::vector<std::vector<bool> >", &pv_trk_pvunbiased_IsFake_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_NTracks_p1", "std::vector<std::vector<int> >", &pv_trk_pvunbiased_NTracks_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_SumTrackPt_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_SumTrackPt_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_SumTrackPt2_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_SumTrackPt2_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_fracHighPurity_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_fracHighPurity_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_chi2_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_chi2_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_ndof_p1", "std::vector<std::vector<int> >", &pv_trk_pvunbiased_ndof_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_x_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_x_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_y_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_y_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_z_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_z_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_xError_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_xError_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_yError_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_yError_p1, buff);
+   tree->Branch("pv_trk_pvunbiased_zError_p1", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_zError_p1, buff);
+
+   tree->Branch("pv_trk_d0_pvunbiased_p1", "std::vector<std::vector<float> >", &pv_trk_d0_pvunbiased_p1, buff);
+   tree->Branch("pv_trk_dz_pvunbiased_p1", "std::vector<std::vector<float> >", &pv_trk_dz_pvunbiased_p1, buff);
+   tree->Branch("pv_trk_d0_bs_zpvunbiased_p1", "std::vector<std::vector<float> >", &pv_trk_d0_bs_zpvunbiased_p1, buff);
+
+   tree->Branch("pv_trk_pvunbiased_IsValid_p2", "std::vector<std::vector<bool> >", &pv_trk_pvunbiased_IsValid_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_IsFake_p2", "std::vector<std::vector<bool> >", &pv_trk_pvunbiased_IsFake_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_NTracks_p2", "std::vector<std::vector<int> >", &pv_trk_pvunbiased_NTracks_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_SumTrackPt_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_SumTrackPt_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_SumTrackPt2_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_SumTrackPt2_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_fracHighPurity_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_fracHighPurity_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_chi2_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_chi2_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_ndof_p2", "std::vector<std::vector<int> >", &pv_trk_pvunbiased_ndof_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_x_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_x_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_y_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_y_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_z_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_z_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_xError_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_xError_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_yError_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_yError_p2, buff);
+   tree->Branch("pv_trk_pvunbiased_zError_p2", "std::vector<std::vector<float> >", &pv_trk_pvunbiased_zError_p2, buff);
+
+   tree->Branch("pv_trk_d0_pvunbiased_p2", "std::vector<std::vector<float> >", &pv_trk_d0_pvunbiased_p2, buff);
+   tree->Branch("pv_trk_dz_pvunbiased_p2", "std::vector<std::vector<float> >", &pv_trk_dz_pvunbiased_p2, buff);
+   tree->Branch("pv_trk_d0_bs_zpvunbiased_p2", "std::vector<std::vector<float> >", &pv_trk_d0_bs_zpvunbiased_p2, buff);
    
    tree->Branch("pv_trk_pt", "std::vector<std::vector<float> >", &pv_trk_pt, buff);
    tree->Branch("pv_trk_px", "std::vector<std::vector<float> >", &pv_trk_px, buff);
@@ -1099,56 +1222,59 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    
    tree->Branch("pv_trk_d0_tv", "std::vector<std::vector<float> >", &pv_trk_d0_tv, buff);
    tree->Branch("pv_trk_dz_tv", "std::vector<std::vector<float> >", &pv_trk_dz_tv, buff);
+
+   if( !runOnData ) 
+     {   
+	tree->Branch("pv_mc_hasMatch", "std::vector<bool>", &pv_mc_hasMatch, buff);
+	tree->Branch("pv_mc_matchQuality", "std::vector<std::vector<float> >", &pv_mc_matchQuality, buff);
    
-   tree->Branch("pv_mc_hasMatch", "std::vector<bool>", &pv_mc_hasMatch, buff);
-   tree->Branch("pv_mc_matchQuality", "std::vector<std::vector<float> >", &pv_mc_matchQuality, buff);
-   
-   tree->Branch("pv_mc_isFake", "std::vector<std::vector<bool> >", &pv_mc_isFake, buff);
-   tree->Branch("pv_mc_isPrimaryVertex", "std::vector<std::vector<bool> >", &pv_mc_isPrimaryVertex, buff);
-   tree->Branch("pv_mc_isSecondaryVertex", "std::vector<std::vector<bool> >", &pv_mc_isSecondaryVertex, buff);
-   tree->Branch("pv_mc_isTertiaryVertex", "std::vector<std::vector<bool> >", &pv_mc_isTertiaryVertex, buff);
-   tree->Branch("pv_mc_isSignalEvent", "std::vector<std::vector<bool> >", &pv_mc_isSignalEvent, buff);
-   tree->Branch("pv_mc_isBWeakDecay", "std::vector<std::vector<bool> >", &pv_mc_isBWeakDecay, buff);
-   tree->Branch("pv_mc_isCWeakDecay", "std::vector<std::vector<bool> >", &pv_mc_isCWeakDecay, buff);
-   tree->Branch("pv_mc_isTauDecay", "std::vector<std::vector<bool> >", &pv_mc_isTauDecay, buff);
-   tree->Branch("pv_mc_isKsDecay", "std::vector<std::vector<bool> >", &pv_mc_isKsDecay, buff);
-   tree->Branch("pv_mc_isLambdaDecay", "std::vector<std::vector<bool> >", &pv_mc_isLambdaDecay, buff);
-   tree->Branch("pv_mc_isJpsiDecay", "std::vector<std::vector<bool> >", &pv_mc_isJpsiDecay, buff);
-   tree->Branch("pv_mc_isXiDecay", "std::vector<std::vector<bool> >", &pv_mc_isXiDecay, buff);
-   tree->Branch("pv_mc_isOmegaDecay", "std::vector<std::vector<bool> >", &pv_mc_isOmegaDecay, buff);
-   tree->Branch("pv_mc_isSigmaPlusDecay", "std::vector<std::vector<bool> >", &pv_mc_isSigmaPlusDecay, buff);
-   tree->Branch("pv_mc_isSigmaMinusDecay", "std::vector<std::vector<bool> >", &pv_mc_isSigmaMinusDecay, buff);
-   tree->Branch("pv_mc_isLongLivedDecay", "std::vector<std::vector<bool> >", &pv_mc_isLongLivedDecay, buff);
-   
-   tree->Branch("pv_mc_isKnownProcess", "std::vector<std::vector<bool> >", &pv_mc_isKnownProcess, buff);
-   tree->Branch("pv_mc_isUndefinedProcess", "std::vector<std::vector<bool> >", &pv_mc_isUndefinedProcess, buff);
-   tree->Branch("pv_mc_isUnknownProcess", "std::vector<std::vector<bool> >", &pv_mc_isUnknownProcess, buff);
-   tree->Branch("pv_mc_isPrimaryProcess", "std::vector<std::vector<bool> >", &pv_mc_isPrimaryProcess, buff);
-   tree->Branch("pv_mc_isHadronicProcess", "std::vector<std::vector<bool> >", &pv_mc_isHadronicProcess, buff);
-   tree->Branch("pv_mc_isDecayProcess", "std::vector<std::vector<bool> >", &pv_mc_isDecayProcess, buff);
-   tree->Branch("pv_mc_isComptonProcess", "std::vector<std::vector<bool> >", &pv_mc_isComptonProcess, buff);
-   tree->Branch("pv_mc_isAnnihilationProcess", "std::vector<std::vector<bool> >", &pv_mc_isAnnihilationProcess, buff);
-   tree->Branch("pv_mc_isEIoniProcess", "std::vector<std::vector<bool> >", &pv_mc_isEIoniProcess, buff);
-   tree->Branch("pv_mc_isHIoniProcess", "std::vector<std::vector<bool> >", &pv_mc_isHIoniProcess, buff);
-   tree->Branch("pv_mc_isMuIoniProcess", "std::vector<std::vector<bool> >", &pv_mc_isMuIoniProcess, buff);
-   tree->Branch("pv_mc_isPhotonProcess", "std::vector<std::vector<bool> >", &pv_mc_isPhotonProcess, buff);
-   tree->Branch("pv_mc_isMuPairProdProcess", "std::vector<std::vector<bool> >", &pv_mc_isMuPairProdProcess, buff);
-   tree->Branch("pv_mc_isConversionsProcess", "std::vector<std::vector<bool> >", &pv_mc_isConversionsProcess, buff);
-   tree->Branch("pv_mc_isEBremProcess", "std::vector<std::vector<bool> >", &pv_mc_isEBremProcess, buff);
-   tree->Branch("pv_mc_isSynchrotronRadiationProcess", "std::vector<std::vector<bool> >", &pv_mc_isSynchrotronRadiationProcess, buff);
-   tree->Branch("pv_mc_isMuBremProcess", "std::vector<std::vector<bool> >", &pv_mc_isMuBremProcess, buff);
-   tree->Branch("pv_mc_isMuNuclProcess", "std::vector<std::vector<bool> >", &pv_mc_isMuNuclProcess, buff);
-   tree->Branch("pv_mc_isUnknown", "std::vector<std::vector<bool> >", &pv_mc_isUnknown, buff);
-   
-   tree->Branch("pv_mc_inVolume", "std::vector<std::vector<bool> >", &pv_mc_inVolume, buff);
-   tree->Branch("pv_mc_x", "std::vector<std::vector<float> >", &pv_mc_x, buff);
-   tree->Branch("pv_mc_y", "std::vector<std::vector<float> >", &pv_mc_y, buff);
-   tree->Branch("pv_mc_z", "std::vector<std::vector<float> >", &pv_mc_z, buff);
-   tree->Branch("pv_mc_t", "std::vector<std::vector<float> >", &pv_mc_t, buff);
-   tree->Branch("pv_mc_nGenVtx", "std::vector<std::vector<int> >", &pv_mc_nGenVtx, buff);
-   tree->Branch("pv_mc_nSimVtx", "std::vector<std::vector<int> >", &pv_mc_nSimVtx, buff);
-   tree->Branch("pv_mc_nDaughterTracks", "std::vector<std::vector<int> >", &pv_mc_nDaughterTracks, buff);
-   tree->Branch("pv_mc_nSourceTracks", "std::vector<std::vector<int> >", &pv_mc_nSourceTracks, buff);
+	tree->Branch("pv_mc_isFake", "std::vector<std::vector<bool> >", &pv_mc_isFake, buff);
+	tree->Branch("pv_mc_isPrimaryVertex", "std::vector<std::vector<bool> >", &pv_mc_isPrimaryVertex, buff);
+	tree->Branch("pv_mc_isSecondaryVertex", "std::vector<std::vector<bool> >", &pv_mc_isSecondaryVertex, buff);
+	tree->Branch("pv_mc_isTertiaryVertex", "std::vector<std::vector<bool> >", &pv_mc_isTertiaryVertex, buff);
+	tree->Branch("pv_mc_isSignalEvent", "std::vector<std::vector<bool> >", &pv_mc_isSignalEvent, buff);
+	tree->Branch("pv_mc_isBWeakDecay", "std::vector<std::vector<bool> >", &pv_mc_isBWeakDecay, buff);
+	tree->Branch("pv_mc_isCWeakDecay", "std::vector<std::vector<bool> >", &pv_mc_isCWeakDecay, buff);
+	tree->Branch("pv_mc_isTauDecay", "std::vector<std::vector<bool> >", &pv_mc_isTauDecay, buff);
+	tree->Branch("pv_mc_isKsDecay", "std::vector<std::vector<bool> >", &pv_mc_isKsDecay, buff);
+	tree->Branch("pv_mc_isLambdaDecay", "std::vector<std::vector<bool> >", &pv_mc_isLambdaDecay, buff);
+	tree->Branch("pv_mc_isJpsiDecay", "std::vector<std::vector<bool> >", &pv_mc_isJpsiDecay, buff);
+	tree->Branch("pv_mc_isXiDecay", "std::vector<std::vector<bool> >", &pv_mc_isXiDecay, buff);
+	tree->Branch("pv_mc_isOmegaDecay", "std::vector<std::vector<bool> >", &pv_mc_isOmegaDecay, buff);
+	tree->Branch("pv_mc_isSigmaPlusDecay", "std::vector<std::vector<bool> >", &pv_mc_isSigmaPlusDecay, buff);
+	tree->Branch("pv_mc_isSigmaMinusDecay", "std::vector<std::vector<bool> >", &pv_mc_isSigmaMinusDecay, buff);
+	tree->Branch("pv_mc_isLongLivedDecay", "std::vector<std::vector<bool> >", &pv_mc_isLongLivedDecay, buff);
+	
+	tree->Branch("pv_mc_isKnownProcess", "std::vector<std::vector<bool> >", &pv_mc_isKnownProcess, buff);
+	tree->Branch("pv_mc_isUndefinedProcess", "std::vector<std::vector<bool> >", &pv_mc_isUndefinedProcess, buff);
+	tree->Branch("pv_mc_isUnknownProcess", "std::vector<std::vector<bool> >", &pv_mc_isUnknownProcess, buff);
+	tree->Branch("pv_mc_isPrimaryProcess", "std::vector<std::vector<bool> >", &pv_mc_isPrimaryProcess, buff);
+	tree->Branch("pv_mc_isHadronicProcess", "std::vector<std::vector<bool> >", &pv_mc_isHadronicProcess, buff);
+	tree->Branch("pv_mc_isDecayProcess", "std::vector<std::vector<bool> >", &pv_mc_isDecayProcess, buff);
+	tree->Branch("pv_mc_isComptonProcess", "std::vector<std::vector<bool> >", &pv_mc_isComptonProcess, buff);
+	tree->Branch("pv_mc_isAnnihilationProcess", "std::vector<std::vector<bool> >", &pv_mc_isAnnihilationProcess, buff);
+	tree->Branch("pv_mc_isEIoniProcess", "std::vector<std::vector<bool> >", &pv_mc_isEIoniProcess, buff);
+	tree->Branch("pv_mc_isHIoniProcess", "std::vector<std::vector<bool> >", &pv_mc_isHIoniProcess, buff);
+	tree->Branch("pv_mc_isMuIoniProcess", "std::vector<std::vector<bool> >", &pv_mc_isMuIoniProcess, buff);
+	tree->Branch("pv_mc_isPhotonProcess", "std::vector<std::vector<bool> >", &pv_mc_isPhotonProcess, buff);
+	tree->Branch("pv_mc_isMuPairProdProcess", "std::vector<std::vector<bool> >", &pv_mc_isMuPairProdProcess, buff);
+	tree->Branch("pv_mc_isConversionsProcess", "std::vector<std::vector<bool> >", &pv_mc_isConversionsProcess, buff);
+	tree->Branch("pv_mc_isEBremProcess", "std::vector<std::vector<bool> >", &pv_mc_isEBremProcess, buff);
+	tree->Branch("pv_mc_isSynchrotronRadiationProcess", "std::vector<std::vector<bool> >", &pv_mc_isSynchrotronRadiationProcess, buff);
+	tree->Branch("pv_mc_isMuBremProcess", "std::vector<std::vector<bool> >", &pv_mc_isMuBremProcess, buff);
+	tree->Branch("pv_mc_isMuNuclProcess", "std::vector<std::vector<bool> >", &pv_mc_isMuNuclProcess, buff);
+	tree->Branch("pv_mc_isUnknown", "std::vector<std::vector<bool> >", &pv_mc_isUnknown, buff);
+	
+	tree->Branch("pv_mc_inVolume", "std::vector<std::vector<bool> >", &pv_mc_inVolume, buff);
+	tree->Branch("pv_mc_x", "std::vector<std::vector<float> >", &pv_mc_x, buff);
+	tree->Branch("pv_mc_y", "std::vector<std::vector<float> >", &pv_mc_y, buff);
+	tree->Branch("pv_mc_z", "std::vector<std::vector<float> >", &pv_mc_z, buff);
+	tree->Branch("pv_mc_t", "std::vector<std::vector<float> >", &pv_mc_t, buff);
+	tree->Branch("pv_mc_nGenVtx", "std::vector<std::vector<int> >", &pv_mc_nGenVtx, buff);
+	tree->Branch("pv_mc_nSimVtx", "std::vector<std::vector<int> >", &pv_mc_nSimVtx, buff);
+	tree->Branch("pv_mc_nDaughterTracks", "std::vector<std::vector<int> >", &pv_mc_nDaughterTracks, buff);
+	tree->Branch("pv_mc_nSourceTracks", "std::vector<std::vector<int> >", &pv_mc_nSourceTracks, buff);
+     }   
    
    tree->Branch("pv_IsValid_p1", "std::vector<bool>", &pv_IsValid_p1, buff);
    tree->Branch("pv_IsFake_p1", "std::vector<bool>", &pv_IsFake_p1, buff);
@@ -1188,103 +1314,106 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("pfjet_phi", "std::vector<float>", &pfjet_phi, buff);
    tree->Branch("pfjet_E", "std::vector<float>", &pfjet_E, buff);
 
-   tree->Branch("trk_mc_hasMatch", "std::vector<bool>", &trk_mc_hasMatch, buff);
-   tree->Branch("trk_mc_matchQuality", "std::vector<std::vector<float> >", &trk_mc_matchQuality, buff);
+   if( !runOnData ) 
+     {   
+	tree->Branch("trk_mc_hasMatch", "std::vector<bool>", &trk_mc_hasMatch, buff);
+	tree->Branch("trk_mc_matchQuality", "std::vector<std::vector<float> >", &trk_mc_matchQuality, buff);
    
-   tree->Branch("trk_mc_pdgId", "std::vector<std::vector<int> >", &trk_mc_pdgId, buff);
-   tree->Branch("trk_mc_origin", "std::vector<std::vector<int> >", &trk_mc_origin, buff);
-   tree->Branch("trk_mc_status", "std::vector<std::vector<int> >", &trk_mc_status, buff);
-   
-   tree->Branch("trk_mc_pt", "std::vector<std::vector<float> >", &trk_mc_pt, buff);
-   tree->Branch("trk_mc_px", "std::vector<std::vector<float> >", &trk_mc_px, buff);
-   tree->Branch("trk_mc_py", "std::vector<std::vector<float> >", &trk_mc_py, buff);
-   tree->Branch("trk_mc_pz", "std::vector<std::vector<float> >", &trk_mc_pz, buff);
-   tree->Branch("trk_mc_E", "std::vector<std::vector<float> >", &trk_mc_E, buff);
-   tree->Branch("trk_mc_p", "std::vector<std::vector<float> >", &trk_mc_p, buff);
-   tree->Branch("trk_mc_eta", "std::vector<std::vector<float> >", &trk_mc_eta, buff);
-   tree->Branch("trk_mc_phi", "std::vector<std::vector<float> >", &trk_mc_phi, buff);
-   
-   tree->Branch("trk_mc_numberOfHits", "std::vector<std::vector<int> >", &trk_mc_numberOfHits, buff);
-   tree->Branch("trk_mc_numberOfTrackerHits", "std::vector<std::vector<int> >", &trk_mc_numberOfTrackerHits, buff);
-   tree->Branch("trk_mc_numberOfTrackerLayers", "std::vector<std::vector<int> >", &trk_mc_numberOfTrackerLayers, buff);
-   
-   tree->Branch("trk_mc_dxy_center", "std::vector<std::vector<float> >", &trk_mc_dxy_center, buff);
-   tree->Branch("trk_mc_dz_center", "std::vector<std::vector<float> >", &trk_mc_dz_center, buff);
-   tree->Branch("trk_mc_dxy_pv", "std::vector<std::vector<float> >", &trk_mc_dxy_pv, buff);
-   tree->Branch("trk_mc_dz_pv", "std::vector<std::vector<float> >", &trk_mc_dz_pv, buff);
-   tree->Branch("trk_mc_dxy_bs", "std::vector<std::vector<float> >", &trk_mc_dxy_bs, buff);
-   tree->Branch("trk_mc_dz_bs", "std::vector<std::vector<float> >", &trk_mc_dz_bs, buff);
+	tree->Branch("trk_mc_pdgId", "std::vector<std::vector<int> >", &trk_mc_pdgId, buff);
+	tree->Branch("trk_mc_origin", "std::vector<std::vector<int> >", &trk_mc_origin, buff);
+	tree->Branch("trk_mc_status", "std::vector<std::vector<int> >", &trk_mc_status, buff);
+	
+	tree->Branch("trk_mc_pt", "std::vector<std::vector<float> >", &trk_mc_pt, buff);
+	tree->Branch("trk_mc_px", "std::vector<std::vector<float> >", &trk_mc_px, buff);
+	tree->Branch("trk_mc_py", "std::vector<std::vector<float> >", &trk_mc_py, buff);
+	tree->Branch("trk_mc_pz", "std::vector<std::vector<float> >", &trk_mc_pz, buff);
+	tree->Branch("trk_mc_E", "std::vector<std::vector<float> >", &trk_mc_E, buff);
+	tree->Branch("trk_mc_p", "std::vector<std::vector<float> >", &trk_mc_p, buff);
+	tree->Branch("trk_mc_eta", "std::vector<std::vector<float> >", &trk_mc_eta, buff);
+	tree->Branch("trk_mc_phi", "std::vector<std::vector<float> >", &trk_mc_phi, buff);
+	
+	tree->Branch("trk_mc_numberOfHits", "std::vector<std::vector<int> >", &trk_mc_numberOfHits, buff);
+	tree->Branch("trk_mc_numberOfTrackerHits", "std::vector<std::vector<int> >", &trk_mc_numberOfTrackerHits, buff);
+	tree->Branch("trk_mc_numberOfTrackerLayers", "std::vector<std::vector<int> >", &trk_mc_numberOfTrackerLayers, buff);
+	
+	tree->Branch("trk_mc_dxy_center", "std::vector<std::vector<float> >", &trk_mc_dxy_center, buff);
+	tree->Branch("trk_mc_dz_center", "std::vector<std::vector<float> >", &trk_mc_dz_center, buff);
+	tree->Branch("trk_mc_dxy_pv", "std::vector<std::vector<float> >", &trk_mc_dxy_pv, buff);
+	tree->Branch("trk_mc_dz_pv", "std::vector<std::vector<float> >", &trk_mc_dz_pv, buff);
+	tree->Branch("trk_mc_dxy_bs", "std::vector<std::vector<float> >", &trk_mc_dxy_bs, buff);
+	tree->Branch("trk_mc_dz_bs", "std::vector<std::vector<float> >", &trk_mc_dz_bs, buff);
+	
+	tree->Branch("trk_mc_dxy_tp_center", "std::vector<std::vector<float> >", &trk_mc_dxy_tp_center, buff);
+	tree->Branch("trk_mc_dz_tp_center", "std::vector<std::vector<float> >", &trk_mc_dz_tp_center, buff);
+	tree->Branch("trk_mc_dxy_tp_pv", "std::vector<std::vector<float> >", &trk_mc_dxy_tp_pv, buff);
+	tree->Branch("trk_mc_dz_tp_pv", "std::vector<std::vector<float> >", &trk_mc_dz_tp_pv, buff);
+	tree->Branch("trk_mc_dxy_tp_bs", "std::vector<std::vector<float> >", &trk_mc_dxy_tp_bs, buff);
+	tree->Branch("trk_mc_dz_tp_bs", "std::vector<std::vector<float> >", &trk_mc_dz_tp_bs, buff);
+	
+	tree->Branch("trk_mc_vtx_x", "std::vector<std::vector<float> >", &trk_mc_vtx_x, buff);
+	tree->Branch("trk_mc_vtx_y", "std::vector<std::vector<float> >", &trk_mc_vtx_y, buff);
+	tree->Branch("trk_mc_vtx_z", "std::vector<std::vector<float> >", &trk_mc_vtx_z, buff);
+	tree->Branch("trk_mc_vtx_pca_x", "std::vector<std::vector<float> >", &trk_mc_vtx_pca_x, buff);
+	tree->Branch("trk_mc_vtx_pca_y", "std::vector<std::vector<float> >", &trk_mc_vtx_pca_y, buff);
+	tree->Branch("trk_mc_vtx_pca_z", "std::vector<std::vector<float> >", &trk_mc_vtx_pca_z, buff);
+	
+	tree->Branch("trk_mc_isFake", "std::vector<std::vector<bool> >", &trk_mc_isFake, buff);
+	tree->Branch("trk_mc_isBad", "std::vector<std::vector<bool> >", &trk_mc_isBad, buff);
+	tree->Branch("trk_mc_isBadInnerHits", "std::vector<std::vector<bool> >", &trk_mc_isBadInnerHits, buff);
+	tree->Branch("trk_mc_isSharedInnerHits", "std::vector<std::vector<bool> >", &trk_mc_isSharedInnerHits, buff);
+	tree->Branch("trk_mc_isSignalEvent", "std::vector<std::vector<bool> >", &trk_mc_isSignalEvent, buff);
+	tree->Branch("trk_mc_isTrackerSimHits", "std::vector<std::vector<bool> >", &trk_mc_isTrackerSimHits, buff);
+	tree->Branch("trk_mc_isBottom", "std::vector<std::vector<bool> >", &trk_mc_isBottom, buff);
+	tree->Branch("trk_mc_isCharm", "std::vector<std::vector<bool> >", &trk_mc_isCharm, buff);
+	tree->Branch("trk_mc_isLight", "std::vector<std::vector<bool> >", &trk_mc_isLight, buff);
+	tree->Branch("trk_mc_isMuon", "std::vector<std::vector<bool> >", &trk_mc_isMuon, buff);
+	
+	tree->Branch("trk_mc_isBWeakDecay", "std::vector<std::vector<bool> >", &trk_mc_isBWeakDecay, buff);
+	tree->Branch("trk_mc_isCWeakDecay", "std::vector<std::vector<bool> >", &trk_mc_isCWeakDecay, buff);
+	tree->Branch("trk_mc_isChargePionDecay", "std::vector<std::vector<bool> >", &trk_mc_isChargePionDecay, buff);
+	tree->Branch("trk_mc_isChargeKaonDecay", "std::vector<std::vector<bool> >", &trk_mc_isChargeKaonDecay, buff);
+	tree->Branch("trk_mc_isTauDecay", "std::vector<std::vector<bool> >", &trk_mc_isTauDecay, buff);
+	tree->Branch("trk_mc_isKsDecay", "std::vector<std::vector<bool> >", &trk_mc_isKsDecay, buff);
+	tree->Branch("trk_mc_isLambdaDecay", "std::vector<std::vector<bool> >", &trk_mc_isLambdaDecay, buff);
+	tree->Branch("trk_mc_isJpsiDecay", "std::vector<std::vector<bool> >", &trk_mc_isJpsiDecay, buff);
+	tree->Branch("trk_mc_isXiDecay", "std::vector<std::vector<bool> >", &trk_mc_isXiDecay, buff);
+	tree->Branch("trk_mc_isOmegaDecay", "std::vector<std::vector<bool> >", &trk_mc_isOmegaDecay, buff);
+	tree->Branch("trk_mc_isSigmaPlusDecay", "std::vector<std::vector<bool> >", &trk_mc_isSigmaPlusDecay, buff);
+	tree->Branch("trk_mc_isSigmaMinusDecay", "std::vector<std::vector<bool> >", &trk_mc_isSigmaMinusDecay, buff);
+	tree->Branch("trk_mc_isLongLivedDecay", "std::vector<std::vector<bool> >", &trk_mc_isLongLivedDecay, buff);
+	
+	tree->Branch("trk_mc_isKnownProcess", "std::vector<std::vector<bool> >", &trk_mc_isKnownProcess, buff);
+	tree->Branch("trk_mc_isUndefinedProcess", "std::vector<std::vector<bool> >", &trk_mc_isUndefinedProcess, buff);
+	tree->Branch("trk_mc_isUnknownProcess", "std::vector<std::vector<bool> >", &trk_mc_isUnknownProcess, buff);
+	tree->Branch("trk_mc_isPrimaryProcess", "std::vector<std::vector<bool> >", &trk_mc_isPrimaryProcess, buff);
+	tree->Branch("trk_mc_isHadronicProcess", "std::vector<std::vector<bool> >", &trk_mc_isHadronicProcess, buff);
+	tree->Branch("trk_mc_isDecayProcess", "std::vector<std::vector<bool> >", &trk_mc_isDecayProcess, buff);
+	tree->Branch("trk_mc_isComptonProcess", "std::vector<std::vector<bool> >", &trk_mc_isComptonProcess, buff);
+	tree->Branch("trk_mc_isAnnihilationProcess", "std::vector<std::vector<bool> >", &trk_mc_isAnnihilationProcess, buff);
+	tree->Branch("trk_mc_isEIoniProcess", "std::vector<std::vector<bool> >", &trk_mc_isEIoniProcess, buff);
+	tree->Branch("trk_mc_isHIoniProcess", "std::vector<std::vector<bool> >", &trk_mc_isHIoniProcess, buff);
+	tree->Branch("trk_mc_isMuIoniProcess", "std::vector<std::vector<bool> >", &trk_mc_isMuIoniProcess, buff);
+	tree->Branch("trk_mc_isPhotonProcess", "std::vector<std::vector<bool> >", &trk_mc_isPhotonProcess, buff);
+	tree->Branch("trk_mc_isMuPairProdProcess", "std::vector<std::vector<bool> >", &trk_mc_isMuPairProdProcess, buff);
+	tree->Branch("trk_mc_isConversionsProcess", "std::vector<std::vector<bool> >", &trk_mc_isConversionsProcess, buff);
+	tree->Branch("trk_mc_isEBremProcess", "std::vector<std::vector<bool> >", &trk_mc_isEBremProcess, buff);
+	tree->Branch("trk_mc_isSynchrotronRadiationProcess", "std::vector<std::vector<bool> >", &trk_mc_isSynchrotronRadiationProcess, buff);
+	tree->Branch("trk_mc_isMuBremProcess", "std::vector<std::vector<bool> >", &trk_mc_isMuBremProcess, buff);
+	tree->Branch("trk_mc_isMuNuclProcess", "std::vector<std::vector<bool> >", &trk_mc_isMuNuclProcess, buff);
+	
+	tree->Branch("trk_mc_isFromBWeakDecayMuon", "std::vector<std::vector<bool> >", &trk_mc_isFromBWeakDecayMuon, buff);
+	tree->Branch("trk_mc_isFromCWeakDecayMuon", "std::vector<std::vector<bool> >", &trk_mc_isFromCWeakDecayMuon, buff);
+	tree->Branch("trk_mc_isDecayOnFlightMuon", "std::vector<std::vector<bool> >", &trk_mc_isDecayOnFlightMuon, buff);
+	tree->Branch("trk_mc_isFromChargePionMuon", "std::vector<std::vector<bool> >", &trk_mc_isFromChargePionMuon, buff);
+	tree->Branch("trk_mc_isFromChargeKaonMuon", "std::vector<std::vector<bool> >", &trk_mc_isFromChargeKaonMuon, buff);
+	
+	tree->Branch("trk_mc_isPrimaryVertex", "std::vector<std::vector<bool> >", &trk_mc_isPrimaryVertex, buff);
+	tree->Branch("trk_mc_isSecondaryVertex", "std::vector<std::vector<bool> >", &trk_mc_isSecondaryVertex, buff);
+	tree->Branch("trk_mc_isTertiaryVertex", "std::vector<std::vector<bool> >", &trk_mc_isTertiaryVertex, buff);
+	
+	tree->Branch("trk_mc_isUnknown", "std::vector<std::vector<bool> >", &trk_mc_isUnknown, buff);
+     }
 
-   tree->Branch("trk_mc_dxy_tp_center", "std::vector<std::vector<float> >", &trk_mc_dxy_tp_center, buff);
-   tree->Branch("trk_mc_dz_tp_center", "std::vector<std::vector<float> >", &trk_mc_dz_tp_center, buff);
-   tree->Branch("trk_mc_dxy_tp_pv", "std::vector<std::vector<float> >", &trk_mc_dxy_tp_pv, buff);
-   tree->Branch("trk_mc_dz_tp_pv", "std::vector<std::vector<float> >", &trk_mc_dz_tp_pv, buff);
-   tree->Branch("trk_mc_dxy_tp_bs", "std::vector<std::vector<float> >", &trk_mc_dxy_tp_bs, buff);
-   tree->Branch("trk_mc_dz_tp_bs", "std::vector<std::vector<float> >", &trk_mc_dz_tp_bs, buff);
-
-   tree->Branch("trk_mc_vtx_x", "std::vector<std::vector<float> >", &trk_mc_vtx_x, buff);
-   tree->Branch("trk_mc_vtx_y", "std::vector<std::vector<float> >", &trk_mc_vtx_y, buff);
-   tree->Branch("trk_mc_vtx_z", "std::vector<std::vector<float> >", &trk_mc_vtx_z, buff);
-   tree->Branch("trk_mc_vtx_pca_x", "std::vector<std::vector<float> >", &trk_mc_vtx_pca_x, buff);
-   tree->Branch("trk_mc_vtx_pca_y", "std::vector<std::vector<float> >", &trk_mc_vtx_pca_y, buff);
-   tree->Branch("trk_mc_vtx_pca_z", "std::vector<std::vector<float> >", &trk_mc_vtx_pca_z, buff);
-   
-   tree->Branch("trk_mc_isFake", "std::vector<std::vector<bool> >", &trk_mc_isFake, buff);
-   tree->Branch("trk_mc_isBad", "std::vector<std::vector<bool> >", &trk_mc_isBad, buff);
-   tree->Branch("trk_mc_isBadInnerHits", "std::vector<std::vector<bool> >", &trk_mc_isBadInnerHits, buff);
-   tree->Branch("trk_mc_isSharedInnerHits", "std::vector<std::vector<bool> >", &trk_mc_isSharedInnerHits, buff);
-   tree->Branch("trk_mc_isSignalEvent", "std::vector<std::vector<bool> >", &trk_mc_isSignalEvent, buff);
-   tree->Branch("trk_mc_isTrackerSimHits", "std::vector<std::vector<bool> >", &trk_mc_isTrackerSimHits, buff);
-   tree->Branch("trk_mc_isBottom", "std::vector<std::vector<bool> >", &trk_mc_isBottom, buff);
-   tree->Branch("trk_mc_isCharm", "std::vector<std::vector<bool> >", &trk_mc_isCharm, buff);
-   tree->Branch("trk_mc_isLight", "std::vector<std::vector<bool> >", &trk_mc_isLight, buff);
-   tree->Branch("trk_mc_isMuon", "std::vector<std::vector<bool> >", &trk_mc_isMuon, buff);
-   
-   tree->Branch("trk_mc_isBWeakDecay", "std::vector<std::vector<bool> >", &trk_mc_isBWeakDecay, buff);
-   tree->Branch("trk_mc_isCWeakDecay", "std::vector<std::vector<bool> >", &trk_mc_isCWeakDecay, buff);
-   tree->Branch("trk_mc_isChargePionDecay", "std::vector<std::vector<bool> >", &trk_mc_isChargePionDecay, buff);
-   tree->Branch("trk_mc_isChargeKaonDecay", "std::vector<std::vector<bool> >", &trk_mc_isChargeKaonDecay, buff);
-   tree->Branch("trk_mc_isTauDecay", "std::vector<std::vector<bool> >", &trk_mc_isTauDecay, buff);
-   tree->Branch("trk_mc_isKsDecay", "std::vector<std::vector<bool> >", &trk_mc_isKsDecay, buff);
-   tree->Branch("trk_mc_isLambdaDecay", "std::vector<std::vector<bool> >", &trk_mc_isLambdaDecay, buff);
-   tree->Branch("trk_mc_isJpsiDecay", "std::vector<std::vector<bool> >", &trk_mc_isJpsiDecay, buff);
-   tree->Branch("trk_mc_isXiDecay", "std::vector<std::vector<bool> >", &trk_mc_isXiDecay, buff);
-   tree->Branch("trk_mc_isOmegaDecay", "std::vector<std::vector<bool> >", &trk_mc_isOmegaDecay, buff);
-   tree->Branch("trk_mc_isSigmaPlusDecay", "std::vector<std::vector<bool> >", &trk_mc_isSigmaPlusDecay, buff);
-   tree->Branch("trk_mc_isSigmaMinusDecay", "std::vector<std::vector<bool> >", &trk_mc_isSigmaMinusDecay, buff);
-   tree->Branch("trk_mc_isLongLivedDecay", "std::vector<std::vector<bool> >", &trk_mc_isLongLivedDecay, buff);
-   
-   tree->Branch("trk_mc_isKnownProcess", "std::vector<std::vector<bool> >", &trk_mc_isKnownProcess, buff);
-   tree->Branch("trk_mc_isUndefinedProcess", "std::vector<std::vector<bool> >", &trk_mc_isUndefinedProcess, buff);
-   tree->Branch("trk_mc_isUnknownProcess", "std::vector<std::vector<bool> >", &trk_mc_isUnknownProcess, buff);
-   tree->Branch("trk_mc_isPrimaryProcess", "std::vector<std::vector<bool> >", &trk_mc_isPrimaryProcess, buff);
-   tree->Branch("trk_mc_isHadronicProcess", "std::vector<std::vector<bool> >", &trk_mc_isHadronicProcess, buff);
-   tree->Branch("trk_mc_isDecayProcess", "std::vector<std::vector<bool> >", &trk_mc_isDecayProcess, buff);
-   tree->Branch("trk_mc_isComptonProcess", "std::vector<std::vector<bool> >", &trk_mc_isComptonProcess, buff);
-   tree->Branch("trk_mc_isAnnihilationProcess", "std::vector<std::vector<bool> >", &trk_mc_isAnnihilationProcess, buff);
-   tree->Branch("trk_mc_isEIoniProcess", "std::vector<std::vector<bool> >", &trk_mc_isEIoniProcess, buff);
-   tree->Branch("trk_mc_isHIoniProcess", "std::vector<std::vector<bool> >", &trk_mc_isHIoniProcess, buff);
-   tree->Branch("trk_mc_isMuIoniProcess", "std::vector<std::vector<bool> >", &trk_mc_isMuIoniProcess, buff);
-   tree->Branch("trk_mc_isPhotonProcess", "std::vector<std::vector<bool> >", &trk_mc_isPhotonProcess, buff);
-   tree->Branch("trk_mc_isMuPairProdProcess", "std::vector<std::vector<bool> >", &trk_mc_isMuPairProdProcess, buff);
-   tree->Branch("trk_mc_isConversionsProcess", "std::vector<std::vector<bool> >", &trk_mc_isConversionsProcess, buff);
-   tree->Branch("trk_mc_isEBremProcess", "std::vector<std::vector<bool> >", &trk_mc_isEBremProcess, buff);
-   tree->Branch("trk_mc_isSynchrotronRadiationProcess", "std::vector<std::vector<bool> >", &trk_mc_isSynchrotronRadiationProcess, buff);
-   tree->Branch("trk_mc_isMuBremProcess", "std::vector<std::vector<bool> >", &trk_mc_isMuBremProcess, buff);
-   tree->Branch("trk_mc_isMuNuclProcess", "std::vector<std::vector<bool> >", &trk_mc_isMuNuclProcess, buff);
-   
-   tree->Branch("trk_mc_isFromBWeakDecayMuon", "std::vector<std::vector<bool> >", &trk_mc_isFromBWeakDecayMuon, buff);
-   tree->Branch("trk_mc_isFromCWeakDecayMuon", "std::vector<std::vector<bool> >", &trk_mc_isFromCWeakDecayMuon, buff);
-   tree->Branch("trk_mc_isDecayOnFlightMuon", "std::vector<std::vector<bool> >", &trk_mc_isDecayOnFlightMuon, buff);
-   tree->Branch("trk_mc_isFromChargePionMuon", "std::vector<std::vector<bool> >", &trk_mc_isFromChargePionMuon, buff);
-   tree->Branch("trk_mc_isFromChargeKaonMuon", "std::vector<std::vector<bool> >", &trk_mc_isFromChargeKaonMuon, buff);
-   
-   tree->Branch("trk_mc_isPrimaryVertex", "std::vector<std::vector<bool> >", &trk_mc_isPrimaryVertex, buff);
-   tree->Branch("trk_mc_isSecondaryVertex", "std::vector<std::vector<bool> >", &trk_mc_isSecondaryVertex, buff);
-   tree->Branch("trk_mc_isTertiaryVertex", "std::vector<std::vector<bool> >", &trk_mc_isTertiaryVertex, buff);
-   
-   tree->Branch("trk_mc_isUnknown", "std::vector<std::vector<bool> >", &trk_mc_isUnknown, buff);
-   
    tree->Branch("trk_pt", "std::vector<float>", &trk_pt, buff);
    tree->Branch("trk_px", "std::vector<float>", &trk_px, buff);
    tree->Branch("trk_py", "std::vector<float>", &trk_py, buff);
