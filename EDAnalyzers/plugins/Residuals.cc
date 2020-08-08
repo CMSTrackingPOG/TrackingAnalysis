@@ -901,6 +901,14 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			    pv_trk_mc_dxy_tp_pvunbiased.push_back( TrackingParticleIP::dxy(vertexTP, momentumTP, gp) * micron );
 			    pv_trk_mc_dz_tp_pvunbiased.push_back( TrackingParticleIP::dz(vertexTP, momentumTP, gp) * micron );
 			 }
+		       else
+			 {
+			    pv_trk_mc_dxy_pvunbiased.push_back( null );
+			    pv_trk_mc_dz_pvunbiased.push_back( null );
+			    
+			    pv_trk_mc_dxy_tp_pvunbiased.push_back( null );
+			    pv_trk_mc_dz_tp_pvunbiased.push_back( null );			    
+			 }
 		    }
 		  else
 		    {		       
