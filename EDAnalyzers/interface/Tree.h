@@ -219,6 +219,9 @@ class ResTree
    std::vector<std::vector<float> > pv_trk_d0Err;
    std::vector<std::vector<float> > pv_trk_dzErr;
    
+   std::vector<std::vector<float> > pv_trk_d0_tv;
+   std::vector<std::vector<float> > pv_trk_dz_tv;
+   
    std::vector<bool> pv_mc_hasMatch;
    std::vector<std::vector<float> >  pv_mc_matchQuality;
    std::vector<std::vector<bool> > pv_mc_isFake;
@@ -472,6 +475,9 @@ class ResTree
    std::vector<float> trk_d0_pv_NoRefit;
    std::vector<float> trk_dz_pv_NoRefit;
 
+   std::vector<float> trk_d0_tv;
+   std::vector<float> trk_dz_tv;
+   
    // Tracks from TrackJets
    
    std::vector<bool> trk_jet_found;

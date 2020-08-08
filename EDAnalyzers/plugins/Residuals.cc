@@ -810,6 +810,9 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<float> pv_trk_d0Err;
 	std::vector<float> pv_trk_dzErr;
 	
+	std::vector<float> pv_trk_d0_tv;
+	std::vector<float> pv_trk_dz_tv;
+	
 	TrackCollection initPVTkCollection;
 	for( std::vector<reco::TransientTrack>::const_iterator it = vtxTracks.begin(); it != vtxTracks.end(); it++ )
 	  {
@@ -1016,6 +1019,19 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     pv_trk_d0Err.push_back( trk.d0Error() * micron );
 	     pv_trk_dzErr.push_back( trk.dzError() * micron );
 	     
+	     if( doTruth && !runOnData && ftree->pv_mc_hasMatch[ipv] )
+	       {
+		  Track::Point tvPosition = Track::Point((ftree->pv_mc_x[ipv][0])/micron, (ftree->pv_mc_y[ipv][0])/micron, (ftree->pv_mc_z[ipv][0])/micron);
+		  
+		  pv_trk_d0_tv.push_back( trk.dxy(tvPosition) * micron );
+		  pv_trk_dz_tv.push_back( trk.dz(tvPosition) * micron );
+	       }
+	     else
+	       {
+		  pv_trk_d0_tv.push_back( null );
+		  pv_trk_dz_tv.push_back( null );
+	       }
+	     
 	     iTrk++;
 	  }
 	if( nTracks ) pv_fracHighPurity /= float(nTracks);
@@ -1132,6 +1148,9 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_trk_dz_bs.push_back( pv_trk_dz_bs );
 	ftree->pv_trk_d0Err.push_back( pv_trk_d0Err );
 	ftree->pv_trk_dzErr.push_back( pv_trk_dzErr );
+	
+	ftree->pv_trk_d0_tv.push_back( pv_trk_d0_tv );
+	ftree->pv_trk_dz_tv.push_back( pv_trk_dz_tv );
      }   
 
    // Vertex split method
@@ -1738,6 +1757,19 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_d0_pv_NoRefit.push_back( itk->dxy(vtxH->front().position()) * micron );
 	ftree->trk_dz_pv_NoRefit.push_back( itk->dz(vtxH->front().position()) * micron );
 
+	if( doTruth && !runOnData && ftree->ev_nPV > 0 && ftree->pv_mc_hasMatch[0] )
+	  {
+	     Track::Point tvPosition = Track::Point((ftree->pv_mc_x[0][0])/micron, (ftree->pv_mc_y[0][0])/micron, (ftree->pv_mc_z[0][0])/micron);
+	     
+	     ftree->trk_d0_tv.push_back( itk->dxy(tvPosition) * micron );
+	     ftree->trk_dz_tv.push_back( itk->dz(tvPosition) * micron );
+	  }
+	else
+	  {
+	     ftree->trk_d0_tv.push_back( null );
+	     ftree->trk_dz_tv.push_back( null );
+	  }
+	
 /*	reco::TransientTrack tranitk = (*theB).build(*itk);
 
 	GlobalPoint pvPos(vtx.position().x(), vtx.position().y(), vtx.position().z());

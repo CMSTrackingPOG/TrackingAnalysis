@@ -214,6 +214,9 @@ void ResTree::Init()
 	pv_trk_dz_bs[i].clear();
 	pv_trk_d0Err[i].clear();
 	pv_trk_dzErr[i].clear();
+	
+	pv_trk_d0_tv[i].clear();
+	pv_trk_dz_tv[i].clear();
      }   
 
    pv_trk_weight.clear();
@@ -313,6 +316,9 @@ void ResTree::Init()
    pv_trk_dz_bs.clear();
    pv_trk_d0Err.clear();
    pv_trk_dzErr.clear();
+   
+   pv_trk_d0_tv.clear();
+   pv_trk_dz_tv.clear();
    
    pv_mc_hasMatch.clear();   
    int pv_mc_n = pv_mc_matchQuality.size();
@@ -720,6 +726,9 @@ void ResTree::Init()
    trk_dzErr.clear();
    trk_d0_pv_NoRefit.clear();
    trk_dz_pv_NoRefit.clear();
+   
+   trk_d0_tv.clear();
+   trk_dz_tv.clear();
 
    // Tracks from TrackJets
    
@@ -1088,6 +1097,9 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("pv_trk_d0Err", "std::vector<std::vector<float> >", &pv_trk_d0Err, buff);
    tree->Branch("pv_trk_dzErr", "std::vector<std::vector<float> >", &pv_trk_dzErr, buff);
    
+   tree->Branch("pv_trk_d0_tv", "std::vector<std::vector<float> >", &pv_trk_d0_tv, buff);
+   tree->Branch("pv_trk_dz_tv", "std::vector<std::vector<float> >", &pv_trk_dz_tv, buff);
+   
    tree->Branch("pv_mc_hasMatch", "std::vector<bool>", &pv_mc_hasMatch, buff);
    tree->Branch("pv_mc_matchQuality", "std::vector<std::vector<float> >", &pv_mc_matchQuality, buff);
    
@@ -1341,6 +1353,9 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("trk_dzErr", "std::vector<float>", &trk_dzErr, buff);
    tree->Branch("trk_d0_pv_NoRefit", "std::vector<float>", &trk_d0_pv_NoRefit, buff);
    tree->Branch("trk_dz_pv_NoRefit", "std::vector<float>", &trk_dz_pv_NoRefit, buff);
+   
+   tree->Branch("trk_d0_tv", "std::vector<float>", &trk_d0_tv, buff);
+   tree->Branch("trk_dz_tv", "std::vector<float>", &trk_dz_tv, buff);
 
    // Tracks from TrackJets
    
