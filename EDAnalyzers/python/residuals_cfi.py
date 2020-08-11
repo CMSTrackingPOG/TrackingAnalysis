@@ -82,11 +82,8 @@ residuals = cms.EDAnalyzer("Residuals",
 
                            # Event filter
                            EventScale = cms.int32(1),
-                           TrackScale = cms.int32(100),
-
-                           # Selection of vertices for split-vertex fit
-                           PVFitNTracksMin = cms.int32(3),
-                           PVFitNMax = cms.int32(1000),
+#                           TrackScale = cms.int32(100),
+                           TrackScale = cms.int32(1),
                            
                            # Vertex selection for MinBias trigger
                            ##VtxErrorXMin = cms.double(0.0020),

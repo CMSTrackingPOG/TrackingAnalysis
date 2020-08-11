@@ -185,9 +185,6 @@ class Residuals : public edm::EDAnalyzer
    int eventScale;
    int trackScale;
    
-   int PVFitNTracksMin;
-   int PVFitNMax;
-   
    TRandom3 *rnd;
    
    HLTConfigProvider hltConfig_;
@@ -263,9 +260,6 @@ Residuals::Residuals(const edm::ParameterSet& pset):
 
    eventScale = pset.getParameter<int>("EventScale");
    trackScale = pset.getParameter<int>("TrackScale");
-   
-   PVFitNTracksMin = pset.getParameter<int>("PVFitNTracksMin");
-   PVFitNMax = pset.getParameter<int>("PVFitNMax");
    
    runOnData = pset.getParameter<bool>("RunOnData");
    doTruth = pset.getParameter<bool>("DoTruth");
@@ -1452,8 +1446,6 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	stable_sort(vtxTracks.begin(), vtxTracks.end(), sortPt);
 	
 	int nTracks = pvr[ipv].tracksSize();
-	
-	if( nTracks < PVFitNTracksMin || int(ipv) > PVFitNMax ) break;
 
 	reco::TrackCollection vtxTkCollection1;
 	reco::TrackCollection vtxTkCollection2;
