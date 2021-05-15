@@ -33,17 +33,17 @@
 
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
-#include "SimTracker/Records/interface/TrackAssociatorRecord.h"
-#include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
-#include "SimTracker/TrackAssociation/interface/TrackingParticleIP.h"
-#include "SimDataFormats/TrackingAnalysis/interface/TrackingVertex.h"
-#include "SimDataFormats/Associations/interface/TrackToTrackingParticleAssociator.h"
-#include "SimTracker/TrackAssociation/plugins/ParametersDefinerForTPESProducer.h"
-#include "SimTracker/TrackAssociation/interface/ParametersDefinerForTP.h"
-#include "SimDataFormats/Associations/interface/VertexToTrackingVertexAssociator.h"
-#include "SimGeneral/HepPDTRecord/interface/ParticleDataTable.h"
-#include "SimTracker/TrackHistory/interface/VertexClassifier.h"
-#include "SimTracker/TrackHistory/interface/TrackClassifier.h"
+//#include "SimTracker/Records/interface/TrackAssociatorRecord.h"
+//#include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
+//#include "SimTracker/TrackAssociation/interface/TrackingParticleIP.h"
+//#include "SimDataFormats/TrackingAnalysis/interface/TrackingVertex.h"
+//#include "SimDataFormats/Associations/interface/TrackToTrackingParticleAssociator.h"
+//#include "SimTracker/TrackAssociation/plugins/ParametersDefinerForTPESProducer.h"
+//#include "SimTracker/TrackAssociation/interface/ParametersDefinerForTP.h"
+//#include "SimDataFormats/Associations/interface/VertexToTrackingVertexAssociator.h"
+//#include "SimGeneral/HepPDTRecord/interface/ParticleDataTable.h"
+//#include "SimTracker/TrackHistory/interface/VertexClassifier.h"
+//#include "SimTracker/TrackHistory/interface/TrackClassifier.h"
 
 #include "DataFormats/JetReco/interface/TrackJet.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
@@ -161,10 +161,10 @@ class Residuals : public edm::EDAnalyzer
    edm::EDGetTokenT< vector<reco::PFJet> > thePFJetsToken_;
    edm::EDGetTokenT<edm::TriggerResults> theTriggerBitsToken_;
    edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puInfoToken_;
-   edm::EDGetTokenT<reco::TrackToTrackingParticleAssociator> theTrackAssociatorToken_;
-   edm::EDGetTokenT<TrackingParticleCollection> theTrackingParticleToken_;
-   edm::EDGetTokenT<TrackingVertexCollection> theTrackingVertexToken_;
-   edm::EDGetTokenT<reco::VertexToTrackingVertexAssociator> theVertexAssociatorToken_;
+//   edm::EDGetTokenT<reco::TrackToTrackingParticleAssociator> theTrackAssociatorToken_;
+//   edm::EDGetTokenT<TrackingParticleCollection> theTrackingParticleToken_;
+//   edm::EDGetTokenT<TrackingVertexCollection> theTrackingVertexToken_;
+//   edm::EDGetTokenT<reco::VertexToTrackingVertexAssociator> theVertexAssociatorToken_;
 
    // --- track selection variables
    double tkMinPt;
@@ -190,8 +190,8 @@ class Residuals : public edm::EDAnalyzer
    HLTConfigProvider hltConfig_;
    HLTPrescaleProvider hltPrescale_;
    
-   VertexClassifier vtxClassifier_;
-   TrackClassifier trkClassifier_;
+//   VertexClassifier vtxClassifier_;
+//   TrackClassifier trkClassifier_;
    
    const edm::Service<TFileService> fs;
    ResTree* ftree;
@@ -200,9 +200,9 @@ class Residuals : public edm::EDAnalyzer
 };
 
 Residuals::Residuals(const edm::ParameterSet& pset):
-   hltPrescale_(pset, consumesCollector(), *this),
-   vtxClassifier_(pset, consumesCollector()),
-   trkClassifier_(pset, consumesCollector())
+   hltPrescale_(pset, consumesCollector(), *this)
+//   vtxClassifier_(pset, consumesCollector()),
+//   trkClassifier_(pset, consumesCollector())
 {
    edm::InputTag TrackCollectionTag_ = pset.getParameter<edm::InputTag>("TrackLabel");
    theTracksToken_= consumes<reco::TrackCollection>(TrackCollectionTag_);
@@ -230,17 +230,17 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    edm::InputTag PUInfoTag_ = pset.getParameter<edm::InputTag>("puInfoLabel");
    puInfoToken_ = consumes<std::vector<PileupSummaryInfo> >(PUInfoTag_);
 
-   edm::InputTag TrackingParticleTag_ = pset.getParameter<edm::InputTag>("TrackingParticleLabel");
-   theTrackingParticleToken_ = consumes<TrackingParticleCollection>(TrackingParticleTag_);
+//   edm::InputTag TrackingParticleTag_ = pset.getParameter<edm::InputTag>("TrackingParticleLabel");
+//   theTrackingParticleToken_ = consumes<TrackingParticleCollection>(TrackingParticleTag_);
 
-   edm::InputTag TrackingVertexTag_ = pset.getParameter<edm::InputTag>("TrackingVertexLabel");
-   theTrackingVertexToken_ = consumes<TrackingVertexCollection>(TrackingVertexTag_);
+//   edm::InputTag TrackingVertexTag_ = pset.getParameter<edm::InputTag>("TrackingVertexLabel");
+//   theTrackingVertexToken_ = consumes<TrackingVertexCollection>(TrackingVertexTag_);
    
-   edm::InputTag TrackAssociatorTag_ = pset.getParameter<edm::InputTag>("TrackAssociatorLabel");
-   theTrackAssociatorToken_ = consumes<reco::TrackToTrackingParticleAssociator>(TrackAssociatorTag_);
+//   edm::InputTag TrackAssociatorTag_ = pset.getParameter<edm::InputTag>("TrackAssociatorLabel");
+//   theTrackAssociatorToken_ = consumes<reco::TrackToTrackingParticleAssociator>(TrackAssociatorTag_);
    
-   edm::InputTag VertexAssociatorTag_ = pset.getParameter<edm::InputTag>("VertexAssociatorLabel");
-   theVertexAssociatorToken_ = consumes<reco::VertexToTrackingVertexAssociator>(VertexAssociatorTag_);
+//   edm::InputTag VertexAssociatorTag_ = pset.getParameter<edm::InputTag>("VertexAssociatorLabel");
+//   theVertexAssociatorToken_ = consumes<reco::VertexToTrackingVertexAssociator>(VertexAssociatorTag_);
    
    beamSpotConfig = pset.getParameter<std::string>("BeamSpotConfig");
    
@@ -473,7 +473,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ftree->bs_emittanceY = pvbeamspot->emittanceY();
    ftree->bs_betaStar = pvbeamspot->betaStar();
    
-   Handle<TrackingVertexCollection> trackingVertex;
+/*   Handle<TrackingVertexCollection> trackingVertex;
    ESHandle<ParametersDefinerForTP> parametersDefinerTP;
    
    reco::RecoToSimCollection recSimCollTracks;
@@ -689,7 +689,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     ftree->pv_mc_nSourceTracks.push_back( pv_mc_nSourceTracks );
 	  }
      }   
-
+*/
    // Primary vertex   
    for( unsigned int ipv=0;ipv<pvr.size();ipv++ )
      {	     	   
@@ -976,7 +976,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  pv_trk_dz_pvunbiased_p2.push_back( trk.dz(vtxPositionUnbiased2) * micron );
 		  pv_trk_d0_bs_zpvunbiased_p2.push_back( trk.dxy(pvbeamspot->position(vtxPositionUnbiased2.z())) * micron );
 
-		  if( doTruth && !runOnData )
+/*		  if( doTruth && !runOnData )
 		    {
 		       RefToBase<Track> trkRef(trackViews, pv_trk_idx.back());
 		       
@@ -1018,7 +1018,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			    pv_trk_mc_dxy_tp_pvunbiased_p2.push_back( null );
 			    pv_trk_mc_dz_tp_pvunbiased_p2.push_back( null );
 			 }
-		    }		  
+		    }
 		  else
 		    {		       
 		       pv_trk_mc_dxy_pvunbiased_p1.push_back( null );
@@ -1030,7 +1030,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		       pv_trk_mc_dz_pvunbiased_p2.push_back( null );
 		       pv_trk_mc_dxy_tp_pvunbiased_p2.push_back( null );
 		       pv_trk_mc_dz_tp_pvunbiased_p2.push_back( null );
-		    }
+		    }*/
 	       }	     
 	     else
 	       {
@@ -1119,7 +1119,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  pv_trk_dz_pvunbiased.push_back( trk.dz(vtxPositionUnbiased) * micron );
 		  pv_trk_d0_bs_zpvunbiased.push_back( trk.dxy(pvbeamspot->position(vtxPositionUnbiased.z())) * micron );
 		  
-		  if( doTruth && !runOnData )
+/*		  if( doTruth && !runOnData )
 		    {
 		       RefToBase<Track> trkRef(trackViews, pv_trk_idx.back());
 		       
@@ -1157,7 +1157,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		       pv_trk_mc_dz_pvunbiased.push_back( null );
 		       pv_trk_mc_dxy_tp_pvunbiased.push_back( null );
 		       pv_trk_mc_dz_tp_pvunbiased.push_back( null );
-		    }		  
+		    }*/
 	       }
 	     else
 	       {
@@ -1637,7 +1637,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	
 	if( ! vertexSelection(newPV) ) continue;
 
-	if( doTruth && !runOnData )
+/*	if( doTruth && !runOnData )
 	  {	     
 	     RefToBase<Track> trkRef(trackViews, itk - tracks->begin());
 
@@ -1968,7 +1968,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     ftree->trk_mc_isTertiaryVertex.push_back( trk_mc_isTertiaryVertex );
 	     
 	     ftree->trk_mc_isUnknown.push_back( trk_mc_isUnknown );
-	  }
+	  }*/
 	
 	// Reco track
 	ftree->trk_pt.push_back( itk->pt() );
