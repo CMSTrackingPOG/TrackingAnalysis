@@ -9,7 +9,7 @@
 <use   name="CommonTools/UtilAlgos"/>
 <use   name="TrackingTools/TransientTrack"/>
 <use   name="TrackingTools/IPTools"/>
-<use   name="RecoVertex/PrimaryVertexProducer"/>
+#<use   name="RecoVertex/PrimaryVertexProducer"/>
 #<use   name="SimDataFormats/Associations"/>
 #<use   name="SimTracker/TrackAssociation"/>
 #<use   name="SimTracker/TrackerHitAssociation"/>

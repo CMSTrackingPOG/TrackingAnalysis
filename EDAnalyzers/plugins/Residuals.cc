@@ -33,6 +33,8 @@
 
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+
 //#include "SimTracker/Records/interface/TrackAssociatorRecord.h"
 //#include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 //#include "SimTracker/TrackAssociation/interface/TrackingParticleIP.h"
@@ -45,8 +47,7 @@
 //#include "SimTracker/TrackHistory/interface/VertexClassifier.h"
 //#include "SimTracker/TrackHistory/interface/TrackClassifier.h"
 
-#include "DataFormats/JetReco/interface/TrackJet.h"
-#include "DataFormats/JetReco/interface/PFJet.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
 
 #include <TrackingTools/TrajectoryState/interface/PerigeeConversions.h>
 #include <TrackingTools/TrajectoryState/interface/TrajectoryStateClosestToPoint.h>
@@ -153,12 +154,12 @@ class Residuals : public edm::EDAnalyzer
 
    // ----------member data ---------------------------
    edm::EDGetTokenT<reco::VertexCollection> thePVToken_;
-   edm::EDGetTokenT<reco::TrackCollection> theTracksToken_;
+//   edm::EDGetTokenT<reco::TrackCollection> theTracksToken_;
+   edm::EDGetTokenT<edm::View<pat::PackedCandidate> > theTracksToken_;
    edm::EDGetTokenT<edm::View<reco::Track> > theTrackViewsToken_;
    edm::EDGetTokenT<reco::BeamSpot> theBeamspotToken_;
    edm::EDGetTokenT<double> theRhoToken_;
-   edm::EDGetTokenT< vector<reco::TrackJet> > theTrackJetsToken_;
-   edm::EDGetTokenT< vector<reco::PFJet> > thePFJetsToken_;
+   edm::EDGetTokenT< vector<pat::Jet> > thePFJetsToken_;
    edm::EDGetTokenT<edm::TriggerResults> theTriggerBitsToken_;
    edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puInfoToken_;
 //   edm::EDGetTokenT<reco::TrackToTrackingParticleAssociator> theTrackAssociatorToken_;
@@ -179,6 +180,8 @@ class Residuals : public edm::EDAnalyzer
 
    std::string beamSpotConfig;
    
+   VertexReProducer *revertex;
+   
    bool runOnData;
    bool doTruth;
 
@@ -189,9 +192,6 @@ class Residuals : public edm::EDAnalyzer
    
    HLTConfigProvider hltConfig_;
    HLTPrescaleProvider hltPrescale_;
-   
-//   VertexClassifier vtxClassifier_;
-//   TrackClassifier trkClassifier_;
    
    const edm::Service<TFileService> fs;
    ResTree* ftree;
@@ -205,10 +205,10 @@ Residuals::Residuals(const edm::ParameterSet& pset):
 //   trkClassifier_(pset, consumesCollector())
 {
    edm::InputTag TrackCollectionTag_ = pset.getParameter<edm::InputTag>("TrackLabel");
-   theTracksToken_= consumes<reco::TrackCollection>(TrackCollectionTag_);
-
+   theTracksToken_= consumes<edm::View<pat::PackedCandidate> >(TrackCollectionTag_);
+/*
    theTrackViewsToken_= consumes<edm::View<reco::Track> >(TrackCollectionTag_);
-   
+*/   
    edm::InputTag VertexCollectionTag_ = pset.getParameter<edm::InputTag>("VertexLabel");
    thePVToken_ = consumes<reco::VertexCollection>(VertexCollectionTag_);
    
@@ -218,18 +218,15 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    edm::InputTag RhoTag_ = pset.getParameter<edm::InputTag>("RhoLabel");
    theRhoToken_ = consumes<double>(RhoTag_);
 
-   edm::InputTag TrackJetsTag_ = pset.getParameter<edm::InputTag>("TrackJetsLabel");
-   theTrackJetsToken_ = consumes< vector<reco::TrackJet> >(TrackJetsTag_);
-
    edm::InputTag PFJetsTag_ = pset.getParameter<edm::InputTag>("PFJetsLabel");
-   thePFJetsToken_ = consumes< vector<reco::PFJet> >(PFJetsTag_);
-   
+   thePFJetsToken_ = consumes< vector<pat::Jet> >(PFJetsTag_);
+
    edm::InputTag TriggerBitsTag_ = pset.getParameter<edm::InputTag>("TriggerResultsLabel");
    theTriggerBitsToken_ = consumes<edm::TriggerResults>(TriggerBitsTag_);
-   
+
    edm::InputTag PUInfoTag_ = pset.getParameter<edm::InputTag>("puInfoLabel");
    puInfoToken_ = consumes<std::vector<PileupSummaryInfo> >(PUInfoTag_);
-
+/*
 //   edm::InputTag TrackingParticleTag_ = pset.getParameter<edm::InputTag>("TrackingParticleLabel");
 //   theTrackingParticleToken_ = consumes<TrackingParticleCollection>(TrackingParticleTag_);
 
@@ -241,7 +238,7 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    
 //   edm::InputTag VertexAssociatorTag_ = pset.getParameter<edm::InputTag>("VertexAssociatorLabel");
 //   theVertexAssociatorToken_ = consumes<reco::VertexToTrackingVertexAssociator>(VertexAssociatorTag_);
-   
+*/   
    beamSpotConfig = pset.getParameter<std::string>("BeamSpotConfig");
    
    tkMinPt = pset.getParameter<double>("TkMinPt");
@@ -258,6 +255,8 @@ Residuals::Residuals(const edm::ParameterSet& pset):
 //   vtxErrorZMin     = pset.getParameter<double>("VtxErrorZMin");
 //   vtxErrorZMax     = pset.getParameter<double>("VtxErrorZMax");
 
+   revertex = new VertexReProducer(pset);
+   
    eventScale = pset.getParameter<int>("EventScale");
    trackScale = pset.getParameter<int>("TrackScale");
    
@@ -277,6 +276,7 @@ Residuals::Residuals(const edm::ParameterSet& pset):
 
 Residuals::~Residuals()
 {
+   if( revertex ) delete revertex;
    delete rnd;
 }
 
@@ -291,46 +291,52 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    ftree->Init();
 
-   Handle<TrackCollection> tracks;
-   iEvent.getByToken(theTracksToken_, tracks);
+   Handle<edm::View<pat::PackedCandidate> > tracksPackedHandle;
+   iEvent.getByToken(theTracksToken_, tracksPackedHandle);
    
+   // Create pseudo-track collection
+   edm::View<pat::PackedCandidate> tracksPacked = (*tracksPackedHandle.product());
+   TrackCollection tracks;
+   for( size_t it=0;it<tracksPacked.size();it++ )
+     {
+	const pat::PackedCandidate &trkPacked = tracksPacked[it];
+	
+	if( ! trkPacked.hasTrackDetails() ) continue;
+	
+	reco::Track trk = trkPacked.pseudoTrack();
+	tracks.push_back(trk);
+     }   
+/*   
    Handle<View<Track> >  trackViews;
    iEvent.getByToken(theTrackViewsToken_, trackViews);
-   
+*/   
    Handle<VertexCollection> vtxH;
    iEvent.getByToken(thePVToken_, vtxH);
 
    Handle<BeamSpot> pvbeamspot;
    iEvent.getByToken(theBeamspotToken_, pvbeamspot);
-   
+
    if( !vtxH.isValid() ) return;
 
    if( vtxH->size() == 0 ) return;
 
-   Handle< vector<reco::TrackJet> > trackJets;
-   iEvent.getByToken(theTrackJetsToken_, trackJets);
-
-   Handle< vector<reco::PFJet> > pfJets;
+   Handle< vector<pat::Jet> > pfJets;
    iEvent.getByToken(thePFJetsToken_, pfJets);
-   
-   VertexReProducer revertex(vtxH, iEvent, beamSpotConfig);
-   
-   TrackCollection tracksAll;
-   tracksAll.assign(tracks->begin(), tracks->end());
-   
+
    // refit primary vertices and put it in a new handle (note: TrackBaseRefs are different)
-   vector<TransientVertex> pvs = revertex.makeVertices(tracksAll, *pvbeamspot, iSetup);
+   vector<TransientVertex> pvs = revertex->makeVertices(tracks, *pvbeamspot, iSetup);
+   std::cout << "Primary vertices = " << vtxH->size() << ", refitted vertices = " << pvs.size() << ", tracks = " << tracks.size() << std::endl;
    if( pvs.empty() ) return;
    
    reco::VertexCollection pvr;
-   for(unsigned int ipv=0;ipv<pvs.size();ipv++) 
+   for(unsigned int ipv=0;ipv<pvs.size();ipv++)
      pvr.push_back(reco::Vertex(pvs[ipv]));
-   
+
    edm::Handle<reco::VertexCollection> pvrh = edm::Handle(const_cast<reco::VertexCollection*>(&pvr), vtxH.provenance());
-  
-   reco::Vertex vtx = pvr.front();
+
+   reco::Vertex vtx = reco::Vertex(pvs.front());
    TransientVertex vtxTrans = pvs.front();
-   
+
    if( !vertexSelection(vtx) ) return;
 
    ESHandle<MagneticField> theMF;
@@ -346,7 +352,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ftree->ev_bunchCrossing = iEvent.bunchCrossing();
    ftree->ev_orbitNumber = iEvent.orbitNumber();
    ftree->ev_rho = *rhoPtr;
-   ftree->ev_nPV =  pvr.size();
+   ftree->ev_nPV = pvr.size();
 
    // Trigger
    Handle<TriggerResults> triggerBits;
@@ -448,7 +454,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      }   
    
    double micron = 10000;
-
+   
    // Beam spot   
    ftree->bs_type = pvbeamspot->type();
    ftree->bs_x0 = pvbeamspot->x0();
@@ -472,7 +478,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ftree->bs_emittanceX = pvbeamspot->emittanceX();
    ftree->bs_emittanceY = pvbeamspot->emittanceY();
    ftree->bs_betaStar = pvbeamspot->betaStar();
-   
+
 /*   Handle<TrackingVertexCollection> trackingVertex;
    ESHandle<ParametersDefinerForTP> parametersDefinerTP;
    
@@ -690,9 +696,10 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  }
      }   
 */
+   
    // Primary vertex   
    for( unsigned int ipv=0;ipv<pvr.size();ipv++ )
-     {	     	   
+     {
 	std::vector<reco::TransientTrack> vtxTracks = pvs[ipv].originalTracks();
 	stable_sort(vtxTracks.begin(), vtxTracks.end(), sortPt);
 	
@@ -774,20 +781,20 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::vector<float> pv_trk_dz_pvunbiased_p2;
 	std::vector<float> pv_trk_d0_bs_zpvunbiased_p2;
 	
-	std::vector<float> pv_trk_mc_dxy_pvunbiased;
-	std::vector<float> pv_trk_mc_dz_pvunbiased;	
-	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased;
-	std::vector<float> pv_trk_mc_dz_tp_pvunbiased;
+//	std::vector<float> pv_trk_mc_dxy_pvunbiased;
+//	std::vector<float> pv_trk_mc_dz_pvunbiased;	
+//	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased;
+//	std::vector<float> pv_trk_mc_dz_tp_pvunbiased;
 
-	std::vector<float> pv_trk_mc_dxy_pvunbiased_p1;
-	std::vector<float> pv_trk_mc_dz_pvunbiased_p1;	
-	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased_p1;
-	std::vector<float> pv_trk_mc_dz_tp_pvunbiased_p1;
+//	std::vector<float> pv_trk_mc_dxy_pvunbiased_p1;
+//	std::vector<float> pv_trk_mc_dz_pvunbiased_p1;	
+//	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased_p1;
+//	std::vector<float> pv_trk_mc_dz_tp_pvunbiased_p1;
 
-	std::vector<float> pv_trk_mc_dxy_pvunbiased_p2;
-	std::vector<float> pv_trk_mc_dz_pvunbiased_p2;	
-	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased_p2;
-	std::vector<float> pv_trk_mc_dz_tp_pvunbiased_p2;
+//	std::vector<float> pv_trk_mc_dxy_pvunbiased_p2;
+//	std::vector<float> pv_trk_mc_dz_pvunbiased_p2;	
+//	std::vector<float> pv_trk_mc_dxy_tp_pvunbiased_p2;
+//	std::vector<float> pv_trk_mc_dz_tp_pvunbiased_p2;
 	
 	std::vector<float> pv_trk_pt;
 	std::vector<float> pv_trk_px;
@@ -862,16 +869,16 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     reco::Track trk = (*it).track();
 	     initPVTkCollection.push_back(trk);
 	  }	
-	
+
 	int iTrk = 0;
 	for( std::vector<reco::TransientTrack>::const_iterator it = vtxTracks.begin(); it != vtxTracks.end(); it++ )
 	  {	     
 	     reco::Track trk = (*it).track();
 
 	     // Since TrackBaseRefs are not preserved after vertex refitting, do a pt-based track matching
-	     TrackCollection::const_iterator itt = find_if(tracks->begin(), tracks->end(), TrackEqualReco(trk));
+	     TrackCollection::const_iterator itt = find_if(tracks.begin(), tracks.end(), TrackEqualReco(trk));
 
-	     if( itt != tracks->end() ) pv_trk_idx.push_back( itt - tracks->begin() );
+	     if( itt != tracks.end() ) pv_trk_idx.push_back( itt - tracks.begin() );
 	     else pv_trk_idx.push_back( -1 );
 	     
 	     // Remove the track from the PV track collection
@@ -911,12 +918,12 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		       pv_fracHighPurity_p2 += pvtrk.quality(reco::TrackBase::highPurity);
 		    }
 	       }	     
-	     
+
 	     // Remake vertices
-	     vector<TransientVertex> pvst = revertex.makeVertices(newPVTkCollection, *pvbeamspot, iSetup);
+	     vector<TransientVertex> pvst = revertex->makeVertices(newPVTkCollection, *pvbeamspot, iSetup);
 	     
-	     vector<TransientVertex> pvst1 = revertex.makeVertices(vtxTkCollection1, *pvbeamspot, iSetup);
-	     vector<TransientVertex> pvst2 = revertex.makeVertices(vtxTkCollection2, *pvbeamspot, iSetup);
+	     vector<TransientVertex> pvst1 = revertex->makeVertices(vtxTkCollection1, *pvbeamspot, iSetup);
+	     vector<TransientVertex> pvst2 = revertex->makeVertices(vtxTkCollection2, *pvbeamspot, iSetup);
 	     
 	     pv_trk_pvN.push_back( pvst.size() );
 	     pv_trk_pv1N.push_back( pvst1.size() );
@@ -1080,7 +1087,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  pv_trk_dz_pvunbiased_p2.push_back( null );
 		  pv_trk_d0_bs_zpvunbiased_p2.push_back( null );
 	       }
-	     
+
 	     if( !pvst.empty() )
 	       {
 		  reco::Vertex vtxt = reco::Vertex(pvst.front());
@@ -1118,7 +1125,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  pv_trk_d0_pvunbiased.push_back( trk.dxy(vtxPositionUnbiased) * micron );
 		  pv_trk_dz_pvunbiased.push_back( trk.dz(vtxPositionUnbiased) * micron );
 		  pv_trk_d0_bs_zpvunbiased.push_back( trk.dxy(pvbeamspot->position(vtxPositionUnbiased.z())) * micron );
-		  
+
 /*		  if( doTruth && !runOnData )
 		    {
 		       RefToBase<Track> trkRef(trackViews, pv_trk_idx.back());
@@ -1180,7 +1187,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  pv_trk_dz_pvunbiased.push_back( null );
 		  pv_trk_d0_bs_zpvunbiased.push_back( null );
 	       }	     
-	     
+
 	     pv_SumTrackPt += trk.pt();
 	     pv_SumTrackPt2 += trk.pt()*trk.pt();
 	     pv_fracHighPurity += trk.quality(reco::TrackBase::highPurity);
@@ -1255,7 +1262,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     pv_trk_dz_bs.push_back( trk.dz(pvbeamspot->position()) * micron );
 	     pv_trk_d0Err.push_back( trk.d0Error() * micron );
 	     pv_trk_dzErr.push_back( trk.dzError() * micron );
-	     
+/*	     
 	     if( doTruth && !runOnData && ftree->pv_mc_hasMatch[ipv] )
 	       {
 		  Track::Point tvPosition = Track::Point((ftree->pv_mc_x[ipv][0])/micron, (ftree->pv_mc_y[ipv][0])/micron, (ftree->pv_mc_z[ipv][0])/micron);
@@ -1268,7 +1275,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  pv_trk_d0_tv.push_back( null );
 		  pv_trk_dz_tv.push_back( null );
 	       }
-	     
+*/	     
 	     iTrk++;
 	  }
 	if( nTracks ) pv_fracHighPurity /= float(nTracks);
@@ -1287,7 +1294,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_xError.push_back( pvr[ipv].xError()*micron );
 	ftree->pv_yError.push_back( pvr[ipv].yError()*micron );
 	ftree->pv_zError.push_back( pvr[ipv].zError()*micron );
-	
+
 	ftree->pv_trk_weight.push_back( pv_trackWeight );
 	ftree->pv_trk_isHighPurity.push_back( pv_trk_isHighPurity );
 	ftree->pv_trk_algo.push_back( pv_trk_algo );
@@ -1318,7 +1325,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_trk_dz_pvunbiased.push_back( pv_trk_dz_pvunbiased );
 	ftree->pv_trk_d0_bs_zpvunbiased.push_back( pv_trk_d0_bs_zpvunbiased );
 
-	ftree->pv_trk_mc_dxy_pvunbiased.push_back( pv_trk_mc_dxy_pvunbiased );
+/*	ftree->pv_trk_mc_dxy_pvunbiased.push_back( pv_trk_mc_dxy_pvunbiased );
 	ftree->pv_trk_mc_dz_pvunbiased.push_back( pv_trk_mc_dz_pvunbiased );	
 	ftree->pv_trk_mc_dxy_tp_pvunbiased.push_back( pv_trk_mc_dxy_tp_pvunbiased );
 	ftree->pv_trk_mc_dz_tp_pvunbiased.push_back( pv_trk_mc_dz_tp_pvunbiased );
@@ -1332,7 +1339,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_trk_mc_dz_pvunbiased_p2.push_back( pv_trk_mc_dz_pvunbiased_p2 );	
 	ftree->pv_trk_mc_dxy_tp_pvunbiased_p2.push_back( pv_trk_mc_dxy_tp_pvunbiased_p2 );
 	ftree->pv_trk_mc_dz_tp_pvunbiased_p2.push_back( pv_trk_mc_dz_tp_pvunbiased_p2 );
-	
+*/	
 	ftree->pv_trk_pvunbiased_IsValid_p1.push_back( pv_trk_pvunbiased_IsValid_p1 );
 	ftree->pv_trk_pvunbiased_IsFake_p1.push_back( pv_trk_pvunbiased_IsFake_p1 );
 	ftree->pv_trk_pvunbiased_NTracks_p1.push_back( pv_trk_pvunbiased_NTracks_p1 );
@@ -1434,11 +1441,11 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->pv_trk_dz_bs.push_back( pv_trk_dz_bs );
 	ftree->pv_trk_d0Err.push_back( pv_trk_d0Err );
 	ftree->pv_trk_dzErr.push_back( pv_trk_dzErr );
-	
-	ftree->pv_trk_d0_tv.push_back( pv_trk_d0_tv );
-	ftree->pv_trk_dz_tv.push_back( pv_trk_dz_tv );
-     }   
 
+/*	ftree->pv_trk_d0_tv.push_back( pv_trk_d0_tv );
+	ftree->pv_trk_dz_tv.push_back( pv_trk_dz_tv );*/
+     }
+   
    // Vertex split method
    for( unsigned int ipv=0;ipv<pvr.size();ipv++ )
      {	     	   
@@ -1493,8 +1500,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     pv_fracHighPurity_p2 /= float(nTracks);
 	  }	
 
-	vector<TransientVertex> pvs1 = revertex.makeVertices(vtxTkCollection1, *pvbeamspot, iSetup);
-	vector<TransientVertex> pvs2 = revertex.makeVertices(vtxTkCollection2, *pvbeamspot, iSetup);
+	vector<TransientVertex> pvs1 = revertex->makeVertices(vtxTkCollection1, *pvbeamspot, iSetup);
+	vector<TransientVertex> pvs2 = revertex->makeVertices(vtxTkCollection2, *pvbeamspot, iSetup);
 	
 	if( !pvs1.empty() && !pvs2.empty() )
 	  {
@@ -1585,49 +1592,51 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     ftree->pv_yError_p2.push_back( null );
 	     ftree->pv_zError_p2.push_back( null );
 	  }	
-     }
-
+     }   
+   
    // PFJets
    unsigned int nFPJets = pfJets->size();
    ftree->pfjet_n = nFPJets;
 
    for( unsigned int ij=0;ij<nFPJets;ij++ )
      {
-	reco::PFJet jet = pfJets->at(ij);
+	pat::Jet jet = pfJets->at(ij);
 
 	ftree->pfjet_pt.push_back( jet.pt() );
 	ftree->pfjet_eta.push_back( jet.eta() );
 	ftree->pfjet_phi.push_back( jet.phi() );
 	ftree->pfjet_E.push_back( jet.energy() );
      }   
-   
+
    // Tracks
    float trackProb = 1./float(trackScale);
-   int nTracks = tracks->size();
+   int nTracks = tracks.size();
    
    edm::ESHandle<TransientTrackBuilder> theB;
    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", theB);
    
-   std::cout << "Tracks = " << nTracks << ", use = " << int(float(nTracks)/float(trackScale)) << std::endl;
-   
-   for( TrackCollection::const_iterator itk = tracks->begin(); itk != tracks->end(); ++itk )
+   std::cout << "Tracks used = " << int(float(nTracks)/float(trackScale)) << std::endl;
+      
+   int iTrk = -1;
+   for( TrackCollection::const_iterator itk = tracks.begin(); itk != tracks.end(); ++itk )
      {
+	iTrk++;
 	if( rnd->Rndm() > trackProb && trackScale > 0 ) continue;
 	
 	// --- track selection ---
 //	if( ! trackSelection(*itk) ) continue;
 	// ---
-	
+
 	TrackCollection newTkCollection;
-	newTkCollection.assign(tracks->begin(), itk);
-	newTkCollection.insert(newTkCollection.end(), itk+1, tracks->end());
+	newTkCollection.assign(tracks.begin(), tracks.begin()+iTrk);
+	newTkCollection.insert(newTkCollection.end(), tracks.begin()+iTrk+1, tracks.end());
 
 	//newTkCollection.insert(newTkCollection.end(),itk,tracks->end()); // only for debugging purpose
 
 	//cout << "tracks before,after size: " << tracks->size() << " , " << newTkCollection.size() << endl;
 
 	// Refit the primary vertex
-	vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, iSetup);
+	vector<TransientVertex> pvs = revertex->makeVertices(newTkCollection, *pvbeamspot, iSetup);
 	//cout << "vertices before,after: " << vtxH->size() << " , " << pvs.size() << endl;
 	
 	if( pvs.empty() ) continue;
@@ -1969,7 +1978,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     
 	     ftree->trk_mc_isUnknown.push_back( trk_mc_isUnknown );
 	  }*/
-	
+
 	// Reco track
 	ftree->trk_pt.push_back( itk->pt() );
 	ftree->trk_px.push_back( itk->px() );
@@ -1979,7 +1988,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_eta.push_back( itk->eta() );
 	ftree->trk_phi.push_back( itk->phi() );
 	
-	ftree->trk_idx.push_back( itk - tracks->begin() );
+	ftree->trk_idx.push_back( itk - tracks.begin() );
 	
 	ftree->trk_nTrackerLayers.push_back( itk->hitPattern().trackerLayersWithMeasurement() );
 	ftree->trk_nPixelBarrelLayers.push_back( itk->hitPattern().pixelBarrelLayersWithMeasurement() );
@@ -2041,7 +2050,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_d0_pv_NoRefit.push_back( itk->dxy(vtxH->front().position()) * micron );
 	ftree->trk_dz_pv_NoRefit.push_back( itk->dz(vtxH->front().position()) * micron );
 
-	if( doTruth && !runOnData && ftree->ev_nPV > 0 && ftree->pv_mc_hasMatch[0] )
+/*	if( doTruth && !runOnData && ftree->ev_nPV > 0 && ftree->pv_mc_hasMatch[0] )
 	  {
 	     Track::Point tvPosition = Track::Point((ftree->pv_mc_x[0][0])/micron, (ftree->pv_mc_y[0][0])/micron, (ftree->pv_mc_z[0][0])/micron);
 	     
@@ -2053,7 +2062,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     ftree->trk_d0_tv.push_back( null );
 	     ftree->trk_dz_tv.push_back( null );
 	  }
-	
+*/	
 /*	reco::TransientTrack tranitk = (*theB).build(*itk);
 
 	GlobalPoint pvPos(vtx.position().x(), vtx.position().y(), vtx.position().z());
@@ -2088,230 +2097,17 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	float ip3dlErr_IPTools_bs = IPTools::linearizedSignedImpactParameter3D(tranitk,dir,bspv).second.error() * micron;
 	float ip3dlSign_IPTools_bs = IPTools::linearizedSignedImpactParameter3D(tranitk,dir,bspv).second.significance();*/
 	
-	// Tracks from TrackJets
-	
-	float drMin = 10E+10;
-	int iJet = -1;
-	int iTrackMin = -1;
-
-	for( unsigned int ij=0;ij<trackJets->size();ij++ )
-	  {
-	     std::vector<edm::Ptr<reco::Track> > trks = trackJets->at(ij).tracks();
-
-	     const reco::TrackRef trkRef = reco::TrackRef(tracks, itk - tracks->begin());
-	     
-	     std::vector<edm::Ptr<reco::Track> >::const_iterator itt = find_if(trks.begin(), trks.end(), TrackEqual(edm::refToPtr(trkRef)));
-	     if( itt != trks.end() )
-	       {		  		  
-		  size_t pos = itt - trks.begin();
-		  
-		  iJet = ij;
-		  
-		  for( unsigned int it=0;it<trackJets->at(ij).numberOfTracks();it++ )
-		    {
-		       if( it == pos ) continue;
-		       
-		       float dr = getDeltaR(trks[pos]->eta(), trks[pos]->phi(), trks[it]->eta(), trks[it]->phi());
-		       if( dr < drMin )
-			 {
-			    drMin = dr;
-			    iTrackMin = it;
-			 }
-		    }
-		  
-		  break;
-	       }
-	  }
-	
-	if( iJet >= 0 )
-	  {
-	     reco::TrackJet jet = trackJets->at(iJet);
-	     
-	     const reco::VertexRef vtxj = jet.primaryVertex();
-	     
-	     ftree->trk_jet_found.push_back( true );
-	     
-	     ftree->trk_jet_pt.push_back( jet.pt() );
-	     ftree->trk_jet_eta.push_back( jet.eta() );
-	     ftree->trk_jet_phi.push_back( jet.phi() );
-	     ftree->trk_jet_nTracks.push_back( jet.numberOfTracks() );
-	     
-	     ftree->trk_jet_pv_x.push_back( vtxj->x() );
-	     ftree->trk_jet_pv_y.push_back( vtxj->y() );
-	     ftree->trk_jet_pv_z.push_back( vtxj->z() );
-	  }
-	else
-	  {
-	     ftree->trk_jet_found.push_back( false );
-	     
-	     ftree->trk_jet_pt.push_back( null );
-	     ftree->trk_jet_eta.push_back( null );
-	     ftree->trk_jet_phi.push_back( null );
-	     ftree->trk_jet_nTracks.push_back( null );
-	     
-	     ftree->trk_jet_pv_x.push_back( null );
-	     ftree->trk_jet_pv_y.push_back( null );
-	     ftree->trk_jet_pv_z.push_back( null );
-	  }	
-	     
-	if( iTrackMin >= 0 )
-	  {		  
-	     edm::Ptr<reco::Track> trkCl = trackJets->at(iJet).track(iTrackMin);
-	     
-	     ftree->trk_jetTrk_found.push_back( true );
-	     
-	     ftree->trk_jetTrk_deltaR.push_back( drMin );
-	     
-	     ftree->trk_jetTrk_pt.push_back( trkCl->pt() );
-	     ftree->trk_jetTrk_px.push_back( trkCl->px() );
-	     ftree->trk_jetTrk_py.push_back( trkCl->py() );
-	     ftree->trk_jetTrk_pz.push_back( trkCl->pz() );
-	     ftree->trk_jetTrk_p.push_back( trkCl->p() );
-	     ftree->trk_jetTrk_eta.push_back( trkCl->eta() );
-	     ftree->trk_jetTrk_phi.push_back( trkCl->phi() );
-	     
-	     ftree->trk_jetTrk_nTrackerLayers.push_back( trkCl->hitPattern().trackerLayersWithMeasurement() );
-	     ftree->trk_jetTrk_nPixelBarrelLayers.push_back( trkCl->hitPattern().pixelBarrelLayersWithMeasurement() );
-	     ftree->trk_jetTrk_nPixelEndcapLayers.push_back( trkCl->hitPattern().pixelEndcapLayersWithMeasurement() );
-	     ftree->trk_jetTrk_nStripLayers.push_back( trkCl->hitPattern().stripLayersWithMeasurement() );
-	     
-	     ftree->trk_jetTrk_nValid.push_back( trkCl->numberOfValidHits() );
-	     ftree->trk_jetTrk_fValid.push_back( trkCl->validFraction() );
-	     ftree->trk_jetTrk_nValidTracker.push_back( trkCl->hitPattern().numberOfValidTrackerHits() );
-	     ftree->trk_jetTrk_nValidPixelBarrel.push_back( trkCl->hitPattern().numberOfValidPixelBarrelHits() );
-	     ftree->trk_jetTrk_nValidPixelEndcap.push_back( trkCl->hitPattern().numberOfValidPixelEndcapHits() );
-	     ftree->trk_jetTrk_nValidStrip.push_back( trkCl->hitPattern().numberOfValidStripHits() );
-	     
-	     ftree->trk_jetTrk_nMissed.push_back( trkCl->numberOfLostHits() );
-	     ftree->trk_jetTrk_nMissedOut.push_back( trkCl->hitPattern().numberOfLostHits(HitPattern::MISSING_OUTER_HITS) );
-	     ftree->trk_jetTrk_nMissedIn.push_back( trkCl->hitPattern().numberOfLostHits(HitPattern::MISSING_INNER_HITS) );
-	     ftree->trk_jetTrk_nMissedTrackerOut.push_back( trkCl->hitPattern().numberOfLostTrackerHits(HitPattern::MISSING_OUTER_HITS) );
-	     ftree->trk_jetTrk_nMissedTrackerIn.push_back( trkCl->hitPattern().numberOfLostTrackerHits(HitPattern::MISSING_INNER_HITS) );
-	     ftree->trk_jetTrk_nMissedPixelBarrelOut.push_back( trkCl->hitPattern().numberOfLostPixelBarrelHits(HitPattern::MISSING_OUTER_HITS) );
-	     ftree->trk_jetTrk_nMissedPixelBarrelIn.push_back( trkCl->hitPattern().numberOfLostPixelBarrelHits(HitPattern::MISSING_INNER_HITS) );
-	     ftree->trk_jetTrk_nMissedPixelEndcapOut.push_back( trkCl->hitPattern().numberOfLostPixelEndcapHits(HitPattern::MISSING_OUTER_HITS) );
-	     ftree->trk_jetTrk_nMissedPixelEndcapIn.push_back( trkCl->hitPattern().numberOfLostPixelEndcapHits(HitPattern::MISSING_INNER_HITS) );
-	     
-	     ftree->trk_jetTrk_hasPixelBarrelLayer1.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 1) );
-	     ftree->trk_jetTrk_hasPixelEndcapLayer1.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 1) );
-	     ftree->trk_jetTrk_hasPixelBarrelLayer2.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 2) );
-	     ftree->trk_jetTrk_hasPixelEndcapLayer2.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 2) );
-	     ftree->trk_jetTrk_hasPixelBarrelLayer3.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 3) );
-	     ftree->trk_jetTrk_hasPixelEndcapLayer3.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 3) );
-	     ftree->trk_jetTrk_hasPixelBarrelLayer4.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 4) );
-	     ftree->trk_jetTrk_hasPixelEndcapLayer4.push_back( trkCl->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelEndcap, 4) );
-	     
-	     ftree->trk_jetTrk_quality.push_back( trkCl->qualityMask() );
-	     ftree->trk_jetTrk_normalizedChi2.push_back( trkCl->normalizedChi2() );
-	     ftree->trk_jetTrk_ndof.push_back( trkCl->ndof() );
-	     ftree->trk_jetTrk_charge.push_back( trkCl->charge() );
-	     ftree->trk_jetTrk_qoverp.push_back( trkCl->qoverp() );
-	     ftree->trk_jetTrk_qoverpError.push_back( trkCl->qoverpError() );
-	     ftree->trk_jetTrk_theta.push_back( trkCl->theta() );
-	     ftree->trk_jetTrk_thetaError.push_back( trkCl->thetaError() );
-	     ftree->trk_jetTrk_lambda.push_back( trkCl->lambda() );
-	     ftree->trk_jetTrk_lambdaError.push_back( trkCl->lambdaError() );
-	     ftree->trk_jetTrk_ptError.push_back( trkCl->ptError() );
-	     ftree->trk_jetTrk_etaError.push_back( trkCl->etaError() );
-	     ftree->trk_jetTrk_phiError.push_back( trkCl->phiError() );
-	     
-	     ftree->trk_jetTrk_d0.push_back( trkCl->dxy() * micron );
-	     ftree->trk_jetTrk_dz.push_back( trkCl->dz() * micron );
-	     ftree->trk_jetTrk_d0_pv.push_back( trkCl->dxy(vtxPosition) * micron );
-	     ftree->trk_jetTrk_dz_pv.push_back( trkCl->dz(vtxPosition) * micron );
-	     ftree->trk_jetTrk_d0_bs.push_back( trkCl->dxy(pvbeamspot->position()) * micron );
-	     ftree->trk_jetTrk_d0_bs_zpca.push_back( trkCl->dxy(*pvbeamspot) * micron );
-	     ftree->trk_jetTrk_d0_bs_zpv.push_back( trkCl->dxy(pvbeamspot->position(vtx.z())) * micron );
-	     ftree->trk_jetTrk_dz_bs.push_back( trkCl->dz(pvbeamspot->position()) * micron );
-	     ftree->trk_jetTrk_d0Err.push_back( trkCl->d0Error() * micron );
-	     ftree->trk_jetTrk_dzErr.push_back( trkCl->dzError() * micron );
-	     ftree->trk_jetTrk_d0_pv_NoRefit.push_back( trkCl->dxy(vtxH->front().position()) * micron );
-	     ftree->trk_jetTrk_dz_pv_NoRefit.push_back( trkCl->dz(vtxH->front().position()) * micron );
-	  }
-	else
-	  {
-	     ftree->trk_jetTrk_found.push_back( false );
-	     
-	     ftree->trk_jetTrk_deltaR.push_back( null );
-	     
-	     ftree->trk_jetTrk_pt.push_back( null );
-	     ftree->trk_jetTrk_px.push_back( null );
-	     ftree->trk_jetTrk_py.push_back( null );
-	     ftree->trk_jetTrk_pz.push_back( null );
-	     ftree->trk_jetTrk_p.push_back( null );
-	     ftree->trk_jetTrk_eta.push_back( null );
-	     ftree->trk_jetTrk_phi.push_back( null );
-	     
-	     ftree->trk_jetTrk_nTrackerLayers.push_back( null );
-	     ftree->trk_jetTrk_nPixelBarrelLayers.push_back( null );
-	     ftree->trk_jetTrk_nPixelEndcapLayers.push_back( null );
-	     ftree->trk_jetTrk_nStripLayers.push_back( null );
-	     
-	     ftree->trk_jetTrk_nValid.push_back( null );
-	     ftree->trk_jetTrk_fValid.push_back( null );
-	     ftree->trk_jetTrk_nValidTracker.push_back( null );
-	     ftree->trk_jetTrk_nValidPixelBarrel.push_back( null );
-	     ftree->trk_jetTrk_nValidPixelEndcap.push_back( null );
-	     ftree->trk_jetTrk_nValidStrip.push_back( null );
-	     
-	     ftree->trk_jetTrk_nMissed.push_back( null );
-	     ftree->trk_jetTrk_nMissedOut.push_back( null );
-	     ftree->trk_jetTrk_nMissedIn.push_back( null );
-	     ftree->trk_jetTrk_nMissedTrackerOut.push_back( null );
-	     ftree->trk_jetTrk_nMissedTrackerIn.push_back( null );
-	     ftree->trk_jetTrk_nMissedPixelBarrelOut.push_back( null );
-	     ftree->trk_jetTrk_nMissedPixelBarrelIn.push_back( null );
-	     ftree->trk_jetTrk_nMissedPixelEndcapOut.push_back( null );
-	     ftree->trk_jetTrk_nMissedPixelEndcapIn.push_back( null );
-	     
-	     ftree->trk_jetTrk_hasPixelBarrelLayer1.push_back( false );
-	     ftree->trk_jetTrk_hasPixelEndcapLayer1.push_back( false );
-	     ftree->trk_jetTrk_hasPixelBarrelLayer2.push_back( false );
-	     ftree->trk_jetTrk_hasPixelEndcapLayer2.push_back( false );
-	     ftree->trk_jetTrk_hasPixelBarrelLayer3.push_back( false );
-	     ftree->trk_jetTrk_hasPixelEndcapLayer3.push_back( false );
-	     ftree->trk_jetTrk_hasPixelBarrelLayer4.push_back( false );
-	     ftree->trk_jetTrk_hasPixelEndcapLayer4.push_back( false );
-	     
-	     ftree->trk_jetTrk_quality.push_back( null );
-	     ftree->trk_jetTrk_normalizedChi2.push_back( null );
-	     ftree->trk_jetTrk_ndof.push_back( null );
-	     ftree->trk_jetTrk_charge.push_back( null );
-	     ftree->trk_jetTrk_qoverp.push_back( null );
-	     ftree->trk_jetTrk_qoverpError.push_back( null );
-	     ftree->trk_jetTrk_theta.push_back( null );
-	     ftree->trk_jetTrk_thetaError.push_back( null );
-	     ftree->trk_jetTrk_lambda.push_back( null );
-	     ftree->trk_jetTrk_lambdaError.push_back( null );
-	     ftree->trk_jetTrk_ptError.push_back( null );
-	     ftree->trk_jetTrk_etaError.push_back( null );
-	     ftree->trk_jetTrk_phiError.push_back( null );
-	     
-	     ftree->trk_jetTrk_d0.push_back( null );
-	     ftree->trk_jetTrk_dz.push_back( null );
-	     ftree->trk_jetTrk_d0_pv.push_back( null );
-	     ftree->trk_jetTrk_dz_pv.push_back( null );
-	     ftree->trk_jetTrk_d0_bs.push_back( null );
-	     ftree->trk_jetTrk_d0_bs_zpca.push_back( null );
-	     ftree->trk_jetTrk_d0_bs_zpv.push_back( null );
-	     ftree->trk_jetTrk_dz_bs.push_back( null );
-	     ftree->trk_jetTrk_d0Err.push_back( null );
-	     ftree->trk_jetTrk_dzErr.push_back( null );
-	     ftree->trk_jetTrk_d0_pv_NoRefit.push_back( null );
-	     ftree->trk_jetTrk_dz_pv_NoRefit.push_back( null );
-	  }
-
 	// Tracks from PFJets
 
-	float drMinPF = 10E+10;
+/*	float drMinPF = 10E+10;
 	int iJetPF = -1;
 	int iTrackMinPF = -1;
-	
+
 	for( unsigned int ij=0;ij<pfJets->size();ij++ )
 	  {
-	     reco::PFJet jet = pfJets->at(ij);
-	     reco::TrackRefVector trks = jet.getTrackRefs();
-	     const reco::TrackRef trkRef = reco::TrackRef(tracks, itk - tracks->begin());
+	     pat::Jet jet = pfJets->at(ij);
+	     reco::TrackRefVector trks = jet.associatedTracks();
+	     const reco::TrackRef trkRef = reco::TrackRef(tracks, itk - tracks.begin());
 	     edm::RefVector<TrackCollection>::const_iterator itt = find_if(trks.begin(), trks.end(), TrackEqualRef(trkRef));
 	     if( itt != trks.end() )
 	       {
@@ -2337,14 +2133,14 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	if( iJetPF >= 0 )
 	  {
-	     reco::PFJet jet = pfJets->at(iJetPF);
+	     pat::Jet jet = pfJets->at(iJetPF);
 	     
 	     ftree->trk_pfjet_found.push_back( true );
 	     
 	     ftree->trk_pfjet_pt.push_back( jet.pt() );
 	     ftree->trk_pfjet_eta.push_back( jet.eta() );
 	     ftree->trk_pfjet_phi.push_back( jet.phi() );
-	     ftree->trk_pfjet_nTracks.push_back( jet.getTrackRefs().size() );
+	     ftree->trk_pfjet_nTracks.push_back( jet.associatedTracks().size() );
 	  }
 	else
 	  {
@@ -2358,7 +2154,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	if( iTrackMinPF >= 0 )
 	  {		  
-	     reco::TrackRef trkCl = pfJets->at(iJetPF).getTrackRefs().at(iTrackMinPF);
+	     reco::TrackRef trkCl = pfJets->at(iJetPF).associatedTracks().at(iTrackMinPF);
 	     
 	     ftree->trk_pfjetTrk_found.push_back( true );
 	     
@@ -2501,8 +2297,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     ftree->trk_pfjetTrk_dzErr.push_back( null );
 	     ftree->trk_pfjetTrk_d0_pv_NoRefit.push_back( null );
 	     ftree->trk_pfjetTrk_dz_pv_NoRefit.push_back( null );
-	  }
-     }
+	  }*/
+   }
 
    ftree->tree->Fill();
 }   

@@ -1,105 +1,100 @@
 #include "TrackingAnalysis/EDAnalyzers/interface/VertexReProducer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
-#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
-#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
-#include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "FWCore/ParameterSet/interface/Registry.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/getProducerParameterSet.h"
 #include "DataFormats/Provenance/interface/Provenance.h"
 #include "DataFormats/Provenance/interface/ProductProvenance.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "RecoVertex/AdaptiveVertexFit/interface/AdaptiveVertexFitter.h"
+
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
 #include "DataFormats/Provenance/interface/BranchDescription.h"
 
-VertexReProducer::VertexReProducer(const edm::Handle<reco::VertexCollection> &handle, const edm::Event &iEvent, const std::string beamSpotConfig)
+VertexReProducer::VertexReProducer(const edm::ParameterSet &iConfig)
 {
-   beamSpotConfig_ = beamSpotConfig;
+   beamSpotConfig_ = iConfig.getParameter<std::string>("BeamSpotConfig");
    
-   const edm::Provenance *prov = handle.provenance();
-   if( prov == nullptr ) throw cms::Exception("CorruptData") << "Vertex handle doesn't have provenance.";
-
-   if( prov->moduleName() == "PrimaryVertexProducer" )
+   std::string trackSelectionAlgorithm = iConfig.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<std::string>("algorithm");
+   if( trackSelectionAlgorithm == "filter" )
      {
-	const edm::ParameterSet *psetFromProvenance = getProducerParameterSet(*prov);
-
-	configure(*psetFromProvenance);
-
-	std::vector<edm::BranchID> parents = prov->productProvenance()->parentage().parents();
-	
-	bool foundTracks = false;
-	bool foundBeamSpot = false;
-	for( std::vector<edm::BranchID>::const_iterator it = parents.begin(), ed = parents.end(); it != ed; ++it )
-	  {
-	     edm::Provenance parprov = iEvent.getProvenance(*it);
-	     if( parprov.friendlyClassName() == "recoTracks" )
-	       {
-		  tracksTag_ = edm::InputTag(parprov.moduleLabel(), parprov.productInstanceName(), parprov.processName());
-		  foundTracks = true;
-	       }
-	     else if( parprov.friendlyClassName() == "recoBeamSpot" )
-	       {
-		  beamSpotTag_ = edm::InputTag(parprov.moduleLabel(), parprov.productInstanceName(), parprov.processName());
-		  foundBeamSpot = true;
-	       }	
-	  }
-	
-	if( !foundTracks || !foundBeamSpot )
-	  {
-	     edm::LogWarning("VertexReProducer_MissingParentage") << 
-	       "Can't find parentage info for vertex collection inputs: " << 
-	       (foundTracks ? "" : "tracks ") << (foundBeamSpot ? "" : "beamSpot") << "\n";
-	  }
-     }   
-   else throw cms::Exception("Configuration") << "Vertices to re-produce don't come from a PrimaryVertexProducer \n";
-}
-
-void VertexReProducer::configure(const edm::ParameterSet &iConfig) 
-{
-   config_ = iConfig;
-   tracksTag_ = iConfig.getParameter<edm::InputTag>("TrackLabel");
-   beamSpotTag_ = iConfig.getParameter<edm::InputTag>("beamSpotLabel");
-   algo_.reset(new PrimaryVertexProducerAlgorithm(iConfig));
-
-//   std::cout<<"configuration"<< iConfig.dump();
+	theTrackFilter_ = new TrackFilterForPVFinding(iConfig.getParameter<edm::ParameterSet>("TkFilterParameters"));
+     }
+   theTrackClusterizer_ = new DAClusterizerInZ_vect(iConfig.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters"));
+   
+   vertexSelector_ = new VertexCompatibleWithBeam(VertexDistanceXY(), iConfig.getParameter<edm::ParameterSet>("VxFitterParameters").getParameter<double>("maxDistanceToBeam"));
+   
+   minNdof_ = iConfig.getParameter<edm::ParameterSet>("VxFitterParameters").getParameter<double>("minNdof");
 }
 
 std::vector<TransientVertex> VertexReProducer::makeVertices(const reco::TrackCollection &tracks,
 							    const reco::BeamSpot &bs,
 							    const edm::EventSetup &iSetup) const
 {
+   bool validBS = true;
+   VertexState beamVertexState(bs);
+   if ( (beamVertexState.error().cxx() <= 0.) ||
+	(beamVertexState.error().cyy() <= 0.) ||
+	(beamVertexState.error().czz() <= 0.) ) 
+     {
+	validBS = false;
+	edm::LogError("UnusableBeamSpot") << "Beamspot with invalid errors " << beamVertexState.error().matrix();
+     }   
+   
    edm::ESHandle<TransientTrackBuilder> theB;
    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", theB);
    
    std::vector<reco::TransientTrack> t_tks;
    t_tks.reserve(tracks.size());
 
-   for( reco::TrackCollection::const_iterator it = tracks.begin(), ed = tracks.end(); it != ed; ++it )
+   for( size_t i=0;i<tracks.size();i++ )
      {
-	reco::TransientTrack transientTrack = (*theB).build(*it);
-	t_tks.push_back(transientTrack);
+	const reco::Track &pseudoTrack = tracks[i];
+	
+	reco::TransientTrack transTrack = (*theB).build(pseudoTrack);
+	t_tks.push_back(transTrack);
 	t_tks.back().setBeamSpot(bs);
      }
-
-   return algo_->vertices(t_tks, bs, beamSpotConfig_);
+   
+   std::vector<reco::TransientTrack> seltks = theTrackFilter_->select(t_tks);
+   
+   std::vector<std::vector<reco::TransientTrack> > clusters = theTrackClusterizer_->clusterize(seltks);
+   
+   AdaptiveVertexFitter fit;
+   
+   std::vector<TransientVertex> pvs;
+   
+   for( std::vector< std::vector<reco::TransientTrack> >::const_iterator iclus=clusters.begin();iclus!=clusters.end();iclus++ )
+     {
+	TransientVertex v;
+	
+	if( beamSpotConfig_ == "WithBS" && validBS && ((*iclus).size()>1) )
+	  {	     	
+	     v = fit.vertex(*iclus, bs);
+	  }
+	else if( beamSpotConfig_ != "WithBS" && ((*iclus).size()>1) )
+	  {
+	     v = fit.vertex(*iclus);
+	  }	
+	
+	if( v.isValid() && (v.degreesOfFreedom() >= minNdof_) &&
+	    (!validBS || (*(vertexSelector_))(v, beamVertexState)) ) pvs.push_back(v);
+     }
+   
+   if( pvs.size() > 1 )
+     {
+	sort(pvs.begin(), pvs.end(), VertexHigherPtSquared());
+     }   
+   
+   return pvs;
 }
 
-std::vector<TransientVertex> VertexReProducer::makeVertices(const std::vector<reco::TrackBaseRef> &tracks,
-							    const reco::BeamSpot &bs,
-							    const edm::EventSetup &iSetup) const
+VertexReProducer::~VertexReProducer()
 {
-   edm::ESHandle<TransientTrackBuilder> theB;
-   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", theB);
-   
-   std::vector<reco::TransientTrack> t_tks;
-   t_tks.reserve(tracks.size());
-   
-   for( std::vector<reco::TrackBaseRef>::const_iterator it = tracks.begin(), ed = tracks.end(); it != ed; ++it )
-     {
-	reco::TrackBaseRef tk = *it;
-	t_tks.push_back((*theB).build(*tk));
-	t_tks.back().setBeamSpot(bs);
-     }
-   
-   return algo_->vertices(t_tks, bs, beamSpotConfig_);
+   if( theTrackFilter_ ) delete theTrackFilter_;
+   if( theTrackClusterizer_ ) delete theTrackClusterizer_;
+   if( vertexSelector_ ) delete vertexSelector_;
 }

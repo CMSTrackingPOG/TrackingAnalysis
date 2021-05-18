@@ -150,7 +150,7 @@ class ResTree
    std::vector<std::vector<float> > pv_trk_d0_pvunbiased;
    std::vector<std::vector<float> > pv_trk_dz_pvunbiased;
    std::vector<std::vector<float> > pv_trk_d0_bs_zpvunbiased;
-
+/*
    std::vector<std::vector<float> > pv_trk_mc_dxy_pvunbiased;
    std::vector<std::vector<float> > pv_trk_mc_dz_pvunbiased;
    std::vector<std::vector<float> > pv_trk_mc_dxy_tp_pvunbiased;
@@ -165,7 +165,7 @@ class ResTree
    std::vector<std::vector<float> > pv_trk_mc_dz_pvunbiased_p2;
    std::vector<std::vector<float> > pv_trk_mc_dxy_tp_pvunbiased_p2;
    std::vector<std::vector<float> > pv_trk_mc_dz_tp_pvunbiased_p2;
-   
+*/   
    std::vector<std::vector<bool> > pv_trk_pvunbiased_IsValid_p1;
    std::vector<std::vector<bool> > pv_trk_pvunbiased_IsFake_p1;
    std::vector<std::vector<int> > pv_trk_pvunbiased_NTracks_p1;
@@ -270,7 +270,7 @@ class ResTree
    
    std::vector<std::vector<float> > pv_trk_d0_tv;
    std::vector<std::vector<float> > pv_trk_dz_tv;
-   
+/*   
    std::vector<bool> pv_mc_hasMatch;
    std::vector<std::vector<float> >  pv_mc_matchQuality;
    std::vector<std::vector<bool> > pv_mc_isFake;
@@ -319,7 +319,7 @@ class ResTree
    std::vector<std::vector<int> > pv_mc_nSimVtx;
    std::vector<std::vector<int> > pv_mc_nDaughterTracks;
    std::vector<std::vector<int> > pv_mc_nSourceTracks;
-   
+*/   
    std::vector<bool> pv_IsValid_p1;
    std::vector<bool> pv_IsFake_p1;
    std::vector<int> pv_NTracks_p1;
@@ -357,7 +357,7 @@ class ResTree
    std::vector<float> pfjet_eta;
    std::vector<float> pfjet_phi;
    std::vector<float> pfjet_E;
-
+/*
    std::vector<bool> trk_mc_hasMatch;
    std::vector<std::vector<float> > trk_mc_matchQuality;
    
@@ -454,7 +454,7 @@ class ResTree
    std::vector<std::vector<bool> > trk_mc_isTertiaryVertex;
    
    std::vector<std::vector<bool> > trk_mc_isUnknown;
-
+*/
    std::vector<float> trk_pt;
    std::vector<float> trk_px;
    std::vector<float> trk_py;
@@ -527,92 +527,9 @@ class ResTree
    std::vector<float> trk_d0_tv;
    std::vector<float> trk_dz_tv;
    
-   // Tracks from TrackJets
-   
-   std::vector<bool> trk_jet_found;
-   
-   std::vector<float> trk_jet_pt;
-   std::vector<float> trk_jet_eta;
-   std::vector<float> trk_jet_phi;
-   std::vector<int> trk_jet_nTracks;
-   
-   std::vector<float> trk_jet_pv_x;
-   std::vector<float> trk_jet_pv_y;
-   std::vector<float> trk_jet_pv_z;
-
-   std::vector<bool> trk_jetTrk_found;
-   
-   std::vector<float> trk_jetTrk_deltaR;
-   
-   std::vector<float> trk_jetTrk_pt;
-   std::vector<float> trk_jetTrk_px;
-   std::vector<float> trk_jetTrk_py;
-   std::vector<float> trk_jetTrk_pz;
-   std::vector<float> trk_jetTrk_p;
-   std::vector<float> trk_jetTrk_eta;
-   std::vector<float> trk_jetTrk_phi;
-   
-   std::vector<int> trk_jetTrk_nTrackerLayers;
-   std::vector<int> trk_jetTrk_nPixelBarrelLayers;
-   std::vector<int> trk_jetTrk_nPixelEndcapLayers;
-   std::vector<int> trk_jetTrk_nStripLayers;
-   
-   std::vector<int> trk_jetTrk_nValid;
-   std::vector<float> trk_jetTrk_fValid;
-   std::vector<int> trk_jetTrk_nValidTracker;
-   std::vector<int> trk_jetTrk_nValidPixelBarrel;
-   std::vector<int> trk_jetTrk_nValidPixelEndcap;
-   std::vector<int> trk_jetTrk_nValidStrip;
-   
-   std::vector<int> trk_jetTrk_nMissed;
-   std::vector<int> trk_jetTrk_nMissedOut;
-   std::vector<int> trk_jetTrk_nMissedIn;
-   std::vector<int> trk_jetTrk_nMissedTrackerOut;
-   std::vector<int> trk_jetTrk_nMissedTrackerIn;
-   std::vector<int> trk_jetTrk_nMissedPixelBarrelOut;
-   std::vector<int> trk_jetTrk_nMissedPixelBarrelIn;
-   std::vector<int> trk_jetTrk_nMissedPixelEndcapOut;
-   std::vector<int> trk_jetTrk_nMissedPixelEndcapIn;
-   
-   std::vector<bool> trk_jetTrk_hasPixelBarrelLayer1;
-   std::vector<bool> trk_jetTrk_hasPixelEndcapLayer1;
-   std::vector<bool> trk_jetTrk_hasPixelBarrelLayer2;
-   std::vector<bool> trk_jetTrk_hasPixelEndcapLayer2;
-   std::vector<bool> trk_jetTrk_hasPixelBarrelLayer3;
-   std::vector<bool> trk_jetTrk_hasPixelEndcapLayer3;
-   std::vector<bool> trk_jetTrk_hasPixelBarrelLayer4;
-   std::vector<bool> trk_jetTrk_hasPixelEndcapLayer4;
-   
-   std::vector<int> trk_jetTrk_quality;
-   std::vector<float> trk_jetTrk_normalizedChi2;
-   std::vector<int> trk_jetTrk_ndof;
-   std::vector<int> trk_jetTrk_charge;
-   std::vector<float> trk_jetTrk_qoverp;
-   std::vector<float> trk_jetTrk_qoverpError;
-   std::vector<float> trk_jetTrk_theta;
-   std::vector<float> trk_jetTrk_thetaError;
-   std::vector<float> trk_jetTrk_lambda;
-   std::vector<float> trk_jetTrk_lambdaError;
-   std::vector<float> trk_jetTrk_ptError;
-   std::vector<float> trk_jetTrk_etaError;
-   std::vector<float> trk_jetTrk_phiError;
-   
-   std::vector<float> trk_jetTrk_d0;
-   std::vector<float> trk_jetTrk_dz;
-   std::vector<float> trk_jetTrk_d0_pv;
-   std::vector<float> trk_jetTrk_dz_pv;
-   std::vector<float> trk_jetTrk_d0_bs;
-   std::vector<float> trk_jetTrk_d0_bs_zpca;
-   std::vector<float> trk_jetTrk_d0_bs_zpv;
-   std::vector<float> trk_jetTrk_dz_bs;
-   std::vector<float> trk_jetTrk_d0Err;
-   std::vector<float> trk_jetTrk_dzErr;
-   std::vector<float> trk_jetTrk_d0_pv_NoRefit;
-   std::vector<float> trk_jetTrk_dz_pv_NoRefit;
-
    // Tracks from PFJets
    
-   std::vector<bool> trk_pfjet_found;
+/*   std::vector<bool> trk_pfjet_found;
    
    std::vector<float> trk_pfjet_pt;
    std::vector<float> trk_pfjet_eta;
@@ -687,7 +604,7 @@ class ResTree
    std::vector<float> trk_pfjetTrk_d0Err;
    std::vector<float> trk_pfjetTrk_dzErr;
    std::vector<float> trk_pfjetTrk_d0_pv_NoRefit;
-   std::vector<float> trk_pfjetTrk_dz_pv_NoRefit;
+   std::vector<float> trk_pfjetTrk_dz_pv_NoRefit;*/
 };
 
 #endif

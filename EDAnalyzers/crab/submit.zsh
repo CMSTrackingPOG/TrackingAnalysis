@@ -2,12 +2,12 @@
 
 # source /cvmfs/cms.cern.ch/crab3/crab.sh
 
-slist="digi.txt"
+slist="data.txt"
 pver="1" # production tentative
 pset="crabConfigTemplate.py"
 psetData="crabConfigTemplateData.py"
-doTruth="1"
-ver="Track-v20200802"
+doTruth="0"
+ver="Track-v20210518"
 prodv="/store/user/kskovpen/Track/Ntuple/${ver}/"
 
 rm -f crabConfig.py*
@@ -58,8 +58,8 @@ do
   fi
   
   echo "${nam} ${pubdn}"
-#  crab submit -c crabConfig.py --dryrun
-  crab submit -c crabConfig.py
+  crab submit -c crabConfig.py --dryrun
+#  crab submit -c crabConfig.py
 
   is=$[$is+1]
   

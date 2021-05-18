@@ -6,6 +6,8 @@
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -17,37 +19,27 @@ class VertexReProducer
    
  public:
    /// This is the real constructor to be used
-   VertexReProducer(const edm::Handle<reco::VertexCollection> &configFromOriginalVertexCollection,
-                    const edm::Event &iEvent, const std::string beamSpotConfig);
-   /// This is only for testing
-   VertexReProducer(const edm::ParameterSet &configByHand) { configure(configByHand); }
+   VertexReProducer(const edm::ParameterSet &config);
    
+   ~VertexReProducer();
+
    /// Make the vertices
    std::vector<TransientVertex> makeVertices(const reco::TrackCollection &tracks,
 					     const reco::BeamSpot &bs,
 					     const edm::EventSetup &iSetup) const;
 
-   std::vector<TransientVertex> makeVertices(const std::vector<reco::TrackBaseRef> &tracks,
-					     const reco::BeamSpot &bs,
-					     const edm::EventSetup &iSetup) const;
-   
    /// Get the configuration used in the VertexProducer
    const edm::ParameterSet &inputConfig() const { return config_; }
-
-   /// Get the InputTag of the TrackCollection used in the VertexProducer
-   const edm::InputTag &inputTracks() const { return tracksTag_; }
-
-   /// Get the InputTag of the BeamSpot used in the VertexProducer
-   const edm::InputTag &inputBeamSpot() const { return beamSpotTag_; }
-
- private:
    
-   void configure(const edm::ParameterSet &iConfig);
+ private:
+
+   TrackFilterForPVFindingBase *theTrackFilter_;
+   TrackClusterizerInZ *theTrackClusterizer_;
+   VertexCompatibleWithBeam *vertexSelector_;
+   
+   double minNdof_;
    
    edm::ParameterSet config_;
-   edm::InputTag tracksTag_;
-   edm::InputTag beamSpotTag_;
-   std::auto_ptr<PrimaryVertexProducerAlgorithm> algo_;
    std::string beamSpotConfig_;
 };
 

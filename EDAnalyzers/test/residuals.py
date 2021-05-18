@@ -13,7 +13,9 @@ secFiles = cms.untracked.vstring()
 source = cms.Source("PoolSource",fileNames = readFiles, secondaryFileNames = secFiles)
 
 readFiles.extend( [
-'root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Truth/3962CF05-AD03-CF4D-91CD-8E2DA6E3AA48_AODSIM.root'
+"root://xrootd-cms.infn.it//store/mc/RunIISummer19UL17MiniAOD/QCD_Pt-15to7000_TuneCP5_Flat_13TeV_pythia8/MINIAODSIM/106X_mc2017_realistic_v6_ext2-v2/100000/0385CA7E-75E3-014D-8DF7-0C6F3C9420ED.root"
+#"file:/eos/user/k/kskovpen/Track/8A860C7A-0251-9C41-818A-518C44CE28BD.root"
+##'root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Truth/3962CF05-AD03-CF4D-91CD-8E2DA6E3AA48_AODSIM.root'
 ##'root://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/kskovpen/Track/Truth/1EFEAE8E-BD0B-0349-BD47-637FBD41C610_RAW.root'
 ##'/store/mc/RunIISummer19UL17RECO/SingleNeutrino/AODSIM/FEVTDEBUG_106X_mc2017_realistic_v6-v2/70000/3962CF05-AD03-CF4D-91CD-8E2DA6E3AA48.root'
 #'/store/mc/RunIISummer19UL17RECO/SingleNeutrino/AODSIM/106X_mc2017_realistic_v6-v2/30000/01989700-04AA-5F49-BDFE-C79CEA5EECE3.root'
@@ -44,7 +46,7 @@ process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-##process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50) )
 
 process.source = source
 
@@ -59,33 +61,33 @@ process.source = source
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 process.load('RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi')
 
-primVtx = process.offlinePrimaryVertices
-process.offlinePrimaryVerticesRerun = primVtx.clone( maxDistanceToBeam = primVtx.vertexCollections[0].maxDistanceToBeam,
-                                                     useBeamConstraint = primVtx.vertexCollections[0].useBeamConstraint,
-                                                     chi2cutoff = primVtx.vertexCollections[0].chi2cutoff,
-                                                     verbose = False,
-                                                     algorithm = primVtx.vertexCollections[0].algorithm,
-                                                     minNdof = primVtx.vertexCollections[0].minNdof,
-                                                     label = primVtx.vertexCollections[0].label
-)
+#primVtx = process.offlinePrimaryVertices
+#process.offlinePrimaryVerticesRerun = primVtx.clone( TrackLabel = cms.InputTag("lostTracks"),
+#                                                     maxDistanceToBeam = primVtx.vertexCollections[0].maxDistanceToBeam,
+#                                                     useBeamConstraint = primVtx.vertexCollections[0].useBeamConstraint,
+#                                                     chi2cutoff = primVtx.vertexCollections[0].chi2cutoff,
+#                                                     verbose = False,
+#                                                     algorithm = primVtx.vertexCollections[0].algorithm,
+#                                                     minNdof = primVtx.vertexCollections[0].minNdof,
+#                                                     label = primVtx.vertexCollections[0].label
+#)
 
-if options.withBS:
-    process.offlinePrimaryVerticesRerun = primVtx.clone( maxDistanceToBeam = primVtx.vertexCollections[1].maxDistanceToBeam,
-                                                         useBeamConstraint = primVtx.vertexCollections[1].useBeamConstraint,
-                                                         chi2cutoff = primVtx.vertexCollections[1].chi2cutoff,
-                                                         verbose = False,
-                                                         algorithm = primVtx.vertexCollections[1].algorithm,
-                                                         minNdof = primVtx.vertexCollections[1].minNdof,
-                                                         label = primVtx.vertexCollections[1].label
-    )
+#if options.withBS:
+#    process.offlinePrimaryVerticesRerun = primVtx.clone( TrackLabel = cms.InputTag("lostTracks"),
+#                                                         maxDistanceToBeam = primVtx.vertexCollections[1].maxDistanceToBeam,
+#                                                         useBeamConstraint = primVtx.vertexCollections[1].useBeamConstraint,
+#                                                         chi2cutoff = primVtx.vertexCollections[1].chi2cutoff,
+#                                                         verbose = False,
+#                                                         algorithm = primVtx.vertexCollections[1].algorithm,
+#                                                         minNdof = primVtx.vertexCollections[1].minNdof,
+#                                                         label = primVtx.vertexCollections[1].label
+#    )
 
 #print process.offlinePrimaryVerticesRerun.dumpPython()
 
 process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
 process.residuals.BeamSpotConfig = ''
-
 if options.withBS:
-    process.residuals.VertexPrimaryLabel = cms.InputTag('offlinePrimaryVerticesWithBS')
     process.residuals.BeamSpotConfig = 'WithBS'
     
 process.residuals.RunOnData = False
@@ -148,6 +150,6 @@ if options.doTruth and not options.isData:
     )
 else:
     process.p = cms.Path(
-         process.offlinePrimaryVerticesRerun*
+#         process.offlinePrimaryVerticesRerun*
          process.residuals
     )

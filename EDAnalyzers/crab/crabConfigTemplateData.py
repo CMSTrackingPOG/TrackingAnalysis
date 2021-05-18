@@ -10,12 +10,13 @@ config.JobType.pluginName = 'Analysis'
 config.JobType.pyCfgParams = ['isData=1','withBS=0']
 config.JobType.allowUndistributedCMSSW = True
 #config.JobType.maxMemoryMB = 4000
-config.JobType.maxJobRuntimeMin = 2749 # min
+##config.JobType.maxJobRuntimeMin = 2749 # min
 
 config.section_('Data')
 config.Data.splitting='LumiBased'
 config.Data.totalUnits = -1
-config.Data.unitsPerJob = 6
+#config.Data.unitsPerJob = 6
+config.Data.unitsPerJob = 70
 
 #config.Data.allowNonValidInputDataset = True
 config.Data.lumiMask = 'JSON/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt'

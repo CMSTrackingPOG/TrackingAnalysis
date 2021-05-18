@@ -42,25 +42,58 @@ residuals = cms.EDAnalyzer("Residuals",
                            numberOfInnerLayers = cms.untracked.uint32(2),
                            minTrackerSimHits = cms.untracked.uint32(3),
                            
-                           trackProducer = cms.untracked.InputTag('generalTracks'),
+                           trackProducer = cms.untracked.InputTag('lostTracks'),
                            trackAssociator = cms.untracked.InputTag("trackAssociatorByPull"),
                            hitAssociator = cms.PSet(associatePixel = cms.bool(False), # False when running on AOD
                                                     associateStrip = cms.bool(False), # False when running on AOD
                                                     associateRecoTracks = cms.bool(True)
                            ),
                            
+                           TkFilterParameters = cms.PSet(algorithm=cms.string('filter'),
+                                                         maxNormalizedChi2 = cms.double(20.0),
+                                                         minPixelLayersWithHits = cms.int32(2),
+                                                         minSiliconLayersWithHits = cms.int32(5),
+                                                         maxD0Significance = cms.double(5.0),
+                                                         minPt = cms.double(0.0),
+                                                         maxEta = cms.double(5.0),
+                                                         trackQuality = cms.string("any")
+                           ),                                
+                           
+                           TkClusParameters = cms.PSet(algorithm = cms.string("DA_vect"),
+                                                       TkDAClusParameters = cms.PSet(coolingFactor = cms.double(0.6),  #  moderate annealing speed
+                                                                                     Tmin = cms.double(4.),            #  end of annealing
+                                                                                     Tpurge = cms.double(2.0),         # cleaning
+                                                                                     Tstop = cms.double(0.5),          # end of annealing
+                                                                                     uniquetrkweight = cms.double(0.8), # require at least two tracks with this weight at T=Tpurge
+                                                                                     zmerge = cms.double(1e-2),        # merge intermediat clusters separated by less than zmerge
+                                                                                     vertexSize = cms.double(0.01),    #  ~ resolution / sqrt(Tmin)
+                                                                                     d0CutOff = cms.double(3.),        # downweight high IP tracks 
+                                                                                     dzCutOff = cms.double(4.)         # outlier rejection after freeze-out (T<Tmin)
+                                                       )
+                           ),
+
+                           VxFitterParameters = cms.PSet(algorithm=cms.string('AVF'),
+                                                         minNdof = cms.double(0.0),
+                                                         maxDistanceToBeam = cms.double(1.0)
+                           ),
+
+                           VxFitterBSParameters = cms.PSet(algorithm=cms.string('AVFBS'),
+                                                           minNdof = cms.double(2.0),
+                                                           maxDistanceToBeam = cms.double(1.0)
+                           ),
+                           
                            # Pileup
-                           puInfoLabel = cms.InputTag("addPileupInfo"),
+                           puInfoLabel = cms.InputTag("slimmedAddPileupInfo"),
 
                            # Selection of Tracks
-                           TrackLabel = cms.InputTag("generalTracks"),
+                           TrackLabel = cms.InputTag("lostTracks"),
                            TkMinPt = cms.double(0.0),
                            TkMinXLayers = cms.int32(7),
                            TkMaxMissedOuterLayers = cms.int32(4),
                            TkMaxMissedInnerLayers = cms.int32(0),
 
                            # Selection of Vertices
-                           VertexLabel = cms.InputTag("offlinePrimaryVerticesRerun"),
+                           VertexLabel = cms.InputTag("offlineSlimmedPrimaryVertices"),
 #                           VertexPrimaryLabel = cms.InputTag("offlinePrimaryVertices"),
 #                           VertexPrimaryLabel = cms.InputTag("offlinePrimaryVertices","WithBS"),
                            VtxTracksSizeMin = cms.int32(2),
@@ -70,7 +103,7 @@ residuals = cms.EDAnalyzer("Residuals",
                            TrackJetsLabel = cms.InputTag("ak4TrackJets","","RECO"),
 
                            # PF jets
-                           PFJetsLabel = cms.InputTag("ak4PFJets","","RECO"),
+                           PFJetsLabel = cms.InputTag("slimmedJets"),
                            
                            # Vertex selection for Jet6U trigger
 #                           VtxErrorXMin = cms.double(0.0015),
