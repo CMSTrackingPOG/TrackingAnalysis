@@ -1,14 +1,12 @@
 # TrackingAnalysis
 
 Measurement of the resolution of the primary vertex and track impact
-parameter (IP) reconstruction.
-
-Initially inspired by the IP resolution studies done by B. Mangano et al. (see http://cmscvs.web.cern.ch/cmscvs/cgi/viewvc.cgi/cvsroot/UserCode/Mangano/IpResoStudies/)
+parameters.
 
 Install:
 ```
-cmsrel CMSSW_10_6_5
-cd CMSSW_10_6_5/src
+cmsrel CMSSW_11_0_3
+cd CMSSW_11_0_3/src
 cmsenv
 
 git cms-init

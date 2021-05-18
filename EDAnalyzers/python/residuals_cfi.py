@@ -11,6 +11,9 @@ residuals = cms.EDAnalyzer("Residuals",
                            # Beam spot
                            BeamSpotLabel = cms.InputTag("offlineBeamSpot"),
                            BeamSpotConfig = cms.string(""),
+                           
+                           # Whether to add lost tracks
+                           AddLostTracks = cms.bool(False),
 
                            # Rho
                            RhoLabel = cms.InputTag("fixedGridRhoFastjetAll"),
@@ -86,7 +89,8 @@ residuals = cms.EDAnalyzer("Residuals",
                            puInfoLabel = cms.InputTag("slimmedAddPileupInfo"),
 
                            # Selection of Tracks
-                           TrackLabel = cms.InputTag("lostTracks"),
+                           TrackLabel = cms.InputTag("packedPFCandidates"),
+                           LostTrackLabel = cms.InputTag("lostTracks"),
                            TkMinPt = cms.double(0.0),
                            TkMinXLayers = cms.int32(7),
                            TkMaxMissedOuterLayers = cms.int32(4),

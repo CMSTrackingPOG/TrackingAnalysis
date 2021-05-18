@@ -5,6 +5,7 @@ options = VarParsing('analysis')
 options.register('withBS', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Primary vertex reconstruction with BS constraint')
 options.register('isData', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Run on data')
 options.register('doTruth', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Include MC truth information')
+options.register('addLost', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Add lost tracks')
 options.parseArguments()
 
 readFiles = cms.untracked.vstring()
@@ -89,6 +90,10 @@ process.load('TrackingAnalysis.EDAnalyzers.residuals_cfi')
 process.residuals.BeamSpotConfig = ''
 if options.withBS:
     process.residuals.BeamSpotConfig = 'WithBS'
+
+process.residuals.AddLostTracks = False
+if options.addLost:
+    process.residuals.AddLostTracks = True
     
 process.residuals.RunOnData = False
 if options.isData:

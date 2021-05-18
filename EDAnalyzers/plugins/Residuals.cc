@@ -156,6 +156,7 @@ class Residuals : public edm::EDAnalyzer
    edm::EDGetTokenT<reco::VertexCollection> thePVToken_;
 //   edm::EDGetTokenT<reco::TrackCollection> theTracksToken_;
    edm::EDGetTokenT<edm::View<pat::PackedCandidate> > theTracksToken_;
+   edm::EDGetTokenT<edm::View<pat::PackedCandidate> > theLostTracksToken_;
    edm::EDGetTokenT<edm::View<reco::Track> > theTrackViewsToken_;
    edm::EDGetTokenT<reco::BeamSpot> theBeamspotToken_;
    edm::EDGetTokenT<double> theRhoToken_;
@@ -178,7 +179,9 @@ class Residuals : public edm::EDAnalyzer
 //   double vtxErrorYMin,vtxErrorYMax;
 //   double vtxErrorZMin,vtxErrorZMax;
 
-   std::string beamSpotConfig;
+   bool addLostTracks;
+   
+   std::string beamSpotConfig;   
    
    VertexReProducer *revertex;
    
@@ -206,7 +209,11 @@ Residuals::Residuals(const edm::ParameterSet& pset):
 {
    edm::InputTag TrackCollectionTag_ = pset.getParameter<edm::InputTag>("TrackLabel");
    theTracksToken_= consumes<edm::View<pat::PackedCandidate> >(TrackCollectionTag_);
-/*
+
+   edm::InputTag LostTrackCollectionTag_ = pset.getParameter<edm::InputTag>("LostTrackLabel");
+   theLostTracksToken_= consumes<edm::View<pat::PackedCandidate> >(LostTrackCollectionTag_);
+   
+   /*
    theTrackViewsToken_= consumes<edm::View<reco::Track> >(TrackCollectionTag_);
 */   
    edm::InputTag VertexCollectionTag_ = pset.getParameter<edm::InputTag>("VertexLabel");
@@ -240,6 +247,8 @@ Residuals::Residuals(const edm::ParameterSet& pset):
 //   theVertexAssociatorToken_ = consumes<reco::VertexToTrackingVertexAssociator>(VertexAssociatorTag_);
 */   
    beamSpotConfig = pset.getParameter<std::string>("BeamSpotConfig");
+   
+   addLostTracks = pset.getParameter<bool>("AddLostTracks");
    
    tkMinPt = pset.getParameter<double>("TkMinPt");
    tkMinXLayers = pset.getParameter<int>("TkMinXLayers");
@@ -293,10 +302,16 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    Handle<edm::View<pat::PackedCandidate> > tracksPackedHandle;
    iEvent.getByToken(theTracksToken_, tracksPackedHandle);
+
+   Handle<edm::View<pat::PackedCandidate> > lostTracksPackedHandle;
+   iEvent.getByToken(theLostTracksToken_, lostTracksPackedHandle);
    
    // Create pseudo-track collection
    edm::View<pat::PackedCandidate> tracksPacked = (*tracksPackedHandle.product());
+   edm::View<pat::PackedCandidate> lostTracksPacked = (*lostTracksPackedHandle.product());
+   
    TrackCollection tracks;
+   
    for( size_t it=0;it<tracksPacked.size();it++ )
      {
 	const pat::PackedCandidate &trkPacked = tracksPacked[it];
@@ -305,8 +320,22 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	
 	reco::Track trk = trkPacked.pseudoTrack();
 	tracks.push_back(trk);
+     }
+
+   if( addLostTracks )
+     {	
+	for( size_t it=0;it<lostTracksPacked.size();it++ )
+	  {
+	     const pat::PackedCandidate &trkPacked = lostTracksPacked[it];
+	     
+	     if( ! trkPacked.hasTrackDetails() ) continue;
+	     
+	     reco::Track trk = trkPacked.pseudoTrack();
+	     tracks.push_back(trk);
+	  }
      }   
-/*   
+   
+   /*   
    Handle<View<Track> >  trackViews;
    iEvent.getByToken(theTrackViewsToken_, trackViews);
 */   
