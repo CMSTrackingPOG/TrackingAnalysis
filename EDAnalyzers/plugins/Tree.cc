@@ -756,7 +756,7 @@ void ResTree::Init()
    
    trk_mc_isUnknown.clear();
 */
-   trk_pt.clear();
+/*   trk_pt.clear();
    trk_px.clear();
    trk_py.clear();
    trk_pz.clear();
@@ -827,7 +827,7 @@ void ResTree::Init()
    
    trk_d0_tv.clear();
    trk_dz_tv.clear();
-
+*/
    // Tracks from PFJets
    
 /*   trk_pfjet_found.clear();
@@ -1358,7 +1358,7 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
 	tree->Branch("trk_mc_isUnknown", "std::vector<std::vector<bool> >", &trk_mc_isUnknown, buff);
      }
 */
-   tree->Branch("trk_pt", "std::vector<float>", &trk_pt, buff);
+/*   tree->Branch("trk_pt", "std::vector<float>", &trk_pt, buff);
    tree->Branch("trk_px", "std::vector<float>", &trk_px, buff);
    tree->Branch("trk_py", "std::vector<float>", &trk_py, buff);
    tree->Branch("trk_pz", "std::vector<float>", &trk_pz, buff);
@@ -1429,7 +1429,7 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    
    tree->Branch("trk_d0_tv", "std::vector<float>", &trk_d0_tv, buff);
    tree->Branch("trk_dz_tv", "std::vector<float>", &trk_dz_tv, buff);
-
+*/
    // Tracks from PFJets
 /*   
    tree->Branch("trk_pfjet_found", "std::vector<bool>", &trk_pfjet_found, buff);

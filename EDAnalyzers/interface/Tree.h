@@ -455,7 +455,7 @@ class ResTree
    
    std::vector<std::vector<bool> > trk_mc_isUnknown;
 */
-   std::vector<float> trk_pt;
+/*   std::vector<float> trk_pt;
    std::vector<float> trk_px;
    std::vector<float> trk_py;
    std::vector<float> trk_pz;
@@ -526,7 +526,7 @@ class ResTree
 
    std::vector<float> trk_d0_tv;
    std::vector<float> trk_dz_tv;
-   
+*/   
    // Tracks from PFJets
    
 /*   std::vector<bool> trk_pfjet_found;

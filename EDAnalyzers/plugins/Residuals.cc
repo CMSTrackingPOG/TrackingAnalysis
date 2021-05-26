@@ -1638,7 +1638,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      }   
 
    // Tracks
-   float trackProb = 1./float(trackScale);
+/*   float trackProb = 1./float(trackScale);
    int nTracks = tracks.size();
    
    edm::ESHandle<TransientTrackBuilder> theB;
@@ -1674,7 +1674,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	Track::Point vtxPosition = Track::Point(newPV.position().x(), newPV.position().y(), newPV.position().z());
 	
 	if( ! vertexSelection(newPV) ) continue;
-
+*/
 /*	if( doTruth && !runOnData )
 	  {	     
 	     RefToBase<Track> trkRef(trackViews, itk - tracks->begin());
@@ -2009,7 +2009,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  }*/
 
 	// Reco track
-	ftree->trk_pt.push_back( itk->pt() );
+/*	ftree->trk_pt.push_back( itk->pt() );
 	ftree->trk_px.push_back( itk->px() );
 	ftree->trk_py.push_back( itk->py() );
 	ftree->trk_pz.push_back( itk->pz() );
@@ -2078,7 +2078,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ftree->trk_dzErr.push_back( itk->dzError() * micron );
 	ftree->trk_d0_pv_NoRefit.push_back( itk->dxy(vtxH->front().position()) * micron );
 	ftree->trk_dz_pv_NoRefit.push_back( itk->dz(vtxH->front().position()) * micron );
-
+*/
 /*	if( doTruth && !runOnData && ftree->ev_nPV > 0 && ftree->pv_mc_hasMatch[0] )
 	  {
 	     Track::Point tvPosition = Track::Point((ftree->pv_mc_x[0][0])/micron, (ftree->pv_mc_y[0][0])/micron, (ftree->pv_mc_z[0][0])/micron);
@@ -2326,8 +2326,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     ftree->trk_pfjetTrk_dzErr.push_back( null );
 	     ftree->trk_pfjetTrk_d0_pv_NoRefit.push_back( null );
 	     ftree->trk_pfjetTrk_dz_pv_NoRefit.push_back( null );
-	  }*/
-   }
+	  }
+   }*/
 
    ftree->tree->Fill();
 }   

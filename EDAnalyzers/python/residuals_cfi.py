@@ -52,26 +52,28 @@ residuals = cms.EDAnalyzer("Residuals",
                                                     associateRecoTracks = cms.bool(True)
                            ),
                            
+                           # https://github.com/cms-sw/cmssw/blob/master/RecoVertex/PrimaryVertexProducer/python/OfflinePrimaryVertices_cfi.py#L12
                            TkFilterParameters = cms.PSet(algorithm=cms.string('filter'),
-                                                         maxNormalizedChi2 = cms.double(20.0),
+                                                         maxNormalizedChi2 = cms.double(10.0),
                                                          minPixelLayersWithHits = cms.int32(2),
                                                          minSiliconLayersWithHits = cms.int32(5),
-                                                         maxD0Significance = cms.double(5.0),
+                                                         maxD0Significance = cms.double(4.0),
                                                          minPt = cms.double(0.0),
-                                                         maxEta = cms.double(5.0),
+                                                         maxEta = cms.double(5.0), # 2.4
                                                          trackQuality = cms.string("any")
                            ),                                
                            
+                           # https://github.com/cms-sw/cmssw/blob/master/RecoVertex/PrimaryVertexProducer/python/TkClusParameters_cff.py#L3
                            TkClusParameters = cms.PSet(algorithm = cms.string("DA_vect"),
                                                        TkDAClusParameters = cms.PSet(coolingFactor = cms.double(0.6),  #  moderate annealing speed
-                                                                                     Tmin = cms.double(4.),            #  end of annealing
+                                                                                     Tmin = cms.double(2.0),            #  end of annealing
                                                                                      Tpurge = cms.double(2.0),         # cleaning
                                                                                      Tstop = cms.double(0.5),          # end of annealing
                                                                                      uniquetrkweight = cms.double(0.8), # require at least two tracks with this weight at T=Tpurge
                                                                                      zmerge = cms.double(1e-2),        # merge intermediat clusters separated by less than zmerge
-                                                                                     vertexSize = cms.double(0.01),    #  ~ resolution / sqrt(Tmin)
+                                                                                     vertexSize = cms.double(0.006),    #  ~ resolution / sqrt(Tmin)
                                                                                      d0CutOff = cms.double(3.),        # downweight high IP tracks 
-                                                                                     dzCutOff = cms.double(4.)         # outlier rejection after freeze-out (T<Tmin)
+                                                                                     dzCutOff = cms.double(3.)         # outlier rejection after freeze-out (T<Tmin)
                                                        )
                            ),
 
