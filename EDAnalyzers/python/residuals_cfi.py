@@ -87,7 +87,7 @@ residuals = cms.EDAnalyzer("Residuals",
                            # Event filter
                            EventScale = cms.int32(100),
 #                           TrackScale = cms.int32(100),
-#                           TrackScale = cms.int32(1),
+                           TrackScale = cms.int32(1),
                            
                            # Vertex selection for MinBias trigger
                            ##VtxErrorXMin = cms.double(0.0020),
