@@ -4,8 +4,7 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing('analysis')
 options.register('withBS', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Primary vertex reconstruction with BS constraint')
 options.register('isData', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Run on data')
-options.register('doTruth', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Include MC truth information')
-options.register('addLost', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Add lost tracks')
+options.register('addLost', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Add lost tracks')
 options.register('is2016preVFP', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Run on 2016 preVFP MC')
 options.register('is2017', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Run on 2017 MC')
 options.register('is2018', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, 'Run on 2018 MC')
@@ -38,8 +37,8 @@ process.load("CondCore.CondDB.CondDB_cfi")
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50) )
 
 process.source = source
 

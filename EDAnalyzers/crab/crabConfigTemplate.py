@@ -7,7 +7,7 @@ config.General.transferLogs = True
 config.section_('JobType')
 config.JobType.psetName = '../test/residuals.py'
 config.JobType.pluginName = 'Analysis'
-config.JobType.pyCfgParams = ['isData=0', 'withBS=0', 'doTruth=0']
+config.JobType.pyCfgParams = ['isData=0', 'withBS=0', 'is2017=1']
 config.JobType.allowUndistributedCMSSW = True
 ##config.JobType.maxMemoryMB = 2500
 ##config.JobType.maxJobRuntimeMin = 2749 # min

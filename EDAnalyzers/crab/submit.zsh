@@ -7,7 +7,7 @@ pver="1" # production tentative
 pset="crabConfigTemplate.py"
 psetData="crabConfigTemplateData.py"
 doTruth="0"
-ver="Track-v20210518"
+ver="Track-v20220314"
 prodv="/store/user/kskovpen/Track/Ntuple/${ver}/"
 
 rm -f crabConfig.py*
@@ -31,7 +31,7 @@ for i in ${samp}
 do
   spl=($(echo $i | tr "/" "\n"))
   pubdn=$(echo "${spl[2]}_${spl[3]}" | sed 's%-%_%g' | \
-  sed 's%106X.*%%g' | sed 's%09Aug2019.*%%g')
+  sed 's%106X.*%%g' | sed 's%MiniAODv2.*%%g')
   isdata=$(echo "${spl[2]}" | grep -b -o Run2 | awk '{print $1}')
   run=$(echo "${spl[2]}" | cut -c$[${isdata%:*}+1]-$[${isdata%:*}+8])
   nam=$(echo "${spl[1]}" | sed 's%-%_%g')
@@ -51,11 +51,9 @@ do
   | sed "s%PUBLISHDATANAME%${pubdn}%g" \
   > crabConfig.py
   
-  if [[ ${doTruth} == "0" ]]; then
-    mv crabConfig.py crabConfigCopy.py
-    cat crabConfigCopy.py | sed "s%config.Data.secondaryInputDataset%#config.Data.secondaryInputDataset%g" > crabConfig.py
-    rm crabConfigCopy.py
-  fi
+  mv crabConfig.py crabConfigCopy.py
+  cat crabConfigCopy.py | sed "s%config.Data.secondaryInputDataset%#config.Data.secondaryInputDataset%g" > crabConfig.py
+  rm crabConfigCopy.py
   
   echo "${nam} ${pubdn}"
   crab submit -c crabConfig.py --dryrun

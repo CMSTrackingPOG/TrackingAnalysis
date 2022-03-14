@@ -4,9 +4,6 @@ residuals = cms.EDAnalyzer("Residuals",
 
                            # Run on data
                            RunOnData = cms.bool(False),
-
-                           # Read MC Truth information
-                           DoTruth = cms.bool(False),
                            
                            # Beam spot
                            BeamSpotLabel = cms.InputTag("offlineBeamSpot"),
@@ -88,9 +85,9 @@ residuals = cms.EDAnalyzer("Residuals",
 #                           VtxErrorZMax = cms.double(0.0036),
 
                            # Event filter
-                           EventScale = cms.int32(1),
+                           EventScale = cms.int32(100),
 #                           TrackScale = cms.int32(100),
-                           TrackScale = cms.int32(1),
+#                           TrackScale = cms.int32(1),
                            
                            # Vertex selection for MinBias trigger
                            ##VtxErrorXMin = cms.double(0.0020),
