@@ -164,7 +164,6 @@ class Residuals : public edm::EDAnalyzer
    std::string beamSpotConfig;
    
    bool runOnData;
-   bool doTruth;
 
    int eventScale;
    int trackScale;
@@ -197,9 +196,6 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    edm::InputTag RhoTag_ = pset.getParameter<edm::InputTag>("RhoLabel");
    theRhoToken_ = consumes<double>(RhoTag_);
 
-   edm::InputTag TrackJetsTag_ = pset.getParameter<edm::InputTag>("TrackJetsLabel");
-   theTrackJetsToken_ = consumes< vector<reco::TrackJet> >(TrackJetsTag_);
-
    edm::InputTag PFJetsTag_ = pset.getParameter<edm::InputTag>("PFJetsLabel");
    thePFJetsToken_ = consumes< vector<reco::PFJet> >(PFJetsTag_);
    
@@ -229,7 +225,6 @@ Residuals::Residuals(const edm::ParameterSet& pset):
    trackScale = pset.getParameter<int>("TrackScale");
    
    runOnData = pset.getParameter<bool>("RunOnData");
-   doTruth = pset.getParameter<bool>("DoTruth");
    
    rnd = new TRandom3();
 
