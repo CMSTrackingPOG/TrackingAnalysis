@@ -2,20 +2,12 @@
 <use   name="FWCore/PluginManager"/>
 <use   name="FWCore/ParameterSet"/>
 <use   name="HLTrigger/HLTcore"/>
-<use   name="SimDataFormats/TrackingAnalysis"/>
 <use   name="DataFormats/VertexReco"/>
 <use   name="TrackingTools/TrajectoryState"/>
 <use   name="TrackingTools/PatternTools"/>
 <use   name="CommonTools/UtilAlgos"/>
 <use   name="TrackingTools/TransientTrack"/>
 <use   name="TrackingTools/IPTools"/>
-#<use   name="RecoVertex/PrimaryVertexProducer"/>
-#<use   name="SimDataFormats/Associations"/>
-#<use   name="SimTracker/TrackAssociation"/>
-#<use   name="SimTracker/TrackerHitAssociation"/>
-#<use   name="SimTracker/Records"/>
-#<use   name="SimGeneral/HepPDTRecord"/>
-#<use   name="SimTracker/TrackHistory"/>
 
 <export>
   <lib   name="1"/>
