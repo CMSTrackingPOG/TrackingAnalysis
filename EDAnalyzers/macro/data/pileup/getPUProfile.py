@@ -15,10 +15,10 @@ if official:
 
 else:
         
-    s = ['JetHT', 'ZeroBias']
+    s = ['JetHT']
         
-    pileup = ['../../../crab/Pileup/'+s[0]+'.txt', '../../../crab/Pileup/'+s[1]+'.txt']
-    json = ['../../../crab/Pileup/processedLumi/'+s[0]+'.json', '../../../crab/Pileup/processedLumi/'+s[1]+'.json']
+    pileup = ['../../../crab/Pileup/'+s[0]+'.txt']
+    json = ['../../../crab/Pileup/processedLumi/'+s[0]+'.json']
 
     for i, p in enumerate(pileup):
         
