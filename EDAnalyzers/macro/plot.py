@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import sys
 import subprocess
@@ -24,19 +26,19 @@ def main(argv = None):
     usage = "usage: %prog [options]\n Analysis script to create histograms"
 
     parser = OptionParser(usage)
+    parser.add_option("--home", default="/user/kskovpen/analysis/Track/CMSSW_10_6_28/src/TrackingAnalysis/EDAnalyzers/macro", help="home directory [default: %default]")
     parser.add_option("--input", default="list.json", help="input file list [default: %default]")
     parser.add_option("--output", default="output.root", help="output file name [default: %default]")
     parser.add_option("--param", default="nTracks", help="list of parameterisations for PV resolution measurement [default: %default]")
     parser.add_option("--nmax", type=int, default=-1, help="number of events per job [default: %default]")
-#    parser.add_option("--etamax", type=float, default=3.0, help="max track eta [default: %default]")
     parser.add_option("--etamax", type=float, default=2.5, help="max track eta [default: %default]")
     parser.add_option("--ptmin", type=float, default=0.4, help="min track pT in GeV [default: %default]")
-    parser.add_option("--pileup", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/pileup/", help="path to pileup data files [default: %default]")
-#    parser.add_option("--pileup", default="", help="path to pileup data files [default: %default]")
-    parser.add_option("--reweight", default="/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/reweight/", help="path to reweight data files [default: %default]")
-#    parser.add_option("--reweight", default="", help="path to reweight data files [default: %default]")
+    parser.add_option("--pileup", action='store_true', help="do pileup reweighting [default: %default]")
+    parser.add_option("--reweight", action='store_true', help="do variable reweighting [default: %default]")
     parser.add_option("--reweightvar", default="jetHT", help="variable to reweight [default: %default]")
     parser.add_option("--time", action='store_true', help="Print out run time information [default: %default]")
+    parser.add_option("--bs", action='store_true', help="Produce trees with only BS information [default: %default]")
+    parser.add_option("--year", default="UL17", help="Year of data taking [default: %default]")
 
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -48,6 +50,9 @@ if __name__ == '__main__':
     
     storeHist = True
     storeTree = False
+    if options.bs:
+        storeHist = False
+        storeTree = True        
 
     ROOT.gROOT.SetBatch()
 
@@ -76,7 +81,7 @@ if __name__ == '__main__':
     
     evt = 'zb' if (isDataZeroBias or isMCZeroBias) else 'qcd'
 
-    ppath = '/user/kskovpen/analysis/Track/CMSSW_10_5_0_pre2/src/TrackingAnalysis/EDAnalyzers/macro/data/bins/'
+    ppath = options.home+'/data/'+options.year+'/bins/'
     param = {}
     param['bs'] = fun.param(ppath+'zb_bs.json') if evt == 'zb' else fun.param(ppath+'qcd_bs.json')
     param['bsw'] = fun.param(ppath+'zb_bsw.json') if evt == 'zb' else fun.param(ppath+'qcd_bsw.json')
@@ -99,15 +104,15 @@ if __name__ == '__main__':
         for p in ['runstart', 'runend', 'lumistart', 'lumiend', 'beamwidthx', 'beamwidthy']:
             ParamList[t][p] = param[t].get(p)
     
-    if options.pileup != '' and isMC:
-        pu = fun.pileup(options.pileup, evt)
+    if options.pileup and isMC:
+        pu = fun.pileup(options.home+'/data/'+options.year+'/pileup/', evt)
 
-    if options.reweight != '' and isMC:
-        rw = fun.reweight(options.reweight, 'jetHT')
+    if options.reweight and isMC:
+        rw = fun.reweight(options.home+'/data/'+options.year+'/reweight/', 'jetHT')
         
     nEvents = tr.GetEntries()
-    print 'Run on ' + ('Data' if isData else 'MC')
-    print 'Processed events = ' + str(nEvents)
+    print('Run on ' + ('Data' if isData else 'MC'))
+    print('Processed events = ' + str(nEvents))
 
     sel = ['']
     for ks, vs in c.sel.iteritems():
@@ -329,7 +334,15 @@ if __name__ == '__main__':
 
     if options.time: 
         ts['main'] = dt.datetime.now()
-                
+
+    mm = 1E-3        
+    pv_cm = 1/10000.
+    pv_mm = 1/1000.
+    
+    bs_cm = 1.
+    bs_mm = 10.
+    bs_micron = 10000.
+        
     # Fill histograms
     for i in range(nEvents):
         
@@ -344,7 +357,7 @@ if __name__ == '__main__':
         if options.time: ts['main_checkpoints'].append(dt.datetime.now())
 
         # Event selection
-        
+
         jetPtMax = 0.
         jetHT = 0.
         for j in range(tr.pfjet_n):
@@ -365,39 +378,35 @@ if __name__ == '__main__':
             if not (tr.trig_PFHT180_pass or tr.trig_PFHT250_pass or tr.trig_PFHT370_pass or\
             tr.trig_PFHT430_pass or tr.trig_PFHT510_pass or tr.trig_PFHT590_pass or\
             tr.trig_PFHT680_pass or tr.trig_PFHT780_pass or tr.trig_PFHT890_pass or tr.trig_PFHT1050_pass): continue
-            
+
         isValid = tr.pv_IsValid
         isFake = tr.pv_IsFake
-            
-        if not isValid or isFake: continue
-
-        nTracks = tr.pv_NTracks        
+        nTracks = tr.pv_NTracks
         sumTrackPt = tr.pv_SumTrackPt
-        sumTrackPtSq = math.sqrt(tr.pv_SumTrackPt2)
+        sumTrackPtSqSq = tr.pv_SumTrackPt2
+        sumTrackPtSq = [math.sqrt(v) for v in sumTrackPtSqSq]
+        chi2 = tr.pv_chi2
+        ndof = tr.pv_ndof
         
-        pv_chi2 = tr.pv_chi2/tr.pv_ndof if tr.pv_ndof > 0 else -1
-        pv_ndof = tr.pv_ndof
+        npv = tr.ev_nPV
+        run = tr.ev_run
+        lumi = tr.ev_lumi
         
-        if nTracks < 3: continue
-        
+        if len(isValid) == 0: continue
+
         pvParamListVal = []
         for pvp in pvParamList:
             pvParamListVal.append(eval(pvp))
-        
-        npv = tr.ev_nPV
-        
+
         we = 1.
-        if options.pileup != '' and isMC:
+        if options.pileup and isMC:
             we = we*pu.getWeight(tr.mc_pu_trueNumInt)
 
-        if options.reweight != '' and isMC and evt == 'qcd':
+        if options.reweight and isMC and evt == 'qcd':
             we = we*rw.getWeight(eval(options.reweightvar))
             
-        run = tr.ev_run
-        lumi = tr.ev_lumi
-
         if options.time: ts['main_checkpoints'].append(dt.datetime.now())
-        
+
         # PV/BS study
         
         bs_x0 = tr.bs_x0
@@ -418,7 +427,8 @@ if __name__ == '__main__':
         bs_betaStar = tr.bs_betaStar
 
         # from BS monitoring
-        if (bs_beamWidthXError >= 0.1): continue
+##        if (bs_beamWidthXError >= 0.1) and not options.bs: continue
+##        if (bs_beamWidthXError*bs_micron > 0.1) and not options.bs: continue
 
         pv_x = tr.pv_x
         pv_y = tr.pv_y
@@ -440,101 +450,47 @@ if __name__ == '__main__':
         pv_xError2 = tr.pv_xError_p2
         pv_yError2 = tr.pv_yError_p2
         pv_zError2 = tr.pv_zError_p2
+
+        trk_pt = tr.pv_trk_pt
+        trk_eta = tr.pv_trk_eta
+        trk_phi = tr.pv_trk_phi
         
-        if pv_x1 == -777 or pv_x2 == -777: continue
+        trk_hasPixelBarrelLayer1 = tr.pv_trk_hasPixelBarrelLayer1
+        trk_hasPixelEndcapLayer1 = tr.pv_trk_hasPixelEndcapLayer1
+        trk_hasPixelBarrelLayer2 = tr.pv_trk_hasPixelBarrelLayer2
+        trk_hasPixelEndcapLayer2 = tr.pv_trk_hasPixelEndcapLayer2
+        trk_hasPixelBarrelLayer3 = tr.pv_trk_hasPixelBarrelLayer3
+        trk_hasPixelEndcapLayer3 = tr.pv_trk_hasPixelEndcapLayer3
+        trk_hasPixelBarrelLayer4 = tr.pv_trk_hasPixelBarrelLayer4
+        trk_hasPixelEndcapLayer4 = tr.pv_trk_hasPixelEndcapLayer4
             
-        pv_dx12 = (pv_x1-pv_x2)/math.sqrt(2)
-        pv_dy12 = (pv_y1-pv_y2)/math.sqrt(2)
-        pv_dz12 = (pv_z1-pv_z2)/math.sqrt(2)
+#        trk_jet_found = tr.pv_trk_jet_found
+#        trk_jet_eta = tr.pv_trk_jet_eta
+#        trk_jet_phi = tr.pv_trk_jet_phi
+#        trk_jet_nTracks = tr.pv_trk_jet_nTracks
         
-        pv_dxPull12 = (pv_x1-pv_x2)/math.sqrt(pv_xError1*pv_xError1+pv_xError2*pv_xError2)
-        pv_dyPull12 = (pv_y1-pv_y2)/math.sqrt(pv_yError1*pv_yError1+pv_yError2*pv_yError2)
-        pv_dzPull12 = (pv_z1-pv_z2)/math.sqrt(pv_zError1*pv_zError1+pv_zError2*pv_zError2)
-
-        pv_cm = 1/10000.
-        pv_mm = 1/1000.
-
-        bs_cm = 1.
-        bs_mm = 10.
-        bs_micron = 10000.
+        trk_d0 = tr.pv_trk_d0
+        trk_dz = tr.pv_trk_dz
+            
+        trk_d0_pv = tr.pv_trk_d0_pv
+        trk_dz_pv = tr.pv_trk_dz_pv
+        trk_d0_bs = tr.pv_trk_d0_bs
+        trk_dz_bs = tr.pv_trk_dz_bs
         
-        if bs_beamWidthXError*bs_micron > 0.1: continue
-
-        if storeHist:
+        trk_d0_bs_zpv = tr.pv_trk_d0_bs_zpv
+        trk_d0_bs_zpca = tr.pv_trk_d0_bs_zpca
             
-            h['h_evNpv'].Fill(npv, we)            
-            h['h_jetPtMax'].Fill(jetPtMax, we)
-            h['h_jetHT'].Fill(jetHT, we)
-            
-            h['h_pvNTrks'].Fill(nTracks, we)
-            h['h_pvSumTrackPt'].Fill(sumTrackPt, we)
-            h['h_pvSumTrackPt2'].Fill(sumTrackPtSq, we)
-            
-            h['h_pvChi2'].Fill(pv_chi2, we)
-            h['h_pvNdof'].Fill(pv_ndof, we)
-            
-            h['h_pvXError'].Fill(pv_xError, we)
-            h['h_pvYError'].Fill(pv_yError, we)
-            h['h_pvZError'].Fill(pv_zError, we)
-            
-            h['h_pv1XError'].Fill(pv_xError1, we)
-            h['h_pv1YError'].Fill(pv_yError1, we)
-            h['h_pv1ZError'].Fill(pv_zError1, we)
-            
-            h['h_pv2XError'].Fill(pv_xError2, we)
-            h['h_pv2YError'].Fill(pv_yError2, we)
-            h['h_pv2ZError'].Fill(pv_zError2, we)
-            
-            h['h_bsx0'].Fill(bs_x0*bs_mm, we)
-            h['h_bsy0'].Fill(bs_y0*bs_mm, we)
-            h['h_bsz0'].Fill(bs_z0*bs_cm, we)
-            
-            h['h_bsx'].Fill(bs_x*bs_mm, we)
-            h['h_bsy'].Fill(bs_y*bs_mm, we)
-            
-            h2['h2_bsx0_y0'].Fill(bs_x0*bs_mm, bs_y0*bs_mm, we)
-            h2['h2_bsx0_z0'].Fill(bs_z0*bs_cm, bs_x0*bs_mm, we)
-            h2['h2_bsy0_z0'].Fill(bs_z0*bs_cm, bs_y0*bs_mm, we)
-            
-            h2['h2_bsx_y'].Fill(bs_x*bs_mm, bs_y*bs_mm, we)
-            h2['h2_bsx_z'].Fill(bs_z0*bs_cm, bs_x*bs_mm, we)
-            h2['h2_bsy_z'].Fill(bs_z0*bs_cm, bs_y*bs_mm, we)
-            
-            h['h_bsBeamWidthX'].Fill(bs_beamWidthX*bs_micron, we)
-            h['h_bsBeamWidthY'].Fill(bs_beamWidthY*bs_micron, we)
-            h['h_bsSigmaZ'].Fill(bs_sigmaZ*bs_cm, we)
-
-            h['h_pvx'].Fill(pv_x*pv_mm, we)
-            h['h_pvy'].Fill(pv_y*pv_mm, we)
-            h['h_pvz'].Fill(pv_z*pv_cm, we)
-            
-            h2['h2_pvx_y'].Fill(pv_x*pv_mm, pv_y*pv_mm, we)
-            h2['h2_pvx_z'].Fill(pv_z*pv_cm, pv_x*pv_mm, we)
-            h2['h2_pvy_z'].Fill(pv_z*pv_cm, pv_y*pv_mm, we)
-            
-            for pvp in pvParamList:
-                
-                param = eval(pvp)
-                pvbins = ParamList['pv'][pvp]
-#                pvbins = ParamList['bs'][pvp]
-                
-                for k, v in pvbins.iteritems():
-                    
-                    paramMin = v['bins'][1]
-                    paramMax = v['bins'][2]
-                    
-                    if param >= paramMin and param < paramMax:
-                        
-                        h['h_pvdx12'+k].Fill(pv_dx12, we)
-                        h['h_pvdy12'+k].Fill(pv_dy12, we)
-                        h['h_pvdz12'+k].Fill(pv_dz12, we)
-                        
-                        h['h_pvdxPull12'+k].Fill(pv_dxPull12, we)
-                        h['h_pvdyPull12'+k].Fill(pv_dyPull12, we)
-                        h['h_pvdzPull12'+k].Fill(pv_dzPull12, we)
-
+        trk_d0Err = tr.pv_trk_d0Err
+        trk_dzErr = tr.pv_trk_dzErr
+        
+        trk_normalizedChi2 = tr.pv_trk_normalizedChi2
+        trk_ndof = tr.pv_trk_ndof
+        trk_nValid = tr.pv_trk_nValidTracker
+        trk_nMissedIn = tr.pv_trk_nMissedTrackerIn
+        trk_nMissedOut = tr.pv_trk_nMissedTrackerOut
+        
         if storeTree:
-            
+        
             trkTree.clear()
             
             trkTree.run[0] = run
@@ -542,7 +498,7 @@ if __name__ == '__main__':
             trkTree.beamWidthX[0] = bs_beamWidthX
             trkTree.beamWidthY[0] = bs_beamWidthY
             trkTree.beamSigmaZ[0] = bs_sigmaZ
-            trkTree.sumTrackPtSq[0] = sumTrackPtSq
+#            trkTree.sumTrackPtSq[0] = tr.sumTrackPtSq
             trkTree.beamWidthXError[0] = bs_beamWidthXError
             trkTree.beamWidthYError[0] = bs_beamWidthYError
             trkTree.beamSigmaZError[0] = bs_sigmaZError
@@ -550,288 +506,330 @@ if __name__ == '__main__':
             trkTree.beamEmittanceY[0] = bs_emittanceY
             trkTree.beamBetaStar[0] = bs_betaStar
 
-        if options.time: ts['main_checkpoints'].append(dt.datetime.now())
-        
-        # IP study
-        
-#        continue # fixme
-        
-        # Fast access to vector branches
-        
-        trk_pt = tr.trk_pt
-        trk_eta = tr.trk_eta
-        trk_phi = tr.trk_phi
-        
-        trk_hasPixelBarrelLayer1 = tr.trk_hasPixelBarrelLayer1
-        trk_hasPixelEndcapLayer1 = tr.trk_hasPixelEndcapLayer1
-        trk_hasPixelBarrelLayer2 = tr.trk_hasPixelBarrelLayer2
-        trk_hasPixelEndcapLayer2 = tr.trk_hasPixelEndcapLayer2
-        trk_hasPixelBarrelLayer3 = tr.trk_hasPixelBarrelLayer3
-        trk_hasPixelEndcapLayer3 = tr.trk_hasPixelEndcapLayer3
-        trk_hasPixelBarrelLayer4 = tr.trk_hasPixelBarrelLayer4
-        trk_hasPixelEndcapLayer4 = tr.trk_hasPixelEndcapLayer4
-        
-        trk_jet_found = tr.trk_jet_found
-        trk_jet_eta = tr.trk_jet_eta
-        trk_jet_phi = tr.trk_jet_phi
-        trk_jet_nTracks = tr.trk_jet_nTracks
-        
-        trk_d0 = tr.trk_d0
-        trk_dz = tr.trk_dz
-        
-        trk_d0_pv = tr.trk_d0_pv
-        trk_dz_pv = tr.trk_dz_pv
-        trk_d0_bs = tr.trk_d0_bs
-        trk_dz_bs = tr.trk_dz_bs
-        
-        trk_d0_bs_zpv = tr.trk_d0_bs_zpv
-        trk_d0_bs_zpca = tr.trk_d0_bs_zpca
-        
-        trk_d0Err = tr.trk_d0Err
-        trk_dzErr = tr.trk_dzErr
-        
-        trk_normalizedChi2 = tr.trk_normalizedChi2
-        trk_ndof = tr.trk_ndof
-        trk_nValid = tr.trk_nValidTracker
-        trk_nMissedIn = tr.trk_nMissedTrackerIn
-        trk_nMissedOut = tr.trk_nMissedTrackerOut
-        
-        nTracks = trk_pt.size()
+        nPVr = len(isValid) if not options.bs else 0
+        nPVr = 1 if len(isValid) > 0 else len(isValid)
+        for ipv in range(nPVr):
 
-        if options.time: print 'nTracks =', nTracks
+            if not isValid[ipv] or isFake[ipv]: continue
         
-        for t in range(nTracks):
-
-            pt = trk_pt[t]
-            eta = trk_eta[t]
-            phi = trk_phi[t]
+            pv_chi2 = chi2[ipv]/ndof[ipv] if ndof[ipv] > 0 else -1
+            pv_ndof = ndof[ipv]
+        
+            if nTracks[ipv] < 3: continue
+        
+            if pv_x1[ipv] == -777 or pv_x2[ipv] == -777: continue
             
-            hasPXL1 = (trk_hasPixelBarrelLayer1[t] or trk_hasPixelEndcapLayer1[t])
-            hasPXL2 = (trk_hasPixelBarrelLayer2[t] or trk_hasPixelEndcapLayer2[t])
-            hasPXL3 = (trk_hasPixelBarrelLayer3[t] or trk_hasPixelEndcapLayer3[t])
-            hasPXL4 = (trk_hasPixelBarrelLayer4[t] or trk_hasPixelEndcapLayer4[t])
-            
-            trkSelPXL1 = bool(hasPXL1)
-            trkSelPXL2 = bool(hasPXL1 and hasPXL2)
-            trkSelPXL3 = bool(hasPXL1 and hasPXL2 and hasPXL3)
-            trkSelPXL4 = bool(hasPXL1 and hasPXL2 and hasPXL3 and hasPXL4)
-            
-##            if pt > 10.: continue
-##            if pt < 1.: continue
-
-            isJet = trk_jet_found[t]
-            jetEta = trk_jet_eta[t]
-            jetPhi = trk_jet_phi[t]
-            nTrkJet = trk_jet_nTracks[t]
-
-            if isJet:
-                drTrkJet = utils.deltaR2(eta, phi, jetEta, jetPhi)
-            
-            d0 = trk_d0[t]
-            dz = trk_dz[t]
-
-            d0_pv = trk_d0_pv[t]
-            dz_pv = trk_dz_pv[t]
-            d0_bs = trk_d0_bs[t]
-            dz_bs = trk_dz_bs[t]
-            d0_bs_zpv = trk_d0_bs_zpv[t]
-            d0_bs_zpca = trk_d0_bs_zpca[t]
-            
-            d0Err = trk_d0Err[t]
-            dzErr = trk_dzErr[t]
-            
-            normalizedChi2 = trk_normalizedChi2[t]
-            ndof = trk_ndof[t]
-            nvalid = trk_nValid[t]
-            nmissed = trk_nMissedIn[t] + trk_nMissedOut[t]
-
-            if pt < options.ptmin: continue
-            if math.fabs(eta) > options.etamax: continue
+            pv_dx12 = (pv_x1[ipv]-pv_x2[ipv])/math.sqrt(2)
+            pv_dy12 = (pv_y1[ipv]-pv_y2[ipv])/math.sqrt(2)
+            pv_dz12 = (pv_z1[ipv]-pv_z2[ipv])/math.sqrt(2)
+        
+            pv_dxPull12 = (pv_x1[ipv]-pv_x2[ipv])/math.sqrt(pv_xError1[ipv]*pv_xError1[ipv]+pv_xError2[ipv]*pv_xError2[ipv])
+            pv_dyPull12 = (pv_y1[ipv]-pv_y2[ipv])/math.sqrt(pv_yError1[ipv]*pv_yError1[ipv]+pv_yError2[ipv]*pv_yError2[ipv])
+            pv_dzPull12 = (pv_z1[ipv]-pv_z2[ipv])/math.sqrt(pv_zError1[ipv]*pv_zError1[ipv]+pv_zError2[ipv]*pv_zError2[ipv])
 
             if storeHist:
-                
-                h['h_ipPt'].Fill(pt, we)
-                h['h_ipEta'].Fill(eta, we)
-                h['h_ipPhi'].Fill(phi, we)
-                if isJet: h['h_ipDrTrkJet'].Fill(drTrkJet, we)
-                if isJet: h['h_ipNTrkJet'].Fill(nTrkJet, we)
-
-            sd0 = d0/d0Err if d0Err > 0 else -777
-            sdz = dz/dzErr if dzErr > 0 else -777
-            sd0_pv = d0_pv/d0Err if d0Err > 0 else -777
-            sdz_pv = dz_pv/dzErr if dzErr > 0 else -777
-            sd0_bs = d0_bs/d0Err if d0Err > 0 else -777
-            sdz_bs = dz_bs/dzErr if dzErr > 0 else -777
-            sd0_bs_zpv = d0_bs_zpv/d0Err if d0Err > 0 else -777
-            sd0_bs_zpca = d0_bs_zpca/d0Err if d0Err > 0 else -777
             
-            mm = 1E-3
-
-            if storeTree:
+                if ipv == 0:
+                    
+                    h['h_evNpv'].Fill(npv, we)            
+                    h['h_jetPtMax'].Fill(jetPtMax, we)
+                    h['h_jetHT'].Fill(jetHT, we)
+                    
+                    h['h_bsx0'].Fill(bs_x0*bs_mm, we)
+                    h['h_bsy0'].Fill(bs_y0*bs_mm, we)
+                    h['h_bsz0'].Fill(bs_z0*bs_cm, we)
+                    
+                    h['h_bsx'].Fill(bs_x*bs_mm, we)
+                    h['h_bsy'].Fill(bs_y*bs_mm, we)
+                    
+                    h2['h2_bsx0_y0'].Fill(bs_x0*bs_mm, bs_y0*bs_mm, we)
+                    h2['h2_bsx0_z0'].Fill(bs_z0*bs_cm, bs_x0*bs_mm, we)
+                    h2['h2_bsy0_z0'].Fill(bs_z0*bs_cm, bs_y0*bs_mm, we)
+                    
+                    h2['h2_bsx_y'].Fill(bs_x*bs_mm, bs_y*bs_mm, we)
+                    h2['h2_bsx_z'].Fill(bs_z0*bs_cm, bs_x*bs_mm, we)
+                    h2['h2_bsy_z'].Fill(bs_z0*bs_cm, bs_y*bs_mm, we)
+                    
+                    h['h_bsBeamWidthX'].Fill(bs_beamWidthX*bs_micron, we)
+                    h['h_bsBeamWidthY'].Fill(bs_beamWidthY*bs_micron, we)
+                    h['h_bsSigmaZ'].Fill(bs_sigmaZ*bs_cm, we)
             
-                trkTree.pt.push_back(pt)
-                trkTree.eta.push_back(eta)
-                trkTree.phi.push_back(phi)
-                trkTree.npv.push_back(npv)
-                if isJet: trkTree.dr.push_back(drTrkJet)
+                h['h_pvNTrks'].Fill(nTracks[ipv], we)
+                h['h_pvSumTrackPt'].Fill(sumTrackPt[ipv], we)
+                h['h_pvSumTrackPt2'].Fill(sumTrackPtSq[ipv], we)
             
-            if storeHist:
-                
-                h['h_ipD0'].Fill(d0*mm, we)
-                h['h_ipDz'].Fill(dz*mm, we)
-                h['h_ipSD0'].Fill(sd0, we)
-                h['h_ipSDz'].Fill(sdz, we)
-                
-                h['h_ippvD0'].Fill(d0_pv*mm, we)
-                h['h_ippvDz'].Fill(dz_pv*mm, we)
-                h['h_ippvSD0'].Fill(sd0_pv, we)
-                h['h_ippvSDz'].Fill(sdz_pv, we)
-                
-                h['h_ipbsD0'].Fill(d0_bs*mm, we)
-                h['h_ipbsDz'].Fill(dz_bs*mm, we)
-                h['h_ipbsSD0'].Fill(sd0_bs, we)
-                h['h_ipbsSDz'].Fill(sdz_bs, we)
-                
-                h['h_ipbszpvD0'].Fill(d0_bs_zpv*mm, we)
-                h['h_ipbszpcaD0'].Fill(d0_bs_zpca*mm, we)
-                h['h_ipbszpvSD0'].Fill(sd0_bs_zpv, we)
-                h['h_ipbszpcaSD0'].Fill(sd0_bs_zpca, we)
-                
-                h['h_ipChi2'].Fill(normalizedChi2, we)
-                h['h_ipNdof'].Fill(ndof, we)
-                h['h_ipNvalid'].Fill(nvalid, we)
-                h['h_ipNmissed'].Fill(nmissed, we)
-                
-#                continue # fixme
+                h['h_pvChi2'].Fill(pv_chi2, we)
+                h['h_pvNdof'].Fill(pv_ndof, we)
+            
+                h['h_pvXError'].Fill(pv_xError[ipv], we)
+                h['h_pvYError'].Fill(pv_yError[ipv], we)
+                h['h_pvZError'].Fill(pv_zError[ipv], we)
+            
+                h['h_pv1XError'].Fill(pv_xError1[ipv], we)
+                h['h_pv1YError'].Fill(pv_yError1[ipv], we)
+                h['h_pv1ZError'].Fill(pv_zError1[ipv], we)
+            
+                h['h_pv2XError'].Fill(pv_xError2[ipv], we)
+                h['h_pv2YError'].Fill(pv_yError2[ipv], we)
+                h['h_pv2ZError'].Fill(pv_zError2[ipv], we)
 
-                sellist = ['']
+                h['h_pvx'].Fill(pv_x[ipv]*pv_mm, we)
+                h['h_pvy'].Fill(pv_y[ipv]*pv_mm, we)
+                h['h_pvz'].Fill(pv_z[ipv]*pv_cm, we)
                 
-                for ksel, vsel in c.sel.iteritems():
+                h2['h2_pvx_y'].Fill(pv_x[ipv]*pv_mm, pv_y[ipv]*pv_mm, we)
+                h2['h2_pvx_z'].Fill(pv_z[ipv]*pv_cm, pv_x[ipv]*pv_mm, we)
+                h2['h2_pvy_z'].Fill(pv_z[ipv]*pv_cm, pv_y[ipv]*pv_mm, we)
+
+                for pvp in pvParamList:
+                
+                    param = eval(pvp+'['+str(ipv)+']')
+                    pvbins = ParamList['pv'][pvp]
+#                    pvbins = ParamList['bs'][pvp]
+                
+                    for k, v in pvbins.iteritems():
                     
-                    if ksel == 'pt': sv = pt
-                    elif ksel == 'eta': sv = math.fabs(eta)
-                    else:
-                        print 'Uknown selection:', ksel
-                        sys.exit()
+                        paramMin = v['bins'][1]
+                        paramMax = v['bins'][2]
                     
-                    for kksel, vvsel in vsel.iteritems():
+                        if param >= paramMin and param < paramMax:
                         
-                        vselMin = vvsel[0]
-                        vselMax = vvsel[1]
-                        if (len(vvsel) == 2 and sv >= vselMin and sv < vselMax) or \
-                        (len(vvsel) == 4 and sv >= vselMin and sv < vselMax and math.fabs(eta) >= vvsel[2] and math.fabs(eta) < vvsel[3]):
-                            sellist.append(kksel)
-                
-                for p in ipParamList:
+                            h['h_pvdx12'+k].Fill(pv_dx12, we)
+                            h['h_pvdy12'+k].Fill(pv_dy12, we)
+                            h['h_pvdz12'+k].Fill(pv_dz12, we)
+                        
+                            h['h_pvdxPull12'+k].Fill(pv_dxPull12, we)
+                            h['h_pvdyPull12'+k].Fill(pv_dyPull12, we)
+                            h['h_pvdzPull12'+k].Fill(pv_dzPull12, we)
+        
+            # IP study
+            
+            trk_nTracks = trk_pt[ipv].size()
 
-                    varp = pt
-                    if p == 'eta': varp = eta
-                    elif p == 'phi': varp = phi
-                    elif p == 'npv': varp = npv
-                    elif p == 'dr':
-                        if not isJet: continue
-                        else: varp = drTrkJet
-                        
-                    blistpv = ParamList['pv'][p]
+            if options.time: print('PV = ', ipv,'; nTracks =', trk_nTracks)
+        
+            for t in range(trk_nTracks):
+
+                t_pt = trk_pt[ipv][t]
+                t_eta = trk_eta[ipv][t]
+                t_phi = trk_phi[ipv][t]
+            
+                t_hasPXL1 = (trk_hasPixelBarrelLayer1[ipv][t] or trk_hasPixelEndcapLayer1[ipv][t])
+                t_hasPXL2 = (trk_hasPixelBarrelLayer2[ipv][t] or trk_hasPixelEndcapLayer2[ipv][t])
+                t_hasPXL3 = (trk_hasPixelBarrelLayer3[ipv][t] or trk_hasPixelEndcapLayer3[ipv][t])
+                t_hasPXL4 = (trk_hasPixelBarrelLayer4[ipv][t] or trk_hasPixelEndcapLayer4[ipv][t])
+                
+                t_trkSelPXL1 = bool(t_hasPXL1)
+                t_trkSelPXL2 = bool(t_hasPXL1 and t_hasPXL2)
+                t_trkSelPXL3 = bool(t_hasPXL1 and t_hasPXL2 and t_hasPXL3)
+                t_trkSelPXL4 = bool(t_hasPXL1 and t_hasPXL2 and t_hasPXL3 and t_hasPXL4)
+
+#                isJet = trk_jet_found[ipv][t]
+#                jetEta = trk_jet_eta[ipv][t]
+#                jetPhi = trk_jet_phi[ipv][t]
+#                nTrkJet = trk_jet_nTracks[ipv][t]
+
+#                if isJet:
+#                    drTrkJet = utils.deltaR2(eta, phi, jetEta, jetPhi)
+
+                t_d0 = trk_d0[ipv][t]
+                t_dz = trk_dz[ipv][t]
+
+                t_d0_pv = trk_d0_pv[ipv][t]
+                t_dz_pv = trk_dz_pv[ipv][t]
+                t_d0_bs = trk_d0_bs[ipv][t]
+                t_dz_bs = trk_dz_bs[ipv][t]
+                t_d0_bs_zpv = trk_d0_bs_zpv[ipv][t]
+                t_d0_bs_zpca = trk_d0_bs_zpca[ipv][t]
+            
+                t_d0Err = trk_d0Err[ipv][t]
+                t_dzErr = trk_dzErr[ipv][t]
+            
+                t_normalizedChi2 = trk_normalizedChi2[ipv][t]
+                t_ndof = trk_ndof[ipv][t]
+                t_nvalid = trk_nValid[ipv][t]
+                t_nmissed = trk_nMissedIn[ipv][t] + trk_nMissedOut[ipv][t]
+
+                if t_pt < options.ptmin: continue
+                if math.fabs(t_eta) > options.etamax: continue
+
+                if storeHist:
+                
+                    h['h_ipPt'].Fill(t_pt, we)
+                    h['h_ipEta'].Fill(t_eta, we)
+                    h['h_ipPhi'].Fill(t_phi, we)
+#                    if isJet: h['h_ipDrTrkJet'].Fill(drTrkJet, we)
+#                    if isJet: h['h_ipNTrkJet'].Fill(nTrkJet, we)
+
+                t_sd0 = t_d0/t_d0Err if t_d0Err > 0 else -777
+                t_sdz = t_dz/t_dzErr if t_dzErr > 0 else -777
+                t_sd0_pv = t_d0_pv/t_d0Err if t_d0Err > 0 else -777
+                t_sdz_pv = t_dz_pv/t_dzErr if t_dzErr > 0 else -777
+                t_sd0_bs = t_d0_bs/t_d0Err if t_d0Err > 0 else -777
+                t_sdz_bs = t_dz_bs/t_dzErr if t_dzErr > 0 else -777
+                t_sd0_bs_zpv = t_d0_bs_zpv/t_d0Err if t_d0Err > 0 else -777
+                t_sd0_bs_zpca = t_d0_bs_zpca/t_d0Err if t_d0Err > 0 else -777
+                
+#                if storeTree:
+            
+#                    trkTree.pt.push_back(pt)
+#                    trkTree.eta.push_back(eta)
+#                    trkTree.phi.push_back(phi)
+#                    trkTree.npv.push_back(npv)
+#                    if isJet: trkTree.dr.push_back(drTrkJet)
+            
+                if storeHist:
+                
+                    h['h_ipD0'].Fill(t_d0*mm, we)
+                    h['h_ipDz'].Fill(t_dz*mm, we)
+                    h['h_ipSD0'].Fill(t_sd0, we)
+                    h['h_ipSDz'].Fill(t_sdz, we)
                     
-                    for kp, vp in blistpv.iteritems():
-
-                        if kp in ['']: continue
-                        
-                        IP = blistpv[kp]['bins']
-
-                        pMin = IP[1]
-                        pMax = IP[2]
-                        
-                        if not (varp >= pMin and varp < pMax): continue
-
-                        for ipvp, pvp in enumerate(pvParamList):
- 
-                            param = pvParamListVal[ipvp]
-                            pvbins = ParamList['pv'][pvp]
-                            
-                            for kpv, vpv in pvbins.iteritems():
-
-                                if kpv in ['']: continue
-                                
-                                paramEdge = vpv['bins']
-                                
-                                paramMin = paramEdge[1]
-                                paramMax = paramEdge[2]
+                    h['h_ippvD0'].Fill(t_d0_pv*mm, we)
+                    h['h_ippvDz'].Fill(t_dz_pv*mm, we)
+                    h['h_ippvSD0'].Fill(t_sd0_pv, we)
+                    h['h_ippvSDz'].Fill(t_sdz_pv, we)
+                    
+                    h['h_ipbsD0'].Fill(t_d0_bs*mm, we)
+                    h['h_ipbsDz'].Fill(t_dz_bs*mm, we)
+                    h['h_ipbsSD0'].Fill(t_sd0_bs, we)
+                    h['h_ipbsSDz'].Fill(t_sdz_bs, we)
                 
-                                if not (param >= paramMin and param < paramMax): continue
-                        
-                                for kselip in sellist:
+                    h['h_ipbszpvD0'].Fill(t_d0_bs_zpv*mm, we)
+                    h['h_ipbszpcaD0'].Fill(t_d0_bs_zpca*mm, we)
+                    h['h_ipbszpvSD0'].Fill(t_sd0_bs_zpv, we)
+                    h['h_ipbszpcaSD0'].Fill(t_sd0_bs_zpca, we)
+                    
+                    h['h_ipChi2'].Fill(t_normalizedChi2, we)
+                    h['h_ipNdof'].Fill(t_ndof, we)
+                    h['h_ipNvalid'].Fill(t_nvalid, we)
+                    h['h_ipNmissed'].Fill(t_nmissed, we)
 
-#                                    if kpv+kp+kselip == '_sumTrackPtSq10p587to10p868_pt0p8207831493914127to0p931683250322938':
-#                                        print d0_pv, dz_pv
-                                    
-                                    h['h_ippvd0'+kpv+kp+kselip].Fill(d0_pv, we)
-                                    h['h_ippvdz'+kpv+kp+kselip].Fill(dz_pv, we)
-
-                    blistbs = ParamList['bs'][p]
-                                
-                    for kp, vp in blistbs.iteritems():
-
-                        if kp in ['']: continue
-                        
-                        IP = blistbs[kp]['bins']
-
-                        pMin = IP[1]
-                        pMax = IP[2]
-                        
-                        if not (varp >= pMin and varp < pMax): continue
-
-                        if isData:
-                            
-                            bsbins = ParamList['bsw']
-                            
-                            for ibs in range(len(bsbins['runstart'])):
-                                
-                                runMin = bsbins['runstart'][ibs]
-                                runMax = bsbins['runend'][ibs]
-                                lumiMin = bsbins['lumistart'][ibs]
-                                lumiMax = bsbins['lumiend'][ibs]
-                                
-                                if not (run >= runMin and run < runMax): continue
-                                if (run == runMin) and (lumi < lumiMin): continue
-                                if (run == runMax) and (lumi >= lumiMax): continue
-
-                                for kselip in sellist:
-                                
-                                    h['h_ipbsd0zpv'+kp+'_'+str(ibs)+kselip].Fill(d0_bs_zpv, we)
-                                    h['h_ipbsd0'+kp+'_'+str(ibs)+kselip].Fill(d0_bs, we)
-                                    h['h_ipbsdz'+kp+'_'+str(ibs)+kselip].Fill(dz_bs, we)
+                    sellist = ['']
+                
+                    for ksel, vsel in c.sel.iteritems():
+                    
+                        if ksel == 'pt': sv = t_pt
+                        elif ksel == 'eta': sv = math.fabs(t_eta)
                         else:
+                            print('Uknown selection:', ksel)
+                            sys.exit()
+                    
+                        for kksel, vvsel in vsel.iteritems():
+                        
+                            vselMin = vvsel[0]
+                            vselMax = vvsel[1]
+                            if (len(vvsel) == 2 and sv >= vselMin and sv < vselMax) or \
+                            (len(vvsel) == 4 and sv >= vselMin and sv < vselMax and math.fabs(t_eta) >= vvsel[2] and math.fabs(t_eta) < vvsel[3]):
+                                sellist.append(kksel)
+                
+                    for p in ipParamList:
+
+                        varp = t_pt
+                        if p == 'eta': varp = t_eta
+                        elif p == 'phi': varp = t_phi
+                        elif p == 'npv': varp = npv
+#                        elif p == 'dr':
+#                            if not isJet: continue
+#                            else: varp = drTrkJet
+                        
+                        blistpv = ParamList['pv'][p]
+                    
+                        for kp, vp in blistpv.iteritems():
+
+                            if kp in ['']: continue
+
+                            IP = blistpv[kp]['bins']
+
+                            pMin = IP[1]
+                            pMax = IP[2]
+                        
+                            if not (varp >= pMin and varp < pMax): continue
+
+                            for ipvp, pvp in enumerate(pvParamList):
+ 
+                                param = pvParamListVal[ipvp][ipv]
+                                pvbins = ParamList['pv'][pvp]
                             
-                            for kselip in sellist:
+                                for kpv, vpv in pvbins.iteritems():
+
+                                    if kpv in ['']: continue
                                 
-                                h['h_ipbsd0zpv'+kp+kselip].Fill(d0_bs_zpv, we)
-                                h['h_ipbsd0'+kp+kselip].Fill(d0_bs, we)
-                                h['h_ipbsdz'+kp+kselip].Fill(dz_bs, we)
+                                    paramEdge = vpv['bins']
                                 
+                                    paramMin = paramEdge[1]
+                                    paramMax = paramEdge[2]
+                
+                                    if not (param >= paramMin and param < paramMax): continue
+
+                                    for kselip in sellist:
+
+                                        h['h_ippvd0'+kpv+kp+kselip].Fill(t_d0_pv, we)
+                                        h['h_ippvdz'+kpv+kp+kselip].Fill(t_dz_pv, we)
+
+                        blistbs = ParamList['bs'][p]
+                                
+                        for kp, vp in blistbs.iteritems():
+
+                            if kp in ['']: continue
+                        
+                            IP = blistbs[kp]['bins']
+
+                            pMin = IP[1]
+                            pMax = IP[2]
+                            
+                            if not (varp >= pMin and varp < pMax): continue
+
+                            if isData:
+                            
+                                bsbins = ParamList['bsw']
+                            
+                                for ibs in range(len(bsbins['runstart'])):
+                                
+                                    runMin = bsbins['runstart'][ibs]
+                                    runMax = bsbins['runend'][ibs]
+                                    lumiMin = bsbins['lumistart'][ibs]
+                                    lumiMax = bsbins['lumiend'][ibs]
+                                
+                                    if not (run >= runMin and run < runMax): continue
+                                    if (run == runMin) and (lumi < lumiMin): continue
+                                    if (run == runMax) and (lumi >= lumiMax): continue
+                                    
+                                    for kselip in sellist:
+                                        
+                                        h['h_ipbsd0zpv'+kp+'_'+str(ibs)+kselip].Fill(t_d0_bs_zpv, we)
+                                        h['h_ipbsd0'+kp+'_'+str(ibs)+kselip].Fill(t_d0_bs, we)
+                                        h['h_ipbsdz'+kp+'_'+str(ibs)+kselip].Fill(t_dz_bs, we)
+                            else:
+                            
+                                for kselip in sellist:
+                                
+                                    h['h_ipbsd0zpv'+kp+kselip].Fill(t_d0_bs_zpv, we)
+                                    h['h_ipbsd0'+kp+kselip].Fill(t_d0_bs, we)
+                                    h['h_ipbsdz'+kp+kselip].Fill(t_dz_bs, we)
+                              
         if storeTree: trkTree.fill()
         
         if options.time: ts['main_checkpoints'].append(dt.datetime.now())
 
-        if options.time: print '     -> ', \
+        if options.time: print('     -> ', \
         'total: ', (ts['main_checkpoints'][-1]-ts['main_checkpoints'][0]).total_seconds(), 's', \
         'read: ', (ts['main_checkpoints'][1]-ts['main_checkpoints'][0]).total_seconds(), 's', \
         'selection: ', (ts['main_checkpoints'][2]-ts['main_checkpoints'][1]).total_seconds(), 's', \
         'pv: ', (ts['main_checkpoints'][3]-ts['main_checkpoints'][2]).total_seconds(), 's', \
-        'ip: ', (ts['main_checkpoints'][4]-ts['main_checkpoints'][3]).total_seconds(), 's'
+        'ip: ', (ts['main_checkpoints'][4]-ts['main_checkpoints'][3]).total_seconds(), 's')
 
     if options.time: ts['end'] = dt.datetime.now()
     
     if options.time:
         
-        print '----> Runtime stats ----------->'
-        print 'Initialisation     =', (ts['hist']-ts['init']).total_seconds(), 's'
-        print 'Histogram booking  =', (ts['main']-ts['hist']).total_seconds(), 's'
-        print 'Event loop         =', (ts['end']-ts['main']).total_seconds(), 's'
-        print '---->-------------------------->'
+        print('----> Runtime stats ----------->')
+        print('Initialisation     =', (ts['hist']-ts['init']).total_seconds(), 's')
+        print('Histogram booking  =', (ts['main']-ts['hist']).total_seconds(), 's')
+        print('Event loop         =', (ts['end']-ts['main']).total_seconds(), 's')
+        print('---->-------------------------->')
     
-    print '\033[1;32mdone\033[1;m'
+    print('\033[1;32mdone\033[1;m')
 
     outFile.Write()
     outFile.Close()
