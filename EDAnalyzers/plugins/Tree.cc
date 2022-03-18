@@ -12,6 +12,7 @@ void ResTree::Init()
    ev_lumi = null;
    ev_bunchCrossing = null;
    ev_orbitNumber = null;
+   ev_time = null;
    ev_rho = null;
    ev_nPV = null;
    
@@ -509,6 +510,7 @@ void ResTree::CreateBranches(int buff = 32000, bool runOnData = false)
    tree->Branch("ev_lumi", &ev_lumi, "ev_lumi/I", buff);
    tree->Branch("ev_bunchCrossing", &ev_bunchCrossing, "ev_bunchCrossing/I", buff);
    tree->Branch("ev_orbitNumber", &ev_orbitNumber, "ev_orbitNumber/I", buff);
+   tree->Branch("ev_time", &ev_time, "ev_time/I", buff);
    tree->Branch("ev_rho", &ev_rho, "ev_rho/F", buff);
    tree->Branch("ev_nPV", &ev_nPV, "ev_nPV/I", buff);
    

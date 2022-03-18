@@ -360,6 +360,7 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ftree->ev_lumi = iEvent.id().luminosityBlock();
    ftree->ev_bunchCrossing = iEvent.bunchCrossing();
    ftree->ev_orbitNumber = iEvent.orbitNumber();
+   ftree->ev_time = iEvent.time().unixTime();
    ftree->ev_rho = *rhoPtr;
    ftree->ev_nPV = pvr.size();
 
@@ -1299,8 +1300,26 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  {
 	     pat::Jet jet = pfJets->at(ij);
 	     reco::TrackRefVector trks = jet.associatedTracks();
-	     const reco::TrackRef trkRef = reco::TrackRef(tracks, itk - tracks.begin());
-	     edm::RefVector<TrackCollection>::const_iterator itt = find_if(trks.begin(), trks.end(), TrackEqualRef(trkRef));
+	     
+	     for( unsigned int it=0;it<trks.size();it++ )
+	       {
+		  for( unsigned int ipv=0;ipv<pvs.size();ipv++ )
+		    {
+		       std::vector<reco::TransientTrack> vtxTracks = pvs[ipv].originalTracks();
+		       
+		       for( std::vector<reco::TransientTrack>::const_iterator itt=vtxTracks.begin();itt!=vtxTracks.end();itt++ )
+			 {
+			    reco::Track trk = (*itt).track();
+		  
+//		       edm::RefVector<TrackCollection>::const_iterator itt = find_if(trks.begin(), trks.end(), TrackEqualRef(trk));
+//		       if( itt != trks.end() )
+//			 {
+//			    std::cout << "found" << std::endl;
+//			 }
+			 }
+		    }
+	       }*/
+/*	     edm::RefVector<TrackCollection>::const_iterator itt = find_if(trks.begin(), trks.end(), TrackEqualRef(trkRef));
 	     if( itt != trks.end() )
 	       {
 		  size_t pos = itt - trks.begin();
@@ -1489,8 +1508,8 @@ void Residuals::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     ftree->trk_pfjetTrk_dzErr.push_back( null );
 	     ftree->trk_pfjetTrk_d0_pv_NoRefit.push_back( null );
 	     ftree->trk_pfjetTrk_dz_pv_NoRefit.push_back( null );
-	  }
-   }*/
+	  }*/
+//   }
 
    ftree->tree->Fill();
 }   

@@ -25,6 +25,7 @@ class ResTree
    int ev_lumi;
    int ev_bunchCrossing;
    int ev_orbitNumber;
+   unsigned long int ev_time;
    float ev_rho;
    int ev_nPV;
 

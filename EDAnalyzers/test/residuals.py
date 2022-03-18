@@ -16,8 +16,8 @@ secFiles = cms.untracked.vstring()
 source = cms.Source("PoolSource",fileNames = readFiles, secondaryFileNames = secFiles)
 
 readFiles.extend( [
-#'/store/data/Run2016B/JetHT/MINIAOD/ver2_HIPM_UL2016_MiniAODv2-v2/230000/45CF386B-286D-7545-B097-238839251127.root'
-'/store/mc/RunIISummer20UL16MiniAODAPVv2/QCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/120000/D8B934DD-D7FA-7E4C-9513-FA2300288486.root'
+'/store/data/Run2016B/JetHT/MINIAOD/ver2_HIPM_UL2016_MiniAODv2-v2/230000/45CF386B-286D-7545-B097-238839251127.root'
+#'/store/mc/RunIISummer20UL16MiniAODAPVv2/QCD_Pt-15to7000_TuneCP5_Flat2018_13TeV_pythia8/MINIAODSIM/106X_mcRun2_asymptotic_preVFP_v11-v1/280000/95448C0E-74D6-8942-9ABE-D33A2B733BEC.root'
 ]);
 
 process = cms.Process("IpResiduals")
