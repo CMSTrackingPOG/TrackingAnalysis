@@ -12,12 +12,12 @@ def main(argv = None):
         argv = sys.argv[1:]
         
     usage = "usage: %prog [options]\n Submit jobs"
-    
+
     parser = OptionParser(usage)
-    parser.add_option("-o", "--output", default="jobs", help="Output directory [default: %default]")
+    parser.add_option("--output", default="jobs", help="Output directory [default: %default]")
     parser.add_option("--splitdata", type=int, default=10, help="Number of files per job [default: %default]")
     parser.add_option("--splitmc", type=int, default=10, help="Number of files per job [default: %default]")
-    parser.add_option("-p", "--param", default="sumTrackPtSq", help="Parameterisation for PV resolution measurement [default: %default]")
+    parser.add_option("--param", default="sumTrackPtSq", help="Parameterisation for PV resolution measurement [default: %default]")
     parser.add_option("--data", action='store_true', help="Only run on data [default: %default]")
     parser.add_option("--mc", action='store_true', help="Only run on mc [default: %default]")
     parser.add_option("--bs", action='store_true', help="Produce trees with only BS information [default: %default]")
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     home = os.getcwd()
     
-    outdir = options.output
+    outdir = options.output+options.year
     if os.path.isdir(outdir):
         os.system("rm -rf "+outdir)
     os.system("mkdir "+outdir)
